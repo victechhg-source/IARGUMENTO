@@ -143,6 +143,22 @@
     .banca-card:nth-child(4) { padding-left: 3.5rem; }
     .banca-card:nth-child(5) { grid-column: 3 / span 2; min-height: 13.75rem; }
   }
+  .admin-metric-grid { @apply grid grid-cols-2 gap-3; }
+  .admin-metric { @apply relative flex flex-col justify-center bg-card p-6 text-card-foreground transition-transform duration-300; }
+  .admin-metric:hover { transform: translateY(-4px); }
+  @media (min-width: 1024px) {
+    .admin-metric-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+    .admin-metric { min-height: 10rem; }
+    .admin-metric:nth-child(1) { clip-path: polygon(0 0, 82% 0, 100% 16%, 100% 100%, 0 100%); }
+    .admin-metric:nth-child(2) { margin-top: 1.25rem; }
+    .admin-metric:nth-child(3) { clip-path: polygon(0 0, 100% 0, 100% 84%, 84% 100%, 0 100%); }
+    .admin-metric:nth-child(4) { margin-top: 1.25rem; }
+    .admin-metric:nth-child(5) { clip-path: polygon(0 0, 82% 0, 100% 16%, 100% 100%, 16% 100%, 0 84%); }
+  }
+  .admin-tabs { @apply flex flex-wrap gap-1 bg-transparent p-0; }
+  .admin-tab { @apply rounded-sm border border-transparent px-4 py-2 text-sm font-semibold text-foreground/60 transition-colors; }
+  .admin-tab:hover { color: hsl(var(--foreground)); }
+  .admin-tab[data-state='active'] { @apply border-foreground/60 bg-card text-card-foreground; }
   .banca-mark { @apply flex h-11 min-w-11 items-center justify-center rounded-xl px-2 text-sm font-extrabold text-white; }
   .banca-grade { @apply flex items-center gap-1 rounded-full bg-black/5 px-3 py-1.5 text-xs font-medium; }
 }
