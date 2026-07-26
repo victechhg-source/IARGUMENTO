@@ -29,7 +29,9 @@ export default function UploadArea({ onUpload }) {
         ref={inputRef}
         type="file"
         accept="image/*"
-        className="hidden"
+        aria-label="Enviar foto da redação"
+        data-testid="essay-file-input"
+        className="sr-only"
         onChange={(e) => handleFile(e.target.files[0])}
       />
       <div className="flex flex-col items-center gap-3">
