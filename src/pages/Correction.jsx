@@ -78,8 +78,11 @@ export default function Correction() {
       setTranscription(result.transcription);
       setUnrecognized(result.unrecognized_words || []);
 
+      const user = await base44.auth.me();
+      const memberships = await base44.entities.ClassMembership.filter({ student_id: user.id, status: 'approved' });
       const essay = await base44.entities.Essay.create({
         banca: banca.id,
+        teacher_ids: [...new Set(memberships.map(m => m.teacher_id))],
         status: 'reviewing',
         original_image_url: uploadRes.file_url,
         transcription: result.transcription,

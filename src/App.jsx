@@ -11,6 +11,9 @@ import Home from '@/pages/Home';
 import Correction from '@/pages/Correction';
 import Historico from '@/pages/Historico';
 import EssayDetail from '@/pages/EssayDetail';
+import TeacherDashboard from '@/pages/TeacherDashboard';
+import StudentClasses from '@/pages/StudentClasses';
+import StudentPerformance from '@/pages/StudentPerformance';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -43,6 +46,9 @@ const AuthenticatedApp = () => {
       <Route path="/correcao" element={<Correction />} />
       <Route path="/historico" element={<Historico />} />
       <Route path="/historico/:id" element={<EssayDetail />} />
+      <Route path="/professor" element={<TeacherDashboard />} />
+      <Route path="/professor/aluno/:studentId" element={<StudentPerformance />} />
+      <Route path="/minhas-turmas" element={<StudentClasses />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

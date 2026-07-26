@@ -4,7 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { UserPlus, Mail, Lock, Loader2 } from "lucide-react";
+import { UserPlus, Mail, Lock, Loader2, GraduationCap, School } from "lucide-react";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import AuthLayout from "@/components/AuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
@@ -18,6 +18,7 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [showOtp, setShowOtp] = useState(false);
   const [otpCode, setOtpCode] = useState("");
+  const [accountType, setAccountType] = useState("student");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -45,6 +46,7 @@ export default function Register() {
       if (result?.access_token) {
         base44.auth.setToken(result.access_token);
       }
+      await base44.auth.updateMe({ account_type: accountType });
       window.location.href = "/";
     } catch (err) {
       setError(err.message || "Invalid verification code");
@@ -67,6 +69,7 @@ export default function Register() {
   };
 
   const handleGoogle = () => {
+    localStorage.setItem("pendingAccountType", accountType);
     base44.auth.loginWithProvider("google", "/");
   };
 
@@ -127,8 +130,8 @@ export default function Register() {
   return (
     <AuthLayout
       icon={UserPlus}
-      title="Create your account"
-      subtitle="Sign up to get started"
+      title="Crie sua conta"
+      subtitle="Escolha seu perfil para começar"
       footer={
         <>
           Already have an account?{" "}
@@ -138,6 +141,11 @@ export default function Register() {
         </>
       }
     >
+      <div className="grid grid-cols-2 gap-3 mb-6" role="radiogroup" aria-label="Tipo de conta">
+        <button type="button" role="radio" aria-checked={accountType === "student"} onClick={() => setAccountType("student")} className={`min-h-20 rounded-lg border p-3 text-left cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${accountType === "student" ? "border-primary bg-primary/5" : "hover:bg-muted"}`}><GraduationCap className="w-5 h-5 mb-2" /><span className="font-medium block">Aluno</span><span className="text-xs text-muted-foreground">Corrigir redações</span></button>
+        <button type="button" role="radio" aria-checked={accountType === "teacher"} onClick={() => setAccountType("teacher")} className={`min-h-20 rounded-lg border p-3 text-left cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${accountType === "teacher" ? "border-primary bg-primary/5" : "hover:bg-muted"}`}><School className="w-5 h-5 mb-2" /><span className="font-medium block">Professor</span><span className="text-xs text-muted-foreground">Acompanhar turmas</span></button>
+      </div>
+
       <Button
         variant="outline"
         className="w-full h-12 text-sm font-medium mb-6"

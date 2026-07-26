@@ -1,4 +1,6 @@
 {
+  "name": "User",
+  "type": "object",
   "properties": {
     "role": {
       "type": "string",
@@ -7,11 +9,18 @@
         "admin",
         "user"
       ]
+    },
+    "account_type": {
+      "type": "string",
+      "enum": [
+        "student",
+        "teacher"
+      ],
+      "default": "student",
+      "description": "Tipo de perfil no Reda\u00e7\u00e3oPro"
     }
   },
   "required": [
     "role"
-  ],
-  "name": "User",
-  "type": "object"
+  ]
 }
