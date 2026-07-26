@@ -24,9 +24,19 @@ export default function AccountNav() {
   const admin = type === 'admin';
   const teacher = type === 'teacher';
   return (
-    <Link to={admin ? '/admin' : teacher ? '/professor' : '/minhas-turmas'} className="kinetic-link">
-      {admin ? <Shield className="w-4 h-4" /> : teacher ? <Users className="w-4 h-4" /> : <GraduationCap className="w-4 h-4" />}
-      {admin ? 'Administração' : teacher ? 'Painel do professor' : 'Minhas turmas'}
-    </Link>
+    <>
+      {(admin || teacher) && (
+        <Link to={admin ? '/admin' : '/professor'} className="kinetic-link">
+          {admin ? <Shield className="w-4 h-4" /> : <Users className="w-4 h-4" />}
+          {admin ? 'Administração' : 'Painel do professor'}
+        </Link>
+      )}
+      {!teacher && (
+        <Link to="/minhas-turmas" className="kinetic-link">
+          <GraduationCap className="w-4 h-4" />
+          Minhas turmas
+        </Link>
+      )}
+    </>
   );
 }
