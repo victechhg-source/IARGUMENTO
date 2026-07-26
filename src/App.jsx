@@ -14,6 +14,7 @@ import EssayDetail from '@/pages/EssayDetail';
 import TeacherDashboard from '@/pages/TeacherDashboard';
 import StudentClasses from '@/pages/StudentClasses';
 import StudentPerformance from '@/pages/StudentPerformance';
+import AdminDashboard from '@/pages/AdminDashboard';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -49,6 +50,7 @@ const AuthenticatedApp = () => {
       <Route path="/professor" element={<TeacherDashboard />} />
       <Route path="/professor/aluno/:studentId" element={<StudentPerformance />} />
       <Route path="/minhas-turmas" element={<StudentClasses />} />
+      <Route path="/admin" element={<AdminDashboard />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

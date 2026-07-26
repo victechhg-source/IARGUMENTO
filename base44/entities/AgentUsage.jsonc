@@ -1,0 +1,65 @@
+{
+  "name": "AgentUsage",
+  "type": "object",
+  "properties": {
+    "agent_id": {
+      "type": "string"
+    },
+    "agent_name": {
+      "type": "string"
+    },
+    "model": {
+      "type": "string"
+    },
+    "banca": {
+      "type": "string"
+    },
+    "essay_id": {
+      "type": "string"
+    },
+    "student_id": {
+      "type": "string"
+    },
+    "school_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "input_tokens": {
+      "type": "number"
+    },
+    "output_tokens": {
+      "type": "number"
+    },
+    "total_tokens": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "banca",
+    "total_tokens"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

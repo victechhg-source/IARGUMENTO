@@ -19,12 +19,17 @@ export default function Register() {
   const [showOtp, setShowOtp] = useState(false);
   const [otpCode, setOtpCode] = useState("");
   const [accountType, setAccountType] = useState("student");
+  const [schoolCode, setSchoolCode] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     if (password !== confirmPassword) {
-      setError("Passwords do not match");
+      setError("As senhas não coincidem");
+      return;
+    }
+    if (accountType === "teacher" && !schoolCode.trim()) {
+      setError("Informe o código institucional da escola");
       return;
     }
     setLoading(true);
@@ -46,7 +51,11 @@ export default function Register() {
       if (result?.access_token) {
         base44.auth.setToken(result.access_token);
       }
-      await base44.auth.updateMe({ account_type: accountType });
+      if (accountType === "teacher") {
+        await base44.functions.invoke("redeemSchoolCode", { code: schoolCode });
+      } else {
+        await base44.auth.updateMe({ account_type: accountType });
+      }
       window.location.href = "/";
     } catch (err) {
       setError(err.message || "Invalid verification code");
@@ -70,6 +79,7 @@ export default function Register() {
 
   const handleGoogle = () => {
     localStorage.setItem("pendingAccountType", accountType);
+    if (accountType === "teacher") localStorage.setItem("pendingSchoolCode", schoolCode);
     base44.auth.loginWithProvider("google", "/");
   };
 
@@ -146,9 +156,12 @@ export default function Register() {
         <button type="button" role="radio" aria-checked={accountType === "teacher"} onClick={() => setAccountType("teacher")} className={`min-h-20 rounded-lg border p-3 text-left cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${accountType === "teacher" ? "border-primary bg-primary/5" : "hover:bg-muted"}`}><School className="w-5 h-5 mb-2" /><span className="font-medium block">Professor</span><span className="text-xs text-muted-foreground">Acompanhar turmas</span></button>
       </div>
 
+      {accountType === "teacher" && <div className="space-y-2 mb-4"><Label htmlFor="school-code">Código institucional</Label><Input id="school-code" value={schoolCode} onChange={(e) => setSchoolCode(e.target.value.toUpperCase())} placeholder="ESC-XXXXXX" required /></div>}
+
       <Button
         variant="outline"
         className="w-full h-12 text-sm font-medium mb-6"
+        disabled={accountType === "teacher" && !schoolCode.trim()}
         onClick={handleGoogle}
       >
         <GoogleIcon className="w-5 h-5 mr-2" />

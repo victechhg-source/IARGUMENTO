@@ -13,6 +13,9 @@
     },
     "teacher_name": {
       "type": "string"
+    },
+    "school_id": {
+      "type": "string"
     }
   },
   "required": [

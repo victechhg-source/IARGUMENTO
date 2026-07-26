@@ -17,6 +17,9 @@
     "teacher_name": {
       "type": "string"
     },
+    "school_id": {
+      "type": "string"
+    },
     "student_id": {
       "type": "string"
     },

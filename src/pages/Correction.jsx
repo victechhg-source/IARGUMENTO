@@ -83,6 +83,7 @@ export default function Correction() {
       const essay = await base44.entities.Essay.create({
         banca: banca.id,
         teacher_ids: [...new Set(memberships.map(m => m.teacher_id))],
+        school_ids: [...new Set(memberships.map(m => m.school_id).filter(Boolean))],
         status: 'reviewing',
         original_image_url: uploadRes.file_url,
         transcription: result.transcription,
@@ -122,9 +123,11 @@ export default function Correction() {
     setPhase('correcting');
 
     try {
-      const result = await base44.integrations.Core.InvokeLLM({
+      const response = await base44.functions.invoke('runCorrectionAgent', {
+        banca: banca.id,
+        essayId,
         prompt: buildCorrectionPrompt(banca, editedText),
-        response_json_schema: {
+        responseJsonSchema: {
           type: "object",
           properties: {
             annotated_text: { type: "string" },
@@ -146,11 +149,12 @@ export default function Correction() {
             study_suggestions: { type: "array", items: { type: "string" } }
           }
         }
-      });
+        });
+        const result = response.data.result;
 
-      setCorrection(result);
+        setCorrection(result);
 
-      if (essayId) {
+        if (essayId) {
         await base44.entities.Essay.update(essayId, {
           status: 'completed',
           annotated_text: result.annotated_text,

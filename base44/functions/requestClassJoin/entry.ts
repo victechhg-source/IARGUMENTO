@@ -22,6 +22,7 @@ Deno.serve(async (req) => {
       class_code: classroom.code,
       teacher_id: classroom.teacher_id,
       teacher_name: classroom.teacher_name,
+      school_id: classroom.school_id || '',
       student_id: user.id,
       student_name: user.full_name || user.email,
       student_email: user.email,

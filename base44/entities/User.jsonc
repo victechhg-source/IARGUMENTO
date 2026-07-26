@@ -18,6 +18,12 @@
       ],
       "default": "student",
       "description": "Tipo de perfil no Reda\u00e7\u00e3oPro"
+    },
+    "school_id": {
+      "type": "string"
+    },
+    "school_name": {
+      "type": "string"
     }
   },
   "required": [

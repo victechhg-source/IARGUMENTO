@@ -21,7 +21,8 @@ Deno.serve(async (req) => {
       if (essays.length) {
         await base44.asServiceRole.entities.Essay.bulkUpdate(essays.map((essay) => ({
           id: essay.id,
-          teacher_ids: [...new Set([...(essay.teacher_ids || []), user.id])]
+          teacher_ids: [...new Set([...(essay.teacher_ids || []), user.id])],
+          school_ids: [...new Set([...(essay.school_ids || []), membership.school_id].filter(Boolean))]
         })));
       }
     }

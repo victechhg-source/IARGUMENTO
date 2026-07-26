@@ -43,6 +43,12 @@
         "type": "string"
       }
     },
+    "school_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
     "corrections": {
       "type": "array",
       "items": {
