@@ -51,6 +51,10 @@ const AuthenticatedApp = () => {
       <Route path="/professor/aluno/:studentId" element={<StudentPerformance />} />
       <Route path="/minhas-turmas" element={<StudentClasses />} />
       <Route path="/StudentClasses" element={<Navigate to="/minhas-turmas" replace />} />
+      <Route path="/Correction" element={<Navigate to="/correcao" replace />} />
+      <Route path="/Historico" element={<Navigate to="/historico" replace />} />
+      <Route path="/TeacherDashboard" element={<Navigate to="/professor" replace />} />
+      <Route path="/AdminDashboard" element={<Navigate to="/admin" replace />} />
       <Route path="/admin" element={<AdminDashboard />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
