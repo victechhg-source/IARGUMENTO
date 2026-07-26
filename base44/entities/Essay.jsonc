@@ -1,0 +1,107 @@
+{
+  "name": "Essay",
+  "type": "object",
+  "properties": {
+    "banca": {
+      "type": "string",
+      "enum": [
+        "ENEM",
+        "FUVEST",
+        "UNICAMP",
+        "UNIFESP",
+        "UERJ"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "transcribing",
+        "reviewing",
+        "correcting",
+        "completed"
+      ],
+      "default": "transcribing"
+    },
+    "original_image_url": {
+      "type": "string"
+    },
+    "transcription": {
+      "type": "string"
+    },
+    "unrecognized_words": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "annotated_text": {
+      "type": "string"
+    },
+    "corrections": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "stage": {
+            "type": "string"
+          },
+          "score": {
+            "type": "number"
+          },
+          "max_score": {
+            "type": "number"
+          },
+          "findings": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "correct",
+                    "warning",
+                    "error"
+                  ]
+                },
+                "excerpt": {
+                  "type": "string"
+                },
+                "explanation": {
+                  "type": "string"
+                },
+                "suggestion": {
+                  "type": "string"
+                },
+                "video_suggestion": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "final_grade": {
+      "type": "number"
+    },
+    "max_grade": {
+      "type": "number"
+    },
+    "writing_suggestions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "study_suggestions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "banca"
+  ]
+}
