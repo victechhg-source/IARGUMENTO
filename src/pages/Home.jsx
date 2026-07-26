@@ -1,7 +1,8 @@
 import React from 'react';
 import { BANCAS } from '@/data/bancas';
 import BancaCard from '@/components/essay/BancaCard';
-import { PenTool, Sparkles, Camera, MessageSquare } from 'lucide-react';
+import { PenTool, Sparkles, Camera, MessageSquare, History } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function Home() {
   return (
@@ -19,6 +20,11 @@ export default function Home() {
           Correção de redações escritas à mão com IA especializada em cada banca de vestibular.
           Envie sua redação, revise a transcrição e receba uma correção detalhada em formato de chat.
         </p>
+
+        <Link to="/historico" className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline mb-8">
+          <History className="w-4 h-4" />
+          Ver meu histórico
+        </Link>
 
         {/* Features */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto mb-12">
