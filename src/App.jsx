@@ -55,6 +55,7 @@ const AuthenticatedApp = () => {
       <Route path="/Historico" element={<Navigate to="/historico" replace />} />
       <Route path="/TeacherDashboard" element={<Navigate to="/professor" replace />} />
       <Route path="/AdminDashboard" element={<Navigate to="/admin" replace />} />
+      <Route path="/StudentPerformance" element={<Navigate to="/historico" replace />} />
       <Route path="/admin" element={<AdminDashboard />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>

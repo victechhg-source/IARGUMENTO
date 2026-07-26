@@ -32,8 +32,15 @@ function ChartTooltip({ active, payload }) {
   );
 }
 
+const STATUS_FILTERS = [
+  { id: 'all', label: 'Todas' },
+  { id: 'completed', label: 'Concluídas' },
+  { id: 'in_progress', label: 'Em andamento' },
+];
+
 export default function Historico() {
   const [essays, setEssays] = useState(null);
+  const [statusFilter, setStatusFilter] = useState('all');
 
   useEffect(() => {
     base44.entities.Essay.list('-created_date', 100).then(setEssays);
@@ -191,11 +198,29 @@ export default function Historico() {
 
         {/* List */}
         <div>
-          <h3 className="font-semibold text-sm mb-3">Redações corrigidas</h3>
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <h3 className="font-semibold text-sm">Minhas redações</h3>
+            <div className="flex gap-1" role="group" aria-label="Filtrar por status">
+              {STATUS_FILTERS.map(f => (
+                <button
+                  key={f.id}
+                  onClick={() => setStatusFilter(f.id)}
+                  className={`rounded-sm border px-3 py-1.5 text-xs font-semibold transition-colors ${statusFilter === f.id ? 'border-foreground/60 bg-card text-card-foreground' : 'border-transparent text-foreground/60 hover:text-foreground'}`}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+          </div>
           <div className="space-y-2">
-            {essays.filter(e => e.status === 'completed').map(essay => (
-              <EssayListItem key={essay.id} essay={essay} />
-            ))}
+            {essays
+              .filter(e => statusFilter === 'all' ? true : statusFilter === 'completed' ? e.status === 'completed' : e.status !== 'completed')
+              .map(essay => (
+                <EssayListItem key={essay.id} essay={essay} />
+              ))}
+            {essays.filter(e => statusFilter === 'in_progress' && e.status !== 'completed').length === 0 && statusFilter === 'in_progress' && (
+              <p className="py-6 text-center text-sm text-muted-foreground">Nenhuma redação em andamento.</p>
+            )}
           </div>
         </div>
       </div>

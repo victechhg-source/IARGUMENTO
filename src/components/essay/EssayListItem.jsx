@@ -23,8 +23,14 @@ export default function EssayListItem({ essay }) {
           </p>
         </div>
         <div className="text-right">
-          <p className="font-bold text-sm" style={{ color: banca?.color }}>{essay.final_grade}/{maxGrade}</p>
-          <p className="text-xs text-muted-foreground">{percentage}%</p>
+          {essay.status === 'completed' ? (
+            <>
+              <p className="font-bold text-sm" style={{ color: banca?.color }}>{essay.final_grade}/{maxGrade}</p>
+              <p className="text-xs text-muted-foreground">{percentage}%</p>
+            </>
+          ) : (
+            <span className="rounded-full bg-black/5 px-2.5 py-1 text-xs font-medium">Em andamento</span>
+          )}
         </div>
         <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
       </Card>
