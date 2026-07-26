@@ -37,6 +37,12 @@
     "annotated_text": {
       "type": "string"
     },
+    "teacher_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
     "corrections": {
       "type": "array",
       "items": {
@@ -109,6 +115,9 @@
       "$or": [
         {
           "created_by_id": "{{user.id}}"
+        },
+        {
+          "data.teacher_ids": "{{user.id}}"
         },
         {
           "user_condition": {
