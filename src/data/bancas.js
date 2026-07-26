@@ -178,6 +178,7 @@ INSTRUÇÕES PARA A CORREÇÃO
    - [[w:texto]] para trechos com AVISOS (pontos de atenção, melhorias possíveis)
    - [[e:texto]] para trechos com ERROS (erros gramaticais, de argumentação, de estrutura)
    Mantenha o texto original integralmente, apenas adicionando as marcações onde pertinente.
+   IMPORTANTE: use EXCLUSIVAMENTE o formato [[c:...]], [[w:...]] e [[e:...]]. NUNCA use tags HTML (<span>, <mark>, etc.) no annotated_text.
 
 2. No campo "stages", para cada etapa listada acima, forneça:
    - stage: nome da etapa

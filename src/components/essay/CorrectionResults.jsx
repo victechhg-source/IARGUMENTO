@@ -15,8 +15,27 @@ const SPAN_CLASS = {
   plain: ''
 };
 
+function normalizeAnnotations(text) {
+  // Converte marcações HTML eventualmente geradas (spans/marks com classes) para o formato [[c|w|e:...]]
+  const classToType = (cls = '') => {
+    const c = cls.toLowerCase();
+    if (/(correct|acerto|green|success|\bc\b)/.test(c)) return 'c';
+    if (/(warning|aviso|amber|yellow|atencao|atenção|\bw\b)/.test(c)) return 'w';
+    if (/(error|erro|red|\be\b)/.test(c)) return 'e';
+    return null;
+  };
+  let out = text.replace(/<(span|mark)\b[^>]*class=["']([^"']*)["'][^>]*>([\s\S]*?)<\/\1>/gi, (m, tag, cls, inner) => {
+    const type = classToType(cls);
+    return type ? `[[${type}:${inner}]]` : inner;
+  });
+  // Remove quaisquer outras tags HTML restantes para nunca exibir markup cru
+  out = out.replace(/<\/?[a-z][^>]*>/gi, '');
+  return out;
+}
+
 function parseAnnotatedText(text) {
   if (!text) return [];
+  text = normalizeAnnotations(text);
   const regex = /\[\[(c|w|e):(.*?)\]\]/g;
   const parts = [];
   let lastIndex = 0;
