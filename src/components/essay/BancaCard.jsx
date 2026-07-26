@@ -1,31 +1,25 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card } from '@/components/ui/card';
-import { ArrowRight, Award } from 'lucide-react';
+import { ArrowRight, MapPin } from 'lucide-react';
 
 export default function BancaCard({ banca }) {
   const navigate = useNavigate();
+  const openBanca = () => navigate(`/correcao?banca=${banca.id}`);
 
   return (
-    <Card
-      className="group cursor-pointer p-6 hover:shadow-lg transition-all hover:-translate-y-1 border-2"
-      onClick={() => navigate(`/correcao?banca=${banca.id}`)}
-    >
-      <div className="flex items-start justify-between mb-3">
-        <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: banca.color }}>
-          <span className="text-white font-bold text-sm">{banca.name.slice(0, 3)}</span>
-        </div>
-        <div className="flex items-center gap-1 text-xs font-medium text-muted-foreground bg-muted px-2 py-1 rounded-full">
-          <Award className="w-3 h-3" />
-          Nota máx: {banca.max_grade}
-        </div>
+    <article className="banca-card group" onClick={openBanca} onKeyDown={(event) => event.key === 'Enter' && openBanca()} role="button" tabIndex={0}>
+      <div className="flex items-start justify-between gap-4">
+        <div className="banca-mark" style={{ backgroundColor: banca.color }}>{banca.name.slice(0, 3)}</div>
+        <div className="banca-grade"><MapPin className="h-3 w-3" />Nota máx: {banca.max_grade}</div>
       </div>
-      <h3 className="font-semibold text-lg mb-1">{banca.name}</h3>
-      <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{banca.description}</p>
-      <div className="flex items-center justify-between">
-        <span className="text-xs text-muted-foreground">{banca.theme}</span>
-        <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:translate-x-1 transition-transform" />
+      <div className="mt-5">
+        <h3 className="font-display text-2xl font-extrabold tracking-tight">{banca.name}</h3>
+        <p className="mt-2 max-w-sm text-sm leading-snug text-card-foreground/75">{banca.description}</p>
       </div>
-    </Card>
+      <div className="mt-5 flex items-end justify-between gap-4">
+        <span className="text-xs text-card-foreground/70">{banca.theme}</span>
+        <ArrowRight className="h-5 w-5 transition-transform duration-200 group-hover:translate-x-1" />
+      </div>
+    </article>
   );
 }

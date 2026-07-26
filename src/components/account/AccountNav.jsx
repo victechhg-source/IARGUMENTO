@@ -24,7 +24,7 @@ export default function AccountNav() {
   const admin = type === 'admin';
   const teacher = type === 'teacher';
   return (
-    <Link to={admin ? '/admin' : teacher ? '/professor' : '/minhas-turmas'} className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-md px-2">
+    <Link to={admin ? '/admin' : teacher ? '/professor' : '/minhas-turmas'} className="kinetic-link">
       {admin ? <Shield className="w-4 h-4" /> : teacher ? <Users className="w-4 h-4" /> : <GraduationCap className="w-4 h-4" />}
       {admin ? 'Administração' : teacher ? 'Painel do professor' : 'Minhas turmas'}
     </Link>

@@ -4,7 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { BANCAS } from '@/data/bancas';
 import CorrectionResults from '@/components/essay/CorrectionResults';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Bot } from 'lucide-react';
+import { ArrowLeft, PenLine } from 'lucide-react';
 
 export default function EssayDetail() {
   const { id } = useParams();
@@ -46,14 +46,14 @@ export default function EssayDetail() {
   const date = new Date(essay.created_date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-      <header className="border-b bg-white/80 backdrop-blur sticky top-0 z-10">
+    <div className="min-h-screen bg-background text-foreground">
+      <header className="border-b border-foreground/20 bg-background/95 sticky top-0 z-10">
         <div className="max-w-3xl mx-auto px-4 py-3 flex items-center gap-3">
           <Link to="/historico">
             <Button variant="ghost" size="icon"><ArrowLeft className="w-4 h-4" /></Button>
           </Link>
           <div className="w-9 h-9 rounded-full flex items-center justify-center" style={{ background: banca?.color }}>
-            <Bot className="w-5 h-5 text-white" />
+            <PenLine className="w-5 h-5 text-white" />
           </div>
           <div className="flex-1">
             <p className="font-semibold text-sm">Redação {banca?.name}</p>

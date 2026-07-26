@@ -13,7 +13,7 @@ export default function UploadArea({ onUpload }) {
 
   return (
     <div
-      className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors cursor-pointer ${
+      className={`border border-foreground/40 rounded-sm p-8 text-center transition-all cursor-pointer hover:-translate-y-0.5 ${
         dragging ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'
       }`}
       onClick={() => inputRef.current?.click()}
@@ -33,7 +33,7 @@ export default function UploadArea({ onUpload }) {
         onChange={(e) => handleFile(e.target.files[0])}
       />
       <div className="flex flex-col items-center gap-3">
-        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+        <div className="w-12 h-12 rounded-sm border border-foreground/30 bg-transparent flex items-center justify-center">
           <ImageIcon className="w-6 h-6 text-primary" />
         </div>
         <div>

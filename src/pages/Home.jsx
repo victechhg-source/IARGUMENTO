@@ -1,65 +1,41 @@
 import React from 'react';
 import { BANCAS } from '@/data/bancas';
 import BancaCard from '@/components/essay/BancaCard';
-import { PenTool, Sparkles, Camera, MessageSquare, History } from 'lucide-react';
+import KineticFeatureGrid from '@/components/home/KineticFeatureGrid';
+import { PenLine, History } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import AccountNav from '@/components/account/AccountNav';
 
 export default function Home() {
+  const orderedBancas = [BANCAS[0], BANCAS[1], BANCAS[3], BANCAS[2], BANCAS[4]];
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-      {/* Hero */}
-      <div className="max-w-5xl mx-auto px-4 pt-16 pb-8 text-center">
-        <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-medium mb-4">
-          <Sparkles className="w-3 h-3" />
-          Correção inteligente com IA
+    <main className="min-h-screen overflow-hidden bg-background text-foreground">
+      <section className="mx-auto max-w-6xl px-5 pb-16 pt-12 text-center md:px-12 md:pt-12">
+        <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-foreground/60 px-4 py-1.5 text-xs font-medium">
+          <PenLine className="h-3.5 w-3.5" />
+          Critério de banca, leitura de verdade
         </div>
-        <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
-          RedaçãoPro
-        </h1>
-        <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-          Correção de redações escritas à mão com IA especializada em cada banca de vestibular.
-          Envie sua redação, revise a transcrição e receba uma correção detalhada em formato de chat.
+        <h1 className="font-display text-5xl font-extrabold tracking-[-0.055em] md:text-6xl">RedaçãoPro</h1>
+        <p className="mx-auto mt-4 max-w-3xl text-base leading-relaxed text-foreground/75 md:text-xl">
+          Sua redação manuscrita, analisada com os critérios de cada vestibular. Revise a transcrição e receba orientações claras para avançar.
         </p>
-
-        <div className="flex flex-wrap justify-center gap-3 mb-8">
-          <Link to="/historico" className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-md px-2">
-            <History className="w-4 h-4" />
-            Ver meu histórico
-          </Link>
+        <nav className="mt-8 flex flex-wrap justify-center gap-x-8 gap-y-2" aria-label="Atalhos da conta">
+          <Link to="/historico" className="kinetic-link"><History className="h-4 w-4" />Ver meu histórico</Link>
           <AccountNav />
-        </div>
+        </nav>
+        <KineticFeatureGrid />
+      </section>
 
-        {/* Features */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto mb-12">
-          {[
-            { icon: Camera, title: 'Foto da redação', desc: 'Envie a foto da sua redação escrita à mão' },
-            { icon: MessageSquare, title: 'Chat interativo', desc: 'Correção humanizada em formato de conversa' },
-            { icon: PenTool, title: 'Correção detalhada', desc: 'Erros explicados com sugestões de vídeoaulas' }
-          ].map((f, i) => (
-            <div key={i} className="bg-white border rounded-xl p-4 text-left">
-              <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center mb-2">
-                <f.icon className="w-4 h-4 text-primary" />
-              </div>
-              <p className="font-medium text-sm">{f.title}</p>
-              <p className="text-xs text-muted-foreground">{f.desc}</p>
-            </div>
-          ))}
+      <section className="mx-auto max-w-6xl px-5 pb-24 md:px-12">
+        <header className="mb-10 text-center">
+          <h2 className="font-display text-3xl font-bold tracking-tight md:text-4xl">Escolha sua banca</h2>
+          <p className="mt-2 text-sm text-foreground/70 md:text-base">Cada banca tem critérios próprios. Selecione a sua para começar.</p>
+        </header>
+        <div className="banca-grid">
+          {orderedBancas.map((banca) => <BancaCard key={banca.id} banca={banca} />)}
         </div>
-      </div>
-
-      {/* Banca selection */}
-      <div className="max-w-5xl mx-auto px-4 pb-16">
-        <h2 className="text-xl font-semibold text-center mb-2">Escolha sua banca</h2>
-        <p className="text-sm text-muted-foreground text-center mb-8">
-          Cada banca tem seus próprios critérios oficiais de correção.
-        </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {BANCAS.map(banca => (
-            <BancaCard key={banca.id} banca={banca} />
-          ))}
-        </div>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }

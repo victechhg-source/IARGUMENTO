@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
-import { Bot, Loader2 } from 'lucide-react';
+import { PenLine, Loader2 } from 'lucide-react';
 
 export default function ChatMessage({ message, banca, loading }) {
   const isBot = message.role === 'bot';
@@ -9,12 +9,12 @@ export default function ChatMessage({ message, banca, loading }) {
     <div className={`flex gap-3 ${isBot ? 'justify-start' : 'justify-end'}`}>
       {isBot && (
         <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center mt-1" style={{ background: banca?.color || '#4f46e5' }}>
-          <Bot className="w-4 h-4 text-white" />
+          <PenLine className="w-4 h-4 text-white" />
         </div>
       )}
       <div className={`max-w-[80%] rounded-2xl px-4 py-3 ${
         isBot
-          ? 'bg-white border shadow-sm'
+          ? 'bg-card text-card-foreground border border-card/20 shadow-none'
           : 'bg-primary text-primary-foreground'
       }`}>
         {loading ? (

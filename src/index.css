@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -82,11 +84,69 @@
 
 
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
+  :root, .dark {
+    --background: 0 0% 6%;
+    --foreground: 60 8% 94%;
+    --card: 60 8% 94%;
+    --card-foreground: 0 0% 7%;
+    --popover: 60 8% 94%;
+    --popover-foreground: 0 0% 7%;
+    --primary: 60 8% 94%;
+    --primary-foreground: 0 0% 7%;
+    --secondary: 0 0% 13%;
+    --secondary-foreground: 60 8% 94%;
+    --muted: 60 6% 88%;
+    --muted-foreground: 0 0% 68%;
+    --accent: 60 7% 86%;
+    --accent-foreground: 0 0% 7%;
+    --border: 0 0% 48%;
+    --input: 0 0% 58%;
+    --ring: 60 8% 94%;
+    --radius: 0.25rem;
+    --font-heading: 'Manrope', ui-sans-serif, sans-serif;
+    --font-body: 'Manrope', ui-sans-serif, sans-serif;
+    --font-display: 'Manrope', ui-sans-serif, sans-serif;
   }
 
-  body {
-    @apply bg-background text-foreground font-body;
+  * { @apply border-border outline-ring/50; }
+  body { @apply bg-background text-foreground font-body antialiased; }
+}
+
+@layer components {
+  .kinetic-link { @apply inline-flex min-h-11 items-center gap-2 rounded-sm px-2 text-sm font-medium text-foreground/85 transition-colors; }
+  .kinetic-link:hover { color: hsl(var(--foreground)); }
+  .kinetic-link:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+  .kinetic-feature-grid { @apply relative mx-auto mt-14 grid max-w-6xl grid-cols-1 gap-3 text-left; }
+  .kinetic-feature-grid::before { content: ''; @apply pointer-events-none absolute -inset-3 hidden border border-foreground/70; clip-path: polygon(0 0, 27% 0, 34% 17%, 60% 17%, 67% 0, 100% 0, 100% 100%, 87% 100%, 77% 76%, 34% 76%, 34% 100%, 0 100%); }
+  .kinetic-feature { @apply relative flex min-h-52 flex-col justify-center bg-card p-7 text-card-foreground transition-transform duration-300; }
+  .kinetic-feature:hover { transform: translateY(-6px); }
+  .kinetic-feature h2 { @apply mt-4 font-display text-lg font-bold tracking-tight; }
+  .kinetic-feature p { @apply mt-1 max-w-56 text-sm leading-snug text-card-foreground/75; }
+  .kinetic-icon { @apply flex h-10 w-10 items-center justify-center rounded-lg bg-black/5; }
+  .kinetic-feature-1 { clip-path: polygon(0 0, 84% 0, 100% 18%, 100% 100%, 58% 100%, 58% 77%, 0 77%); }
+  .kinetic-feature-2 { clip-path: polygon(0 18%, 84% 18%, 100% 36%, 100% 78%, 56% 78%, 56% 100%, 0 100%); }
+  .kinetic-feature-3 { clip-path: polygon(0 0, 82% 0, 100% 16%, 100% 100%, 70% 100%, 40% 63%, 0 63%); }
+  .banca-grid { @apply grid grid-cols-1 gap-3; }
+  .banca-card { @apply col-span-1 flex min-h-64 cursor-pointer flex-col justify-between bg-card p-6 text-left text-card-foreground transition-transform duration-300; }
+  .banca-card:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+  .banca-card:hover { transform: translateY(-5px); }
+  .banca-card:nth-child(3) { clip-path: polygon(0 0, 84% 0, 100% 17%, 100% 100%, 62% 100%, 50% 86%, 0 86%); }
+  .banca-card:nth-child(4) { clip-path: polygon(0 0, 100% 0, 100% 100%, 12% 100%, 12% 62%, 0 62%); }
+  @media (min-width: 768px) {
+    .kinetic-feature-grid { margin-top: 3rem; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.75rem; }
+    .kinetic-feature-grid::before { display: block; }
+    .kinetic-feature { min-height: 17rem; }
+    .kinetic-feature-2 { margin-top: 2.5rem; }
+    .banca-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+    .banca-card { grid-column: span 3 / span 3; min-height: 12.5rem; }
+    .banca-card:nth-child(3), .banca-card:nth-child(4) { min-height: 15rem; padding-bottom: 3.25rem; }
+    .banca-card:nth-child(4) { padding-left: 3.5rem; }
+    .banca-card:nth-child(5) { grid-column: 3 / span 2; min-height: 13.75rem; }
   }
+  .banca-mark { @apply flex h-11 min-w-11 items-center justify-center rounded-xl px-2 text-sm font-extrabold text-white; }
+  .banca-grade { @apply flex items-center gap-1 rounded-full bg-black/5 px-3 py-1.5 text-xs font-medium; }
+}
+
+@media (max-width: 767px) {
+  .kinetic-feature, .banca-card { clip-path: none !important; }
 }

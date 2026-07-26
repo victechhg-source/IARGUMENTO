@@ -24,7 +24,7 @@ function ChartTooltip({ active, payload }) {
   if (!active || !payload?.length) return null;
   const p = payload[0].payload;
   return (
-    <div className="bg-white border rounded-lg shadow-lg p-3 text-xs">
+    <div className="bg-card text-card-foreground border border-card/20 rounded-sm p-3 text-xs">
       <p className="font-semibold">{p.banca}</p>
       <p className="text-muted-foreground">{p.date}</p>
       <p className="mt-1"><strong>{p.grade}</strong> / {p.maxGrade} ({p.percentage}%)</p>
@@ -51,8 +51,8 @@ export default function Historico() {
 
   if (completed.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-        <header className="border-b bg-white/80 backdrop-blur sticky top-0 z-10">
+      <div className="min-h-screen bg-background text-foreground">
+        <header className="border-b border-foreground/20 bg-background/95 sticky top-0 z-10">
           <div className="max-w-4xl mx-auto px-4 py-3 flex items-center gap-3">
             <Link to="/"><Button variant="ghost" size="icon"><ArrowLeft className="w-4 h-4" /></Button></Link>
             <h1 className="font-semibold text-sm flex-1">Meu histórico</h1>
@@ -109,8 +109,8 @@ export default function Historico() {
   const padding = (maxTime - minTime) * 0.05 || 86400000;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-      <header className="border-b bg-white/80 backdrop-blur sticky top-0 z-10">
+    <div className="min-h-screen bg-background text-foreground">
+      <header className="border-b border-foreground/20 bg-background/95 sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 py-3 flex items-center gap-3">
           <Link to="/"><Button variant="ghost" size="icon"><ArrowLeft className="w-4 h-4" /></Button></Link>
           <h1 className="font-semibold text-sm flex-1">Meu histórico</h1>

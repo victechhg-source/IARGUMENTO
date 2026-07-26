@@ -8,7 +8,7 @@ import TranscriptionReview from '@/components/essay/TranscriptionReview';
 import CorrectionProgress from '@/components/essay/CorrectionProgress';
 import CorrectionResults from '@/components/essay/CorrectionResults';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Bot, Plus } from 'lucide-react';
+import { ArrowLeft, PenLine, Plus } from 'lucide-react';
 
 export default function Correction() {
   const [params] = useSearchParams();
@@ -32,10 +32,10 @@ export default function Correction() {
       return;
     }
     addBotMessage(
-      `Olá! 👋 Sou seu corretor de redações para a banca **${banca.name}**.\n\n` +
-      `Vou seguir os critérios oficiais da ${banca.full_name} para avaliar sua redação em cada etapa:\n\n` +
+      `Correção para a banca **${banca.name}**.\n\n` +
+      `A análise seguirá os critérios oficiais da ${banca.full_name} em cada etapa:\n\n` +
       banca.stages.map(s => `- **${s.name}** — ${s.description}`).join('\n') +
-      `\n\nPara começar, envie uma **foto da sua redação escrita à mão**. Vou transcrevê-la e devolver com as palavras que não consegui ler bem destacadas para você conferir. 📸`
+      `\n\nPara começar, envie uma **foto nítida da sua redação manuscrita**. A transcrição ficará disponível para revisão antes da correção.`
     );
     setPhase('upload');
   }, [banca?.id]);
@@ -55,7 +55,7 @@ export default function Correction() {
   }
 
   async function handleUpload(file) {
-    addUserMessage(`📸 Enviei a foto da minha redação.`);
+    addUserMessage(`Foto da redação enviada.`);
     setLoading(true);
     setPhase('transcribing');
 
@@ -92,7 +92,7 @@ export default function Correction() {
       setEssayId(essay.id);
 
       addBotMessage(
-        `Transcrição concluída! ✅\n\n` +
+        `Transcrição concluída.\n\n` +
         (result.unrecognized_words?.length
           ? `Encontrei **${result.unrecognized_words.length} palavra(s)** que não consegui ler com clareza. Elas estão destacadas abaixo para você conferir e corrigir se necessário.`
           : `Consegui ler toda a sua redação! Revise a transcrição abaixo e confirme se está tudo correto.`)
@@ -108,17 +108,17 @@ export default function Correction() {
 
   async function handleConfirmTranscription(editedText) {
     setTranscription(editedText);
-    addUserMessage('✓ Confirmei a transcrição da minha redação.');
+    addUserMessage('Transcrição revisada e confirmada.');
 
     if (essayId) {
       await base44.entities.Essay.update(essayId, { transcription: editedText, status: 'correcting' });
     }
 
     addBotMessage(
-      `Perfeito! Enviando sua redação para a equipe de correção da banca **${banca.name}**. 📝\n\n` +
+      `Transcrição confirmada. A correção pelos critérios da banca **${banca.name}** foi iniciada.\n\n` +
       `Cada etapa será avaliada separadamente:\n\n` +
       banca.stages.map(s => `- ${s.name}`).join('\n') +
-      `\n\nAguarde, isso pode levar um minutinho.`
+      `\n\nA análise pode levar alguns instantes.`
     );
     setPhase('correcting');
 
@@ -166,7 +166,7 @@ export default function Correction() {
         });
       }
 
-      addBotMessage('🎉 Correção concluída! Confira o resultado completo abaixo:');
+      addBotMessage('Correção concluída. Confira o resultado completo abaixo:');
       setPhase('results');
     } catch (error) {
       addBotMessage('Ops, tive um problema durante a correção. Tente novamente em instantes.');
@@ -177,9 +177,9 @@ export default function Correction() {
   if (!banca) return null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white flex flex-col">
+    <div className="min-h-screen bg-background text-foreground flex flex-col">
       {/* Header */}
-      <header className="border-b bg-white/80 backdrop-blur sticky top-0 z-10">
+      <header className="border-b border-foreground/20 bg-background/95 sticky top-0 z-10">
         <div className="max-w-3xl mx-auto px-4 py-3 flex items-center gap-3">
           <Link to="/">
             <Button variant="ghost" size="icon">
@@ -187,7 +187,7 @@ export default function Correction() {
             </Button>
           </Link>
           <div className="w-9 h-9 rounded-full flex items-center justify-center" style={{ background: banca.color }}>
-            <Bot className="w-5 h-5 text-white" />
+            <PenLine className="w-5 h-5 text-white" />
           </div>
           <div className="flex-1">
             <p className="font-semibold text-sm">Corretor {banca.name}</p>
@@ -210,9 +210,9 @@ export default function Correction() {
           {phase === 'correcting' && (
             <div className="flex gap-3 justify-start">
               <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center mt-1" style={{ background: banca.color }}>
-                <Bot className="w-4 h-4 text-white" />
+                <PenLine className="w-4 h-4 text-white" />
               </div>
-              <div className="max-w-[85%] rounded-2xl px-4 py-3 bg-white border shadow-sm w-full">
+              <div className="max-w-[85%] rounded-sm px-4 py-3 bg-card text-card-foreground border border-card/20 w-full">
                 <CorrectionProgress stages={banca.stages} />
               </div>
             </div>
@@ -221,9 +221,9 @@ export default function Correction() {
           {phase === 'review' && (
             <div className="flex gap-3 justify-start">
               <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center mt-1" style={{ background: banca.color }}>
-                <Bot className="w-4 h-4 text-white" />
+                <PenLine className="w-4 h-4 text-white" />
               </div>
-              <div className="max-w-[90%] rounded-2xl px-4 py-3 bg-white border shadow-sm w-full">
+              <div className="max-w-[90%] rounded-sm px-4 py-3 bg-card text-card-foreground border border-card/20 w-full">
                 <TranscriptionReview
                   transcription={transcription}
                   unrecognized={unrecognized}
@@ -236,7 +236,7 @@ export default function Correction() {
           {phase === 'results' && correction && (
             <div className="flex gap-3 justify-start">
               <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center mt-1" style={{ background: banca.color }}>
-                <Bot className="w-4 h-4 text-white" />
+                <PenLine className="w-4 h-4 text-white" />
               </div>
               <div className="max-w-[92%] w-full">
                 <CorrectionResults correction={correction} banca={banca} />
@@ -254,7 +254,7 @@ export default function Correction() {
 
       {/* Input area */}
       {phase === 'upload' && !loading && (
-        <div className="border-t bg-white">
+        <div className="border-t border-foreground/20 bg-background">
           <div className="max-w-3xl mx-auto w-full p-4">
             <UploadArea onUpload={handleUpload} />
           </div>

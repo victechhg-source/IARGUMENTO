@@ -38,7 +38,7 @@ export default function TranscriptionReview({ transcription, unrecognized, onCon
 
       <Button className="w-full" onClick={() => onConfirm(text)}>
         <Check className="w-4 h-4 mr-2" />
-        Confirmar e enviar para correção
+        Confirmar texto e iniciar correção
       </Button>
     </div>
   );
