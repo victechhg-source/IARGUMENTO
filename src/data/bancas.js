@@ -8,22 +8,30 @@ export const BANCAS = [
     color: "#4f46e5",
     theme: "Dissertativo-argumentativa",
     official_criteria: `A redação do ENEM é avaliada por 5 competências, cada uma valendo 200 pontos (total 1000):
-1. Domínio da norma-padrão da língua escrita (gramática, ortografia, concordância, regência).
-2. Compreensão da proposta, uso de repertório sociocultural e estrutura dissertativo-argumentativa.
-3. Seleção, relação, organização e interpretação de argumentos, fatos e opiniões.
-4. Demonstração de conhecimento dos mecanismos linguísticos necessários para a construção da argumentação (coesão, coerência).
-5. Elaboração de proposta de intervenção para o problema abordado, respeitando direitos humanos.`,
-    school_criteria: `Critérios complementares da escola de redações (peso menor):
-- Originalidade e criatividade na abordagem do tema.
-- Diversidade vocabular e sofisticação na escolha de palavras.
-- Uso de conectivos variados para fluidez textual.
-- Profundidade na análise do repertório sociocultural.`,
+1. Domínio da norma-padrão da língua escrita.
+2. Compreensão da proposta, repertório sociocultural produtivo e estrutura dissertativo-argumentativa.
+3. Projeto de texto, seleção e organização consistente de argumentos.
+4. Coesão e progressão textual por mecanismos linguísticos adequados.
+5. Proposta de intervenção detalhada, relacionada ao tema e respeitosa aos direitos humanos.`,
+    school_criteria: `Regras básicas da Argumento para textos ENEM:
+- Considerar a coletânea e utilizá-la como repertório; exigir no mínimo 3 repertórios produtivos: na introdução, no A1 e no A2.
+- Verificar os desafios semanais e os movimentos indicados pela escola para introdução, desenvolvimento e conclusão quando essas informações estiverem disponíveis na proposta.
+- O texto deve ter até 30 linhas: introdução até a linha 7, dois desenvolvimentos com cerca de 7 linhas e conclusão iniciada até a linha 22 ou 23.
+- Exigir operador argumentativo interparagrafal no A1, A2 e conclusão, além de pelo menos dois operadores argumentativos em cada parágrafo.
+- Exigir duas propostas de intervenção, uma para cada discussão, ou uma proposta que atenda ambas; uma delas deve ser completa e conter agente, detalhamento do agente, ação, meio ou detalhamento da ação/meio e finalidade.`,
+    agent_guidance: `GRADE ESPECÍFICA ENEM — aplique como referência prioritária:
+- Competência I: 200 apenas sem desvios gramaticais ou sintáticos; 160 com até 5 desvios; 120 com até 11; 80 acima de 11. Estrutura sintática inexistente pode levar a 0. Não invente desvios: conte somente os identificados.
+- Competência II: 200 exige abordagem completa, três partes textuais completas, três repertórios (introdução, A1 e A2), repertório legítimo, pertinente e produtivo, além dos desafios fornecidos. Repertório motivador, não legitimado, pouco pertinente ou sem uso produtivo reduz a faixa.
+- Competência III: 200 exige projeto de texto e argumentação consistentes, desenvolvimento de informações/fatos/opiniões em todo o texto, atendimento aos desafios, intervenções para A1 e A2, movimentos estruturais, conclusão até a linha 22/23 e até 30 linhas. Tangenciamento não ultrapassa 40; contradição grave não ultrapassa 80.
+- Competência IV: 200 exige coesão e progressão bem estabelecidas, recursos coesivos diversificados e adequados. Uma repetição isolada de operador pode manter 200; mais de uma repetição, usos equivocados ou baixa variedade reduzem a nota.
+- Competência V: para 200, a intervenção deve ser completa, consistente, relacionada ao tema e à discussão, respeitar direitos humanos e conter AGENTE específico, DETALHAMENTO do agente, AÇÃO, MEIO (ou detalhamento da ação/meio) e FINALIDADE. Proposta incompleta deve ter ao menos ação, agente e finalidade. Sem proposta, proposta desconectada do tema ou que desrespeite direitos humanos recebe 0.
+- Se a imagem/transcrição não permite verificar linhas, desafios semanais, coletânea ou materiais específicos da escola, registre a limitação como aviso e não assuma o descumprimento automaticamente.`,
     stages: [
-      { name: "Norma-padrão", max_score: 200, description: "Domínio da norma-padrão: gramática, ortografia, concordância e regência" },
-      { name: "Proposta e repertório", max_score: 200, description: "Compreensão da proposta, uso de repertório sociocultural e estrutura" },
-      { name: "Argumentação", max_score: 200, description: "Seleção, organização e interpretação de argumentos" },
-      { name: "Coesão e coerência", max_score: 200, description: "Mecanismos linguísticos de coesão e coerência argumentativa" },
-      { name: "Proposta de intervenção", max_score: 200, description: "Elaboração de proposta de intervenção detalhada respeitando direitos humanos" }
+      { name: "Competência I — Norma-padrão", max_score: 200, description: "Domínio da modalidade escrita formal e estrutura sintática" },
+      { name: "Competência II — Tema e repertório", max_score: 200, description: "Abordagem do tema, estrutura e repertório sociocultural produtivo" },
+      { name: "Competência III — Argumentação", max_score: 200, description: "Projeto de texto e desenvolvimento consistente dos argumentos" },
+      { name: "Competência IV — Coesão", max_score: 200, description: "Articulação, progressão e uso adequado de recursos coesivos" },
+      { name: "Competência V — Intervenção", max_score: 200, description: "Proposta de intervenção completa, detalhada e respeitosa aos direitos humanos" }
     ]
   },
   {
@@ -156,6 +164,11 @@ ${banca.official_criteria}
 CRITÉRIOS COMPLEMENTARES DA ESCOLA DE REDAÇÕES (peso menor)
 ═══════════════════════════════════════
 ${banca.school_criteria}
+
+═══════════════════════════════════════
+GRADE ESPECÍFICA DE CORREÇÃO
+═══════════════════════════════════════
+${banca.agent_guidance || 'Use a matriz oficial da banca e os critérios complementares acima.'}
 
 ═══════════════════════════════════════
 ETAPAS DE CORREÇÃO
