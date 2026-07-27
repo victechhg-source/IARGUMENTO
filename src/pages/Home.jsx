@@ -2,6 +2,7 @@ import React from 'react';
 import { BANCAS } from '@/data/bancas';
 import BancaCard from '@/components/essay/BancaCard';
 import KineticFeatureGrid from '@/components/home/KineticFeatureGrid';
+import ShowcaseAccordion from '@/components/home/ShowcaseAccordion';
 import { PenLine, History } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import AccountNav from '@/components/account/AccountNav';
@@ -25,6 +26,14 @@ export default function Home() {
           <AccountNav />
         </nav>
         <KineticFeatureGrid />
+      </section>
+
+      <section className="mx-auto max-w-6xl px-5 pb-24 md:px-12">
+        <header className="mb-8 text-center">
+          <h2 className="font-display text-3xl font-bold tracking-tight md:text-4xl">Como funciona</h2>
+          <p className="mt-2 text-sm text-foreground/70 md:text-base">Do envio da foto até o acompanhamento do seu progresso.</p>
+        </header>
+        <ShowcaseAccordion />
       </section>
 
       <section className="mx-auto max-w-6xl px-5 pb-24 md:px-12">
