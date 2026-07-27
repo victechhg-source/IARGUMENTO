@@ -38,15 +38,12 @@ export default async function(req: Request): Promise<Response> {
       ((validation.overallConfidence + recognizerAgreement) / 2) * 100
     ) / 100;
 
-    // ─── ETAPA 5: Roteamento — alta ou baixa confiança ───
-    const HIGH_CONFIDENCE_THRESHOLD = 0.85;
-    const needsReview = overallConfidence < HIGH_CONFIDENCE_THRESHOLD || validation.flaggedCount > 0;
-
+    // ─── ETAPA 5: Roteamento — sempre exige confirmação do aluno ───
     const mergedTranscription = pickBestTranscription(primaryResult.transcription, secondaryResult.transcription, validation);
 
     // Guarda os dados do pipeline para active learning e auditoria
     await base44.asServiceRole.entities.Essay.update(essayId, {
-      status: needsReview ? 'reviewing' : 'reviewing',
+      status: 'reviewing',
       transcription: mergedTranscription,
       unrecognized_words: validation.unrecognizedWords,
       ocr_confidence: overallConfidence,
@@ -54,13 +51,13 @@ export default async function(req: Request): Promise<Response> {
       ocr_primary: primaryResult.transcription,
       ocr_secondary: secondaryResult.transcription,
       ocr_structure_warnings: structure.warnings,
-      ocr_needs_review: needsReview
+      ocr_needs_review: true
     });
 
     return Response.json({
       transcription: mergedTranscription,
       confidence: overallConfidence,
-      needsReview,
+      needsReview: true,
       flaggedSegments: validation.segments.filter(s => s.confidence < 0.7),
       unrecognizedWords: validation.unrecognizedWords,
       structureWarnings: structure.warnings,
@@ -69,7 +66,7 @@ export default async function(req: Request): Promise<Response> {
         { stage: 'Reconhecimento duplo', status: 'done', detail: `${validation.segments.length} segmentos analisados` },
         { stage: 'Validação determinística', status: 'done', detail: `${validation.flaggedCount} segmento(s) sinalizado(s)` },
         { stage: 'Cálculo de confiança', status: 'done', detail: `${Math.round(overallConfidence * 100)}% de confiança` },
-        { stage: 'Roteamento', status: 'done', detail: needsReview ? 'Encaminhado para revisão humana' : 'Aprovado automaticamente' }
+        { stage: 'Roteamento', status: 'done', detail: 'Aguardando confirmação do aluno' }
       ]
     });
   } catch (error) {

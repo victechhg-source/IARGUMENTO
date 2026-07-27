@@ -92,9 +92,10 @@ export default function Correction() {
 
       addBotMessage(
         `Pipeline de digitalização concluído.\n\n${stageList}\n\n` +
-        (result.needsReview
-          ? `Identifiquei **${(result.flaggedSegments || []).length} segmento(s)** com baixa confiança. Eles estão destacados abaixo — revise e corrija antes de confirmar.`
-          : `O reconhecimento atingiu **${Math.round((result.confidence || 0) * 100)}% de confiança**. Mesmo assim, confira a transcrição abaixo antes de iniciar a correção.`)
+        (result.flaggedSegments?.length > 0
+          ? `Identifiquei **${result.flaggedSegments.length} segmento(s)** com baixa confiança — eles estão destacados abaixo.`
+          : `O reconhecimento atingiu **${Math.round((result.confidence || 0) * 100)}% de confiança**.`) +
+        `\n\nRevise a transcrição abaixo e confirme antes de iniciarmos a correção.`
       );
       setPhase('review');
     } catch (error) {

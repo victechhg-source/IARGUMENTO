@@ -11,24 +11,24 @@ export default function TranscriptionReview({ transcription, unrecognized, confi
   }, [flaggedSegments]);
 
   const confidencePct = Math.round((confidence || 0) * 100);
-  const needsReview = confidencePct < 85;
+  const hasFlagged = (flaggedSegments || []).length > 0;
 
   return (
     <div className="space-y-4">
-      {/* Indicador de confiança */}
-      <div className={`flex items-start gap-2 rounded-lg border p-3 ${needsReview ? 'bg-amber-50 border-amber-200' : 'bg-green-50 border-green-200'}`}>
-        {needsReview ? <ShieldAlert className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" /> : <ShieldCheck className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />}
+      {/* Indicador de confiança — sempre exige revisão manual */}
+      <div className={`flex items-start gap-2 rounded-lg border p-3 ${hasFlagged ? 'bg-amber-50 border-amber-200' : 'bg-sky-50 border-sky-200'}`}>
+        {hasFlagged ? <ShieldAlert className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" /> : <ShieldCheck className="w-4 h-4 text-sky-600 flex-shrink-0 mt-0.5" />}
         <div className="text-sm flex-1">
-          <p className={`font-medium ${needsReview ? 'text-amber-900' : 'text-green-900'}`}>
+          <p className={`font-medium ${hasFlagged ? 'text-amber-900' : 'text-sky-900'}`}>
             Confiança do reconhecimento: {confidencePct}%
           </p>
-          <p className={`mt-0.5 ${needsReview ? 'text-amber-700' : 'text-green-700'}`}>
-            {needsReview
+          <p className={`mt-0.5 ${hasFlagged ? 'text-amber-700' : 'text-sky-700'}`}>
+            {hasFlagged
               ? `${(flaggedSegments || []).length} segmento(s) com baixa confiança destacados abaixo. Revise com atenção antes de confirmar.`
-              : 'O pipeline de OCR atingiu alta confiança. Confira mesmo assim para garantir precisão.'}
+              : 'Reconhecimento com boa confiança, mas a confirmação do aluno é sempre obrigatória antes da correção.'}
           </p>
           <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-white/60">
-            <div className={`h-full rounded-full transition-all ${needsReview ? 'bg-amber-500' : 'bg-green-500'}`} style={{ width: `${confidencePct}%` }} />
+            <div className="h-full rounded-full transition-all bg-primary" style={{ width: `${confidencePct}%` }} />
           </div>
         </div>
       </div>
@@ -50,7 +50,7 @@ export default function TranscriptionReview({ transcription, unrecognized, confi
 
       <div>
         <label className="text-sm font-medium mb-2 block">
-          Revise a transcrição {needsReview && '— trechos destacados precisam de atenção:'}
+          Revise a transcrição {hasFlagged && '— trechos destacados precisam de atenção:'}
         </label>
         <Textarea
           value={text}
