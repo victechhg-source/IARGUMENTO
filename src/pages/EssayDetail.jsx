@@ -37,6 +37,7 @@ export default function EssayDetail() {
   const banca = BANCAS.find(b => b.id === essay.banca);
   const correction = {
     annotated_text: essay.annotated_text,
+    memorable_strengths: essay.memorable_strengths || [],
     stages: essay.corrections || [],
     final_grade: essay.final_grade,
     max_grade: essay.max_grade,

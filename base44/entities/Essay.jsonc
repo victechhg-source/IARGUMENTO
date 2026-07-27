@@ -37,6 +37,12 @@
     "annotated_text": {
       "type": "string"
     },
+    "memorable_strengths": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
     "teacher_ids": {
       "type": "array",
       "items": {
@@ -62,6 +68,9 @@
           },
           "max_score": {
             "type": "number"
+          },
+          "summary": {
+            "type": "string"
           },
           "findings": {
             "type": "array",

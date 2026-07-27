@@ -35,7 +35,7 @@ export default function Correction() {
       `Correção para a banca **${banca.name}**.\n\n` +
       `A análise seguirá os critérios oficiais da ${banca.full_name} em cada etapa:\n\n` +
       banca.stages.map(s => `- **${s.name}** — ${s.description}`).join('\n') +
-      `\n\nPara começar, envie uma **foto nítida da sua redação manuscrita**. A transcrição ficará disponível para revisão antes da correção.`
+      `\n\nPara começar, envie uma **foto nítida ou PDF da sua redação manuscrita**. A transcrição ficará disponível para revisão e validação antes da correção.`
     );
     setPhase('upload');
   }, [banca?.id]);
@@ -55,7 +55,7 @@ export default function Correction() {
   }
 
   async function handleUpload(file) {
-    addUserMessage(`Foto da redação enviada.`);
+    addUserMessage(`${file.type === 'application/pdf' ? 'PDF' : 'Foto'} da redação enviado.`);
     setLoading(true);
     setPhase('transcribing');
 
@@ -99,7 +99,7 @@ export default function Correction() {
       );
       setPhase('review');
     } catch (error) {
-      addBotMessage('Ops, tive um problema ao ler sua redação. Tente enviar a foto novamente.');
+      addBotMessage('Ops, tive um problema ao ler sua redação. Tente enviar a foto ou PDF novamente.');
       setPhase('upload');
     } finally {
       setLoading(false);
@@ -126,11 +126,13 @@ export default function Correction() {
       const response = await base44.functions.invoke('runCorrectionAgent', {
         banca: banca.id,
         essayId,
+        stages: banca.stages,
         prompt: buildCorrectionPrompt(banca, editedText),
         responseJsonSchema: {
           type: "object",
           properties: {
             annotated_text: { type: "string" },
+            memorable_strengths: { type: "array", items: { type: "string" } },
             stages: { type: "array", items: { type: "object", properties: {
               stage: { type: "string" },
               score: { type: "number" },
@@ -158,6 +160,7 @@ export default function Correction() {
         await base44.entities.Essay.update(essayId, {
           status: 'completed',
           annotated_text: result.annotated_text,
+          memorable_strengths: result.memorable_strengths,
           corrections: result.stages,
           final_grade: result.final_grade,
           max_grade: result.max_grade || banca.max_grade,

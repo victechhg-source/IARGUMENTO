@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card } from '@/components/ui/card';
-import { Check, AlertTriangle, XCircle, Youtube, Lightbulb, BookOpen, GraduationCap } from 'lucide-react';
+import { Check, AlertTriangle, XCircle, Youtube, Lightbulb, BookOpen, GraduationCap, Star } from 'lucide-react';
 
 const TYPE_CONFIG = {
   correct: { icon: Check, bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200', label: 'Acerto' },
@@ -101,6 +101,7 @@ export default function CorrectionResults({ correction, banca }) {
               {stage.score} / {stage.max_score}
             </span>
           </div>
+          {stage.summary && <p className="mb-3 text-sm leading-relaxed text-muted-foreground">{stage.summary}</p>}
           <div className="space-y-3">
             {stage.findings?.map((f, fi) => {
               const cfg = TYPE_CONFIG[f.type] || TYPE_CONFIG.warning;
@@ -134,6 +135,13 @@ export default function CorrectionResults({ correction, banca }) {
           </div>
         </Card>
       ))}
+
+      {correction.memorable_strengths?.length > 0 && (
+        <Card className="p-5">
+          <h3 className="font-semibold text-sm mb-3 flex items-center gap-2"><Star className="w-4 h-4 text-primary" />Acertos memoráveis</h3>
+          <ul className="space-y-2">{correction.memorable_strengths.slice(0, 3).map((strength, i) => <li key={i} className="text-sm text-foreground/80 flex gap-2"><span className="text-primary">•</span>{strength}</li>)}</ul>
+        </Card>
+      )}
 
       {/* Writing Suggestions */}
       {correction.writing_suggestions?.length > 0 && (

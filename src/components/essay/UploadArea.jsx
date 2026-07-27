@@ -1,12 +1,12 @@
 import React, { useState, useRef } from 'react';
-import { ImageIcon } from 'lucide-react';
+import { FileText, ImageIcon } from 'lucide-react';
 
 export default function UploadArea({ onUpload }) {
   const [dragging, setDragging] = useState(false);
   const inputRef = useRef(null);
 
   function handleFile(file) {
-    if (file && file.type.startsWith('image/')) {
+    if (file && (file.type.startsWith('image/') || file.type === 'application/pdf')) {
       onUpload(file);
     }
   }
@@ -28,19 +28,19 @@ export default function UploadArea({ onUpload }) {
       <input
         ref={inputRef}
         type="file"
-        accept="image/*"
-        aria-label="Enviar foto da redação"
+        accept="image/*,application/pdf"
+        aria-label="Enviar foto ou PDF da redação"
         data-testid="essay-file-input"
         className="sr-only"
         onChange={(e) => handleFile(e.target.files[0])}
       />
       <div className="flex flex-col items-center gap-3">
         <div className="w-12 h-12 rounded-sm border border-foreground/30 bg-transparent flex items-center justify-center">
-          <ImageIcon className="w-6 h-6 text-primary" />
+          <FileText className="w-6 h-6 text-primary" />
         </div>
         <div>
-          <p className="font-medium text-sm">Envie a foto da sua redação</p>
-          <p className="text-xs text-muted-foreground mt-1">Clique para selecionar ou arraste uma imagem</p>
+          <p className="font-medium text-sm">Envie a foto ou o PDF da sua redação</p>
+          <p className="text-xs text-muted-foreground mt-1">Clique para selecionar ou arraste uma imagem ou PDF</p>
         </div>
       </div>
     </div>
