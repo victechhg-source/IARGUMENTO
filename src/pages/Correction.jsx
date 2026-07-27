@@ -8,7 +8,7 @@ import TranscriptionReview from '@/components/essay/TranscriptionReview';
 import CorrectionProgress from '@/components/essay/CorrectionProgress';
 import CorrectionResults from '@/components/essay/CorrectionResults';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, PenLine, Plus } from 'lucide-react';
+import { ArrowLeft, Check, PenLine, Plus } from 'lucide-react';
 
 export default function Correction() {
   const [params] = useSearchParams();
@@ -21,6 +21,9 @@ export default function Correction() {
   const [loading, setLoading] = useState(false);
   const [transcription, setTranscription] = useState('');
   const [unrecognized, setUnrecognized] = useState([]);
+  const [confidence, setConfidence] = useState(0);
+  const [flaggedSegments, setFlaggedSegments] = useState([]);
+  const [ocrStages, setOcrStages] = useState([]);
   const [correction, setCorrection] = useState(null);
   const [essayId, setEssayId] = useState(null);
 
@@ -60,46 +63,42 @@ export default function Correction() {
     setPhase('transcribing');
 
     try {
+      addBotMessage('Iniciando pipeline de digitalização. Vou executar cinco etapas: ingestão, reconhecimento duplo, validação determinística, cálculo de confiança e roteamento.');
+
+      // ─── Etapa 1: Ingestão ───
       const uploadRes = await base44.integrations.Core.UploadFile({ file });
-
-      const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `Você está transcrevendo uma redação escrita à mão em português brasileiro. Transcreva o texto completo fielmente, preservando parágrafos e pontuação. Se houver palavras que você não consegue ler com clareza, marque-as envolvendo-as com [?] assim: palavra[?]. Não invente palavras que não estão visíveis. Retorne o JSON no formato solicitado.`,
-        file_urls: [uploadRes.file_url],
-        response_json_schema: {
-          type: "object",
-          properties: {
-            transcription: { type: "string" },
-            unrecognized_words: { type: "array", items: { type: "string" } }
-          },
-          required: ["transcription", "unrecognized_words"]
-        }
-      });
-
-      setTranscription(result.transcription);
-      setUnrecognized(result.unrecognized_words || []);
-
       const user = await base44.auth.me();
       const memberships = await base44.entities.ClassMembership.filter({ student_id: user.id, status: 'approved' });
       const essay = await base44.entities.Essay.create({
         banca: banca.id,
         teacher_ids: [...new Set(memberships.map(m => m.teacher_id))],
         school_ids: [...new Set(memberships.map(m => m.school_id).filter(Boolean))],
-        status: 'reviewing',
-        original_image_url: uploadRes.file_url,
-        transcription: result.transcription,
-        unrecognized_words: result.unrecognized_words || []
+        status: 'transcribing',
+        original_image_url: uploadRes.file_url
       });
       setEssayId(essay.id);
 
+      // ─── Etapas 2–5: Reconhecimento duplo, validação, confiança e roteamento ───
+      const response = await base44.functions.invoke('processEssayScan', { essayId: essay.id });
+      const result = response.data;
+
+      setTranscription(result.transcription);
+      setUnrecognized(result.unrecognizedWords || []);
+      setConfidence(result.confidence || 0);
+      setFlaggedSegments(result.flaggedSegments || []);
+      setOcrStages(result.stages || []);
+
+      const stageList = (result.stages || []).map(s => `- **${s.stage}** — ${s.detail}`).join('\n');
+
       addBotMessage(
-        `Transcrição concluída.\n\n` +
-        (result.unrecognized_words?.length
-          ? `Encontrei **${result.unrecognized_words.length} palavra(s)** que não consegui ler com clareza. Elas estão destacadas abaixo para você conferir e corrigir se necessário.`
-          : `Consegui ler toda a sua redação! Revise a transcrição abaixo e confirme se está tudo correto.`)
+        `Pipeline de digitalização concluído.\n\n${stageList}\n\n` +
+        (result.needsReview
+          ? `Identifiquei **${(result.flaggedSegments || []).length} segmento(s)** com baixa confiança. Eles estão destacados abaixo — revise e corrija antes de confirmar.`
+          : `O reconhecimento atingiu **${Math.round((result.confidence || 0) * 100)}% de confiança**. Mesmo assim, confira a transcrição abaixo antes de iniciar a correção.`)
       );
       setPhase('review');
     } catch (error) {
-      addBotMessage('Ops, tive um problema ao ler sua redação. Tente enviar a foto ou PDF novamente.');
+      addBotMessage('Ops, tive um problema ao processar sua redação. Tente enviar a foto ou PDF novamente.');
       setPhase('upload');
     } finally {
       setLoading(false);
@@ -207,7 +206,29 @@ export default function Correction() {
           ))}
 
           {phase === 'transcribing' && loading && (
-            <ChatMessage message={{ role: 'bot', content: '' }} banca={banca} loading />
+            <div className="flex gap-3 justify-start">
+              <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center mt-1" style={{ background: banca.color }}>
+                <PenLine className="w-4 h-4 text-white" />
+              </div>
+              <div className="max-w-[85%] rounded-sm px-4 py-3 bg-card text-card-foreground border border-card/20 w-full">
+                <div className="space-y-2">
+                  {[
+                    { label: 'Ingestão do arquivo', done: ocrStages.length >= 1 },
+                    { label: 'Reconhecimento duplo (OCR primário + secundário)', done: ocrStages.length >= 2 },
+                    { label: 'Validação determinística', done: ocrStages.length >= 3 },
+                    { label: 'Cálculo de confiança', done: ocrStages.length >= 4 },
+                    { label: 'Roteamento (aprovação ou revisão)', done: ocrStages.length >= 5 }
+                  ].map((step, i) => (
+                    <div key={i} className="flex items-center gap-2 text-sm">
+                      <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${step.done ? 'bg-primary border-primary' : 'border-muted-foreground/40'}`}>
+                        {step.done && <Check className="w-2.5 h-2.5 text-white" />}
+                      </div>
+                      <span className={step.done ? 'text-foreground' : 'text-muted-foreground'}>{step.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           )}
 
           {phase === 'correcting' && (
@@ -230,6 +251,8 @@ export default function Correction() {
                 <TranscriptionReview
                   transcription={transcription}
                   unrecognized={unrecognized}
+                  confidence={confidence}
+                  flaggedSegments={flaggedSegments}
                   onConfirm={handleConfirmTranscription}
                 />
               </div>

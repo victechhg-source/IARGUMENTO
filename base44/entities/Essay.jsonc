@@ -34,6 +34,44 @@
         "type": "string"
       }
     },
+    "ocr_confidence": {
+      "type": "number"
+    },
+    "ocr_segments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "confidence": {
+            "type": "number"
+          },
+          "issues": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "ocr_primary": {
+      "type": "string"
+    },
+    "ocr_secondary": {
+      "type": "string"
+    },
+    "ocr_structure_warnings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "ocr_needs_review": {
+      "type": "boolean"
+    },
     "annotated_text": {
       "type": "string"
     },
