@@ -1,111 +1,48 @@
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-    --radius: 0.5rem;
-    --font-heading: ui-sans-serif, system-ui, sans-serif;
-    --font-body: ui-sans-serif, system-ui, sans-serif;
-    --font-display: ui-sans-serif, system-ui, sans-serif;
-    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-
-  .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-}
-
-
-
-@layer base {
   :root, .dark {
-    --background: 0 0% 6%;
-    --foreground: 60 8% 94%;
-    --card: 60 8% 94%;
-    --card-foreground: 0 0% 7%;
-    --popover: 60 8% 94%;
-    --popover-foreground: 0 0% 7%;
-    --primary: 60 8% 94%;
-    --primary-foreground: 0 0% 7%;
-    --secondary: 0 0% 13%;
-    --secondary-foreground: 60 8% 94%;
-    --muted: 60 6% 88%;
-    --muted-foreground: 0 0% 68%;
-    --accent: 60 7% 86%;
-    --accent-foreground: 0 0% 7%;
-    --border: 0 0% 48%;
-    --input: 0 0% 58%;
-    --ring: 60 8% 94%;
-    --radius: 0.25rem;
-    --font-heading: 'Manrope', ui-sans-serif, sans-serif;
-    --font-body: 'Manrope', ui-sans-serif, sans-serif;
-    --font-display: 'Manrope', ui-sans-serif, sans-serif;
+    --background: 36 45% 97%;
+    --foreground: 220 20% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 20% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 20% 12%;
+    --primary: 27 100% 50%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 20% 12%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 32 35% 92%;
+    --muted-foreground: 220 10% 43%;
+    --accent: 28 100% 94%;
+    --accent-foreground: 18 84% 32%;
+    --destructive: 0 78% 54%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 28 25% 86%;
+    --input: 28 25% 82%;
+    --ring: 27 100% 50%;
+    --chart-1: 27 100% 50%;
+    --chart-2: 220 70% 45%;
+    --chart-3: 161 61% 36%;
+    --chart-4: 43 91% 49%;
+    --chart-5: 340 75% 55%;
+    --radius: 1rem;
+    --font-heading: 'Plus Jakarta Sans', ui-sans-serif, sans-serif;
+    --font-body: 'DM Sans', ui-sans-serif, sans-serif;
+    --font-display: 'Plus Jakarta Sans', ui-sans-serif, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 220 20% 12%;
+    --sidebar-primary: 27 100% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 28 100% 94%;
+    --sidebar-accent-foreground: 18 84% 32%;
+    --sidebar-border: 28 25% 86%;
+    --sidebar-ring: 27 100% 50%;
   }
 
   * { @apply border-border outline-ring/50; }
@@ -113,56 +50,21 @@
 }
 
 @layer components {
-  .kinetic-link { @apply inline-flex min-h-11 items-center gap-2 rounded-sm px-2 text-sm font-medium text-foreground/85 transition-colors; }
-  .kinetic-link:hover { color: hsl(var(--foreground)); }
+  .kinetic-link { @apply inline-flex min-h-10 items-center gap-2 rounded-full px-3 text-sm font-semibold text-foreground/70 transition-colors hover:bg-accent hover:text-accent-foreground; }
   .kinetic-link:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
-  .kinetic-feature-grid { @apply relative mx-auto mt-14 grid max-w-6xl grid-cols-1 gap-3 text-left; }
-  .kinetic-feature-grid::before { content: ''; @apply pointer-events-none absolute -inset-3 hidden border border-foreground/70; clip-path: polygon(0 0, 27% 0, 34% 17%, 60% 17%, 67% 0, 100% 0, 100% 100%, 87% 100%, 77% 76%, 34% 76%, 34% 100%, 0 100%); }
-  .kinetic-feature { @apply relative flex min-h-52 flex-col justify-center bg-card p-7 text-card-foreground transition-transform duration-300; }
-  .kinetic-feature:hover { transform: translateY(-6px); }
+  .kinetic-feature-grid { @apply mx-auto mt-12 grid max-w-6xl grid-cols-1 gap-4 text-left md:grid-cols-3; }
+  .kinetic-feature { @apply flex min-h-52 flex-col justify-center rounded-3xl border border-border bg-card p-7 text-card-foreground shadow-sm transition-transform duration-300 hover:-translate-y-1; }
   .kinetic-feature h2 { @apply mt-4 font-display text-lg font-bold tracking-tight; }
-  .kinetic-feature p { @apply mt-1 max-w-56 text-sm leading-snug text-card-foreground/75; }
-  .kinetic-icon { @apply flex h-10 w-10 items-center justify-center rounded-lg bg-black/5; }
-  .kinetic-feature-1 { clip-path: polygon(0 0, 84% 0, 100% 18%, 100% 100%, 58% 100%, 58% 77%, 0 77%); }
-  .kinetic-feature-2 { clip-path: polygon(0 18%, 84% 18%, 100% 36%, 100% 78%, 56% 78%, 56% 100%, 0 100%); }
-  .kinetic-feature-3 { clip-path: polygon(0 0, 82% 0, 100% 16%, 100% 100%, 70% 100%, 40% 63%, 0 63%); }
-  .banca-grid { @apply grid grid-cols-1 gap-3; }
-  .banca-card { @apply col-span-1 flex min-h-64 cursor-pointer flex-col justify-between bg-card p-6 text-left text-card-foreground transition-transform duration-300; }
-  .banca-card:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
-  .banca-card:hover { transform: translateY(-5px); }
-  .banca-card:nth-child(3) { clip-path: polygon(0 0, 84% 0, 100% 17%, 100% 100%, 62% 100%, 50% 86%, 0 86%); }
-  .banca-card:nth-child(4) { clip-path: polygon(0 0, 100% 0, 100% 100%, 12% 100%, 12% 62%, 0 62%); }
-  @media (min-width: 768px) {
-    .kinetic-feature-grid { margin-top: 3rem; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.75rem; }
-    .kinetic-feature-grid::before { display: block; }
-    .kinetic-feature { min-height: 17rem; }
-    .kinetic-feature-2 { margin-top: 2.5rem; }
-    .banca-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
-    .banca-card { grid-column: span 3 / span 3; min-height: 12.5rem; }
-    .banca-card:nth-child(3), .banca-card:nth-child(4) { min-height: 15rem; padding-bottom: 3.25rem; }
-    .banca-card:nth-child(4) { padding-left: 3.5rem; }
-    .banca-card:nth-child(5) { grid-column: 3 / span 2; min-height: 13.75rem; }
-  }
-  .admin-metric-grid { @apply grid grid-cols-2 gap-3; }
-  .admin-metric { @apply relative flex flex-col justify-center bg-card p-6 text-card-foreground transition-transform duration-300; }
-  .admin-metric:hover { transform: translateY(-4px); }
-  @media (min-width: 1024px) {
-    .admin-metric-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
-    .admin-metric { min-height: 10rem; }
-    .admin-metric:nth-child(1) { clip-path: polygon(0 0, 82% 0, 100% 16%, 100% 100%, 0 100%); }
-    .admin-metric:nth-child(2) { margin-top: 1.25rem; }
-    .admin-metric:nth-child(3) { clip-path: polygon(0 0, 100% 0, 100% 84%, 84% 100%, 0 100%); }
-    .admin-metric:nth-child(4) { margin-top: 1.25rem; }
-    .admin-metric:nth-child(5) { clip-path: polygon(0 0, 82% 0, 100% 16%, 100% 100%, 16% 100%, 0 84%); }
-  }
-  .admin-tabs { @apply flex flex-wrap gap-1 bg-transparent p-0; }
-  .admin-tab { @apply rounded-sm border border-transparent px-4 py-2 text-sm font-semibold text-foreground/60 transition-colors; }
-  .admin-tab:hover { color: hsl(var(--foreground)); }
-  .admin-tab[data-state='active'] { @apply border-foreground/60 bg-card text-card-foreground; }
-  .banca-mark { @apply flex h-11 min-w-11 items-center justify-center rounded-xl px-2 text-sm font-extrabold text-white; }
-  .banca-grade { @apply flex items-center gap-1 rounded-full bg-black/5 px-3 py-1.5 text-xs font-medium; }
-}
-
-@media (max-width: 767px) {
-  .kinetic-feature, .banca-card { clip-path: none !important; }
+  .kinetic-feature p { @apply mt-1 max-w-56 text-sm leading-snug text-card-foreground/65; }
+  .kinetic-icon { @apply flex h-11 w-11 items-center justify-center rounded-2xl bg-accent text-accent-foreground; }
+  .banca-grid { @apply grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3; }
+  .banca-card { @apply flex min-h-52 cursor-pointer flex-col justify-between rounded-3xl border border-border bg-card p-6 text-left text-card-foreground shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg; }
+  .banca-card:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 3px; }
+  .admin-metric-grid { @apply grid grid-cols-2 gap-4 lg:grid-cols-5; }
+  .admin-metric { @apply flex min-h-36 flex-col justify-center rounded-3xl border border-border bg-card p-6 text-card-foreground shadow-sm transition-transform duration-300 hover:-translate-y-1; }
+  .admin-tabs { @apply flex flex-wrap gap-2 bg-transparent p-0; }
+  .admin-tab { @apply rounded-full border border-transparent px-4 py-2 text-sm font-semibold text-foreground/60 transition-colors hover:bg-accent hover:text-accent-foreground; }
+  .admin-tab[data-state='active'] { @apply border-primary bg-primary text-primary-foreground; }
+  .banca-mark { @apply flex h-11 min-w-11 items-center justify-center rounded-2xl px-2 text-sm font-extrabold text-white; }
+  .banca-grade { @apply flex items-center gap-1 rounded-full bg-accent px-3 py-1.5 text-xs font-semibold text-accent-foreground; }
 }
