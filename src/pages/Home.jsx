@@ -42,7 +42,7 @@ export default function Home() {
             <Button asChild variant="outline" size="lg"><Link to="/historico">Ver meu progresso</Link></Button>
           </div>
         </div>
-        <div className="relative rounded-[2.25rem] bg-secondary p-6 shadow-2xl md:p-8 text-gray-100">
+        <div className="relative rounded-[2.25rem] p-6 shadow-2xl md:p-8 text-gray-50 bg-[#433c3f]">
           <div className="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-primary" />
           <div className="relative rounded-3xl bg-card p-6 text-card-foreground">
             <div className="flex items-center justify-between"><span className="font-display text-sm font-extrabold">Diagnóstico de escrita</span><span className="rounded-full bg-accent px-3 py-1 text-xs font-bold text-accent-foreground">ENEM</span></div>
