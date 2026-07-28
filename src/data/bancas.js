@@ -42,7 +42,7 @@ export const BANCAS = [
     description: "Redação dissertativa ou narrativa, com foco em originalidade e argumentação.",
     max_grade: 100,
     color: "#059669",
-    logo_url: "",
+    logo_url: "https://media.base44.com/images/public/6a6602cb58785bab45511cab/b17222b33_img-logo-fuvest-1.png",
     theme: "Dissertativa ou narrativa",
     official_criteria: `A redação da FUVEST é avaliada por critérios de conteúdo e forma:
 - Adequação ao tema e à proposta.

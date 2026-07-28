@@ -12,8 +12,8 @@ export default function BancaCard({ banca }) {
   return (
     <article className="banca-card group" onClick={openBanca} onKeyDown={(event) => event.key === 'Enter' && openBanca()} role="button" tabIndex={0}>
       <div className="flex items-start justify-between gap-4">
-        <div className="banca-mark overflow-hidden !px-0" style={{ backgroundColor: banca.color }}>
-          <Image src="https://media.base44.com/images/public/6a6602cb58785bab45511cab/b17222b33_img-logo-fuvest-1.png" alt={`Logo ${banca.name}`} fittingType="fit" className="h-11 w-11" />
+        <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-transparent">
+          <Image src={banca.logo_url || PLACEHOLDER_LOGO} alt={`Logo ${banca.name}`} fittingType="fit" className="h-11 w-11" />
         </div>
         <div className="banca-grade"><Sparkles className="h-3 w-3" />Nota máx: {banca.max_grade}</div>
       </div>
@@ -25,6 +25,6 @@ export default function BancaCard({ banca }) {
         <span className="text-xs text-card-foreground/70">{banca.theme}</span>
         <ArrowRight className="h-5 w-5 transition-transform duration-200 group-hover:translate-x-1" />
       </div>
-    </article>);
-
+    </article>
+  );
 }
