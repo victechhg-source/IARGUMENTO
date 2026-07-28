@@ -31,23 +31,23 @@ export default function Home() {
           <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-accent px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-accent-foreground">
             <Sparkles className="h-4 w-4" /> Preparação com método
           </div>
-          <h1 className="max-w-3xl font-display font-extrabold leading-[1.03] tracking-[-0.055em] text-gray-950 text-left text-7xl md:text-7xl">Sua redação com <span style={{ color: '#E9861A' }}>argumento</span> para chegar mais longe.
+          <h1 className="max-w-3xl font-display font-extrabold leading-[1.03] tracking-[-0.055em] text-gray-950 text-left text-7xl md:text-7xl">Sua redação com argumento para chegar mais longe.
 
           </h1>
           <p className="mt-6 max-w-xl text-lg leading-relaxed text-foreground/70 md:text-xl">
             O IArgumento acompanha sua prática, corrige cada texto pelos critérios da banca e mostra como transformar treino em aprovação.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <Button asChild size="lg"><Link to="#bancas">Começar uma correção <ArrowRight className="h-4 w-4" /></Link></Button>
+            <Button asChild size="lg"><Link to="#bancas" className="bg-[#e9861a]">Começar uma correção</Link></Button>
             <Button asChild variant="outline" size="lg"><Link to="/historico">Ver meu progresso</Link></Button>
           </div>
         </div>
         <div className="relative rounded-[2.25rem] p-6 shadow-2xl md:p-8 text-gray-50 bg-[#433c3f]">
-          <div className="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-primary" />
+          <div className="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-[#e9861a]" />
           <div className="relative rounded-3xl bg-card p-6 text-card-foreground">
             <div className="flex items-center justify-between"><span className="font-display text-sm font-extrabold">Diagnóstico de escrita</span><span className="rounded-full bg-accent px-3 py-1 text-xs font-bold text-accent-foreground">ENEM</span></div>
             <p className="mt-7 font-display text-5xl font-extrabold tracking-tight">860<span className="text-lg text-muted-foreground">/1000</span></p>
-            <div className="mt-6 h-3 overflow-hidden rounded-full bg-muted"><div className="h-full w-[86%] rounded-full bg-primary" /></div>
+            <div className="mt-6 h-3 overflow-hidden rounded-full bg-muted"><div className="h-full w-[86%] rounded-full bg-[#e9861a]" /></div>
             <p className="mt-3 text-sm text-muted-foreground">+120 pontos desde sua primeira redação</p>
           </div>
           <div className="relative mt-5 grid grid-cols-2 gap-3">
