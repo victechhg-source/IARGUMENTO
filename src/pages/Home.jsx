@@ -73,7 +73,7 @@ export default function Home() {
           <Link to="/correcao?banca=ENEM" className="banca-card group">
             <div className="flex items-start justify-between gap-4">
               <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center overflow-hidden rounded-2xl">
-                <Image src={PLACEHOLDER_LOGO} alt="Logo ENEM" fittingType="fit" className="h-11 w-11" />
+                <Image src="https://media.base44.com/images/public/6a6602cb58785bab45511cab/7ab13ef60_Enem_logo.png" alt="Logo ENEM" fittingType="fit" className="h-11 w-11" />
               </div>
               <div className="banca-grade"><Sparkles className="h-3 w-3" />Nota máx: {BANCAS[0].max_grade}</div>
             </div>
