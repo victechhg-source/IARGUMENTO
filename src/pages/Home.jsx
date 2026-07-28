@@ -60,7 +60,11 @@ export default function Home() {
 
       <section className="border-y border-border bg-card py-16 md:py-20">
         <div className="mx-auto max-w-7xl px-5 md:px-10">
-          <p className="text-center text-xs font-bold uppercase tracking-[0.16em] text-primary">Feito para quem quer aprovação</p>
+          <div className="flex justify-center">
+            <div className="inline-flex items-center gap-2 rounded-full bg-accent px-5 py-2.5 text-sm font-bold uppercase tracking-[0.14em] text-accent-foreground">
+              <Sparkles className="h-4 w-4" /> Feito para quem quer aprovação
+            </div>
+          </div>
           <div className="mt-8 grid gap-4 md:grid-cols-3">
             {benefits.map(({ icon: Icon, title, text }) => <article key={title} className="rounded-3xl bg-background p-6"><Icon className="h-8 w-8 text-primary" /><h2 className="mt-5 font-display text-xl font-extrabold">{title}</h2><p className="mt-2 leading-relaxed text-muted-foreground">{text}</p></article>)}
           </div>
