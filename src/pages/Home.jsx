@@ -5,7 +5,10 @@ import { BANCAS } from '@/data/bancas';
 import { Button } from '@/components/ui/button';
 import IArgumentoLogo from '@/components/brand/IArgumentoLogo';
 import AccountNav from '@/components/account/AccountNav';
-import BancaCard from '@/components/essay/BancaCard';
+import { Image } from '@/components/ui/image';
+
+const PLACEHOLDER_LOGO = 'https://media.base44.com/images/public/6a6602cb58785bab45511cab/56e253dba_ICON_logo.png';
+const FUVEST_LOGO = 'https://media.base44.com/images/public/6a6602cb58785bab45511cab/b17222b33_img-logo-fuvest-1.png';
 
 const benefits = [
 { icon: BookOpenCheck, title: 'Critérios de verdade', text: 'Correções orientadas pelas exigências de cada vestibular.' },
@@ -14,8 +17,6 @@ const benefits = [
 
 
 export default function Home() {
-  const orderedBancas = [BANCAS[0], BANCAS[1], BANCAS[3], BANCAS[2], BANCAS[4]];
-
   return (
     <main className="min-h-screen overflow-hidden bg-background text-foreground">
       <header className="mx-auto flex max-w-7xl items-center justify-between px-5 py-5 md:px-10">
@@ -68,7 +69,58 @@ export default function Home() {
 
       <section id="bancas" className="mx-auto max-w-7xl px-5 py-20 md:px-10 md:py-28">
         <div className="max-w-2xl"><p className="text-xs font-bold uppercase tracking-[0.16em] text-primary">Escolha sua prova</p><h2 className="mt-3 font-display text-4xl font-extrabold tracking-[-0.04em] md:text-5xl">Cada banca pede uma estratégia.</h2><p className="mt-4 text-lg text-muted-foreground">Selecione a sua e comece uma correção alinhada ao que o vestibular realmente avalia.</p></div>
-        <div className="mt-10 banca-grid">{orderedBancas.map((banca) => <BancaCard key={banca.id} banca={banca} />)}</div>
+        <div className="mt-10 banca-grid">
+          <Link to="/correcao?banca=ENEM" className="banca-card group">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center overflow-hidden rounded-2xl">
+                <Image src={PLACEHOLDER_LOGO} alt="Logo ENEM" fittingType="fit" className="h-11 w-11" />
+              </div>
+              <div className="banca-grade"><Sparkles className="h-3 w-3" />Nota máx: {BANCAS[0].max_grade}</div>
+            </div>
+            <div className="mt-5"><h3 className="font-display text-2xl font-extrabold tracking-tight">{BANCAS[0].name}</h3><p className="mt-2 max-w-sm text-sm leading-snug text-card-foreground/75">{BANCAS[0].description}</p></div>
+            <div className="mt-5 flex items-end justify-between gap-4"><span className="text-xs text-card-foreground/70">{BANCAS[0].theme}</span><ArrowRight className="h-5 w-5 transition-transform duration-200 group-hover:translate-x-1" /></div>
+          </Link>
+          <Link to="/correcao?banca=FUVEST" className="banca-card group">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center overflow-hidden rounded-2xl">
+                <Image src={FUVEST_LOGO} alt="Logo FUVEST" fittingType="fit" className="h-11 w-11" />
+              </div>
+              <div className="banca-grade"><Sparkles className="h-3 w-3" />Nota máx: {BANCAS[1].max_grade}</div>
+            </div>
+            <div className="mt-5"><h3 className="font-display text-2xl font-extrabold tracking-tight">{BANCAS[1].name}</h3><p className="mt-2 max-w-sm text-sm leading-snug text-card-foreground/75">{BANCAS[1].description}</p></div>
+            <div className="mt-5 flex items-end justify-between gap-4"><span className="text-xs text-card-foreground/70">{BANCAS[1].theme}</span><ArrowRight className="h-5 w-5 transition-transform duration-200 group-hover:translate-x-1" /></div>
+          </Link>
+          <Link to="/correcao?banca=UNIFESP" className="banca-card group">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center overflow-hidden rounded-2xl">
+                <Image src={PLACEHOLDER_LOGO} alt="Logo UNIFESP" fittingType="fit" className="h-11 w-11" />
+              </div>
+              <div className="banca-grade"><Sparkles className="h-3 w-3" />Nota máx: {BANCAS[3].max_grade}</div>
+            </div>
+            <div className="mt-5"><h3 className="font-display text-2xl font-extrabold tracking-tight">{BANCAS[3].name}</h3><p className="mt-2 max-w-sm text-sm leading-snug text-card-foreground/75">{BANCAS[3].description}</p></div>
+            <div className="mt-5 flex items-end justify-between gap-4"><span className="text-xs text-card-foreground/70">{BANCAS[3].theme}</span><ArrowRight className="h-5 w-5 transition-transform duration-200 group-hover:translate-x-1" /></div>
+          </Link>
+          <Link to="/correcao?banca=UNICAMP" className="banca-card group">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center overflow-hidden rounded-2xl">
+                <Image src={PLACEHOLDER_LOGO} alt="Logo UNICAMP" fittingType="fit" className="h-11 w-11" />
+              </div>
+              <div className="banca-grade"><Sparkles className="h-3 w-3" />Nota máx: {BANCAS[2].max_grade}</div>
+            </div>
+            <div className="mt-5"><h3 className="font-display text-2xl font-extrabold tracking-tight">{BANCAS[2].name}</h3><p className="mt-2 max-w-sm text-sm leading-snug text-card-foreground/75">{BANCAS[2].description}</p></div>
+            <div className="mt-5 flex items-end justify-between gap-4"><span className="text-xs text-card-foreground/70">{BANCAS[2].theme}</span><ArrowRight className="h-5 w-5 transition-transform duration-200 group-hover:translate-x-1" /></div>
+          </Link>
+          <Link to="/correcao?banca=UERJ" className="banca-card group">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center overflow-hidden rounded-2xl">
+                <Image src={PLACEHOLDER_LOGO} alt="Logo UERJ" fittingType="fit" className="h-11 w-11" />
+              </div>
+              <div className="banca-grade"><Sparkles className="h-3 w-3" />Nota máx: {BANCAS[4].max_grade}</div>
+            </div>
+            <div className="mt-5"><h3 className="font-display text-2xl font-extrabold tracking-tight">{BANCAS[4].name}</h3><p className="mt-2 max-w-sm text-sm leading-snug text-card-foreground/75">{BANCAS[4].description}</p></div>
+            <div className="mt-5 flex items-end justify-between gap-4"><span className="text-xs text-card-foreground/70">{BANCAS[4].theme}</span><ArrowRight className="h-5 w-5 transition-transform duration-200 group-hover:translate-x-1" /></div>
+          </Link>
+        </div>
       </section>
     </main>);
 
