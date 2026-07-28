@@ -31,7 +31,7 @@ export default function Home() {
           <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-accent px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-accent-foreground">
             <Sparkles className="h-4 w-4" /> Preparação com método
           </div>
-          <h1 className="max-w-3xl font-display text-5xl font-extrabold leading-[1.03] tracking-[-0.055em] md:text-7xl text-gray-950">Sua redação com argumento para chegar mais longe.
+          <h1 className="max-w-3xl font-display font-extrabold leading-[1.03] tracking-[-0.055em] text-gray-950 text-left text-7xl md:text-7xl">Sua redação com argumento para chegar mais longe.
 
           </h1>
           <p className="mt-6 max-w-xl text-lg leading-relaxed text-foreground/70 md:text-xl">
