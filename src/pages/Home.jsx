@@ -8,10 +8,10 @@ import AccountNav from '@/components/account/AccountNav';
 import BancaCard from '@/components/essay/BancaCard';
 
 const benefits = [
-  { icon: BookOpenCheck, title: 'Critérios de verdade', text: 'Correções orientadas pelas exigências de cada vestibular.' },
-  { icon: Target, title: 'Foco no que importa', text: 'Encontre os próximos passos para escrever com mais repertório e precisão.' },
-  { icon: BarChart3, title: 'Evolução visível', text: 'Acompanhe suas notas e transforme prática em resultado.' }
-];
+{ icon: BookOpenCheck, title: 'Critérios de verdade', text: 'Correções orientadas pelas exigências de cada vestibular.' },
+{ icon: Target, title: 'Foco no que importa', text: 'Encontre os próximos passos para escrever com mais repertório e precisão.' },
+{ icon: BarChart3, title: 'Evolução visível', text: 'Acompanhe suas notas e transforme prática em resultado.' }];
+
 
 export default function Home() {
   const orderedBancas = [BANCAS[0], BANCAS[1], BANCAS[3], BANCAS[2], BANCAS[4]];
@@ -31,8 +31,8 @@ export default function Home() {
           <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-accent px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-accent-foreground">
             <Sparkles className="h-4 w-4" /> Preparação com método
           </div>
-          <h1 className="max-w-3xl font-display text-5xl font-extrabold leading-[1.03] tracking-[-0.055em] md:text-7xl">
-            Sua redação com <span className="text-primary">argumento</span> para chegar mais longe.
+          <h1 className="max-w-3xl font-display text-5xl font-extrabold leading-[1.03] tracking-[-0.055em] md:text-7xl bg-orange-500">Sua redação com argumento para chegar mais longe.
+
           </h1>
           <p className="mt-6 max-w-xl text-lg leading-relaxed text-foreground/70 md:text-xl">
             O IArgumento acompanha sua prática, corrige cada texto pelos critérios da banca e mostra como transformar treino em aprovação.
@@ -70,6 +70,6 @@ export default function Home() {
         <div className="max-w-2xl"><p className="text-xs font-bold uppercase tracking-[0.16em] text-primary">Escolha sua prova</p><h2 className="mt-3 font-display text-4xl font-extrabold tracking-[-0.04em] md:text-5xl">Cada banca pede uma estratégia.</h2><p className="mt-4 text-lg text-muted-foreground">Selecione a sua e comece uma correção alinhada ao que o vestibular realmente avalia.</p></div>
         <div className="mt-10 banca-grid">{orderedBancas.map((banca) => <BancaCard key={banca.id} banca={banca} />)}</div>
       </section>
-    </main>
-  );
+    </main>);
+
 }
