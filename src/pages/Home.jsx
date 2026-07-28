@@ -93,7 +93,7 @@ export default function Home() {
           <Link to="/correcao?banca=UNIFESP" className="banca-card group">
             <div className="flex items-start justify-between gap-4">
               <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center overflow-hidden rounded-2xl">
-                <Image src={PLACEHOLDER_LOGO} alt="Logo UNIFESP" fittingType="fit" className="h-11 w-11" />
+                <Image src="https://media.base44.com/images/public/6a6602cb58785bab45511cab/3ecd73927_images.jpeg" alt="Logo UNIFESP" fittingType="fit" className="h-11 w-11" />
               </div>
               <div className="banca-grade"><Sparkles className="h-3 w-3" />Nota máx: {BANCAS[3].max_grade}</div>
             </div>
@@ -103,7 +103,7 @@ export default function Home() {
           <Link to="/correcao?banca=UNICAMP" className="banca-card group">
             <div className="flex items-start justify-between gap-4">
               <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center overflow-hidden rounded-2xl">
-                <Image src={PLACEHOLDER_LOGO} alt="Logo UNICAMP" fittingType="fit" className="h-11 w-11" />
+                <Image src="https://media.base44.com/images/public/6a6602cb58785bab45511cab/31356a673_png-clipart-university-of-campinas-school-of-mechanical-engineering-unicamp-camp-quatre-saisons-vestibular-exam-kosrae-liberation-day-logo-university.png" alt="Logo UNICAMP" fittingType="fit" className="h-11 w-11" />
               </div>
               <div className="banca-grade"><Sparkles className="h-3 w-3" />Nota máx: {BANCAS[2].max_grade}</div>
             </div>
@@ -113,7 +113,7 @@ export default function Home() {
           <Link to="/correcao?banca=UERJ" className="banca-card group">
             <div className="flex items-start justify-between gap-4">
               <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center overflow-hidden rounded-2xl">
-                <Image src={PLACEHOLDER_LOGO} alt="Logo UERJ" fittingType="fit" className="h-11 w-11" />
+                <Image src="https://media.base44.com/images/public/6a6602cb58785bab45511cab/63b1851f2_Logo-Uerj.png" alt="Logo UERJ" fittingType="fit" className="h-11 w-11" />
               </div>
               <div className="banca-grade"><Sparkles className="h-3 w-3" />Nota máx: {BANCAS[4].max_grade}</div>
             </div>
