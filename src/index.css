@@ -12,20 +12,20 @@
     --card-foreground: 220 20% 12%;
     --popover: 0 0% 100%;
     --popover-foreground: 220 20% 12%;
-    --primary: 27 100% 50%;
+    --primary: 31 82% 51%;
     --primary-foreground: 0 0% 100%;
     --secondary: 220 20% 12%;
     --secondary-foreground: 0 0% 100%;
     --muted: 32 35% 92%;
     --muted-foreground: 220 10% 43%;
-    --accent: 28 100% 94%;
-    --accent-foreground: 18 84% 32%;
+    --accent: 31 100% 94%;
+    --accent-foreground: 31 84% 32%;
     --destructive: 0 78% 54%;
     --destructive-foreground: 0 0% 100%;
-    --border: 28 25% 86%;
-    --input: 28 25% 82%;
-    --ring: 27 100% 50%;
-    --chart-1: 27 100% 50%;
+    --border: 31 25% 86%;
+    --input: 31 25% 82%;
+    --ring: 31 82% 51%;
+    --chart-1: 31 82% 51%;
     --chart-2: 220 70% 45%;
     --chart-3: 161 61% 36%;
     --chart-4: 43 91% 49%;
@@ -37,12 +37,12 @@
     --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 220 20% 12%;
-    --sidebar-primary: 27 100% 50%;
+    --sidebar-primary: 31 82% 51%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 28 100% 94%;
-    --sidebar-accent-foreground: 18 84% 32%;
-    --sidebar-border: 28 25% 86%;
-    --sidebar-ring: 27 100% 50%;
+    --sidebar-accent: 31 100% 94%;
+    --sidebar-accent-foreground: 31 84% 32%;
+    --sidebar-border: 31 25% 86%;
+    --sidebar-ring: 31 82% 51%;
   }
 
   * { @apply border-border outline-ring/50; }
