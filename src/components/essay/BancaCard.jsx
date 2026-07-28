@@ -13,7 +13,7 @@ export default function BancaCard({ banca }) {
     <article className="banca-card group" onClick={openBanca} onKeyDown={(event) => event.key === 'Enter' && openBanca()} role="button" tabIndex={0}>
       <div className="flex items-start justify-between gap-4">
         <div className="banca-mark overflow-hidden !px-0" style={{ backgroundColor: banca.color }}>
-          <Image src="https://media.base44.com/images/public/6a6602cb58785bab45511cab/7ab13ef60_Enem_logo.png" alt={`Logo ${banca.name}`} fittingType="fit" className="h-11 w-11" />
+          <Image src="https://media.base44.com/images/public/6a6602cb58785bab45511cab/b17222b33_img-logo-fuvest-1.png" alt={`Logo ${banca.name}`} fittingType="fit" className="h-11 w-11" />
         </div>
         <div className="banca-grade"><Sparkles className="h-3 w-3" />Nota máx: {banca.max_grade}</div>
       </div>
