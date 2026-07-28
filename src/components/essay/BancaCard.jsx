@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, MapPin } from 'lucide-react';
+import { ArrowRight, ImagePlus, Sparkles } from 'lucide-react';
 
 export default function BancaCard({ banca }) {
   const navigate = useNavigate();
@@ -9,8 +9,17 @@ export default function BancaCard({ banca }) {
   return (
     <article className="banca-card group" onClick={openBanca} onKeyDown={(event) => event.key === 'Enter' && openBanca()} role="button" tabIndex={0}>
       <div className="flex items-start justify-between gap-4">
-        <div className="banca-mark" style={{ backgroundColor: banca.color }}>{banca.name.slice(0, 3)}</div>
-        <div className="banca-grade"><MapPin className="h-3 w-3" />Nota máx: {banca.max_grade}</div>
+        <div className="banca-mark relative overflow-hidden" style={{ backgroundColor: banca.color }}>
+          {banca.logo_url ? (
+            <img src={banca.logo_url} alt={`Logo ${banca.name}`} className="h-full w-full object-contain p-1" />
+          ) : (
+            <div className="flex h-full w-full flex-col items-center justify-center gap-0.5 opacity-90">
+              <ImagePlus className="h-5 w-5 text-white/85" />
+              <span className="text-[9px] font-bold uppercase tracking-[0.08em] text-white/85">Logo</span>
+            </div>
+          )}
+        </div>
+        <div className="banca-grade"><Sparkles className="h-3 w-3" />Nota máx: {banca.max_grade}</div>
       </div>
       <div className="mt-5">
         <h3 className="font-display text-2xl font-extrabold tracking-tight">{banca.name}</h3>
