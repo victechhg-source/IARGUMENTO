@@ -191,21 +191,22 @@ ${transcription}
 INSTRUÇÕES PARA A CORREÇÃO
 ═══════════════════════════════════════
 
-1. No campo "annotated_text", reescreva a redação do aluno MARCANDO trechos com:
-   - [[c:texto]] para trechos CORRETOS (bons usos de gramática, argumentação, estrutura)
-   - [[w:texto]] para trechos com AVISOS (pontos de atenção, melhorias possíveis)
-   - [[e:texto]] para trechos com ERROS (erros gramaticais, de argumentação, de estrutura)
-   Mantenha o texto original integralmente, apenas adicionando as marcações onde pertinente.
-   IMPORTANTE: use EXCLUSIVAMENTE o formato [[c:...]], [[w:...]] e [[e:...]]. NUNCA use tags HTML (<span>, <mark>, etc.) no annotated_text.
+1. No campo "annotated_text", reescreva a redação do aluno MARCANDO trechos com um ID que aponta para o finding correspondente:
+   - [[c#<id>:texto]] para trechos CORRETOS (bons usos de gramática, argumentação, estrutura)
+   - [[w#<id>:texto]] para trechos com AVISOS (pontos de atenção, melhorias possíveis)
+   - [[e#<id>:texto]] para trechos com ERROS (erros gramaticais, de argumentação, de estrutura)
+   O <id> deve ser um shortcode único (ex.: "f1", "f2") igual ao "id" do finding que comenta aquele trecho. Mantenha o texto original integralmente, apenas adicionando as marcações onde pertinente.
+   IMPORTANTE: use EXCLUSIVAMENTE o formato [[c#<id>:...]], [[w#<id>:...]] e [[e#<id>:...]]. NUNCA use tags HTML (<span>, <mark>, etc.) no annotated_text.
 
 2. No campo "stages", para cada etapa listada acima, forneça:
    - stage: nome da etapa
    - score: pontuação obtida (entre 0 e max_score)
    - max_score: pontuação máxima da etapa
-   - findings: lista de observações específicas, cada uma com:
+   - findings: lista MINUCIOSA de observações específicas (enumere TODOS os pontos relevantes, com atenção especial aos ERROS — um finding por erro/acerto), cada uma com:
+     - id: shortcode único (ex.: "f1"), o MESMO usado no marcador do annotated_text
      - type: "correct" (verde), "warning" (amarelo) ou "error" (vermelho)
-     - excerpt: o trecho exato da redação comentado
-     - explanation: explicação clara do acerto/erro (em português, tom construtivo e didático)
+     - excerpt: o trecho exato da redação comentado (idêntico ao do marcador)
+     - explanation: explicação clara e detalhada do acerto/erro (em português, tom construtivo e didático)
      - suggestion: como melhorar (em português)
      - video_suggestion: um termo de busca curto para uma vídeoaula no YouTube que ajude a explicar o conceito
 

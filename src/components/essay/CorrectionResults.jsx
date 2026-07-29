@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Check, AlertTriangle, XCircle, Youtube, Lightbulb, BookOpen, GraduationCap, Star } from 'lucide-react';
+import { Check, AlertTriangle, XCircle, Youtube, Lightbulb, BookOpen, GraduationCap, Star, ArrowUp } from 'lucide-react';
 
 const FINDING_TYPE_LABEL = { correct: 'Acerto', warning: 'Atenção', error: 'Erro' };
 
@@ -40,7 +40,7 @@ function normalizeAnnotations(text) {
 function parseAnnotatedText(text) {
   if (!text) return [];
   text = normalizeAnnotations(text);
-  const regex = /\[\[(c|w|e|r):(.*?)\]\]/g;
+  const regex = /\[\[(c|w|e|r)(?:#([a-zA-Z0-9_-]+))?:(.*?)\]\]/g;
   const parts = [];
   let lastIndex = 0;
   let match;
@@ -48,7 +48,7 @@ function parseAnnotatedText(text) {
     if (match.index > lastIndex) {
       parts.push({ type: 'plain', text: text.slice(lastIndex, match.index) });
     }
-    parts.push({ type: match[1], text: match[2] });
+    parts.push({ type: match[1], id: match[2] || null, text: match[3] });
     lastIndex = regex.lastIndex;
   }
   if (lastIndex < text.length) {
@@ -61,6 +61,14 @@ export default function CorrectionResults({ correction, banca }) {
   const annotated = parseAnnotatedText(correction.annotated_text);
   const maxGrade = correction.max_grade || banca.max_grade;
   const gradePercent = (correction.final_grade / maxGrade) * 100;
+
+  const focusEl = (id) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.classList.add('ring-2', 'ring-offset-1', 'ring-primary/60');
+    setTimeout(() => el.classList.remove('ring-2', 'ring-offset-1', 'ring-primary/60'), 1400);
+  };
 
   return (
     <div className="space-y-4">
@@ -90,10 +98,25 @@ export default function CorrectionResults({ correction, banca }) {
           <span className="flex items-center gap-1"><span className="w-3 h-3 bg-amber-100 rounded border border-amber-300"></span> Avisos</span>
           <span className="flex items-center gap-1"><span className="w-3 h-3 bg-red-100 rounded border border-red-300"></span> Erros</span>
         </div>
+        <p className="mb-3 text-xs text-muted-foreground"><span className="text-primary">↕</span> Toque em um trecho grifado para abrir a explicação; use "Ver no texto" para voltar ao ponto exato da redação.</p>
         <div className="text-sm leading-7 whitespace-pre-wrap">
-          {annotated.map((part, i) => (
-            <span key={i} className={SPAN_CLASS[part.type]}>{part.text}</span>
-          ))}
+          {annotated.map((part, i) => {
+            if (part.type === 'plain' || !part.id) {
+              return <span key={i} className={SPAN_CLASS[part.type]}>{part.text}</span>;
+            }
+            return (
+              <button
+                key={i}
+                id={`hl-${part.id}`}
+                type="button"
+                onClick={() => focusEl(`finding-${part.id}`)}
+                title="Ver explicação"
+                className={`${SPAN_CLASS[part.type]} cursor-pointer hover:brightness-95 hover:ring-1 hover:ring-red-500`}
+              >
+                {part.text}
+              </button>
+            );
+          })}
         </div>
       </Card>
 
@@ -111,12 +134,20 @@ export default function CorrectionResults({ correction, banca }) {
             {stage.findings?.map((f, fi) => {
               const cfg = TYPE_CONFIG[f.type] || TYPE_CONFIG.warning;
               const Icon = cfg.icon;
+              const fid = f.id || `s${si}-f${fi}`;
               return (
-                <div key={fi} className={`rounded-lg border p-3 ${cfg.border} ${cfg.bg}`}>
+                <div key={fi} id={`finding-${fid}`} className={`scroll-mt-24 rounded-lg border p-3 ${cfg.border} ${cfg.bg}`}>
                   <div className="flex items-start gap-2">
                     <Icon className={`w-4 h-4 flex-shrink-0 mt-0.5 ${cfg.text}`} />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium mb-1 italic text-foreground/90">"{f.excerpt}"</p>
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="text-sm font-medium mb-1 italic text-foreground/90">"{f.excerpt}"</p>
+                        {f.id && (
+                          <button type="button" onClick={() => focusEl(`hl-${f.id}`)} className="inline-flex items-center gap-1 text-xs text-primary hover:underline flex-shrink-0">
+                            <ArrowUp className="w-3.5 h-3.5" /> Ver no texto
+                          </button>
+                        )}
+                      </div>
                       <p className="text-sm text-foreground/70 mb-1">{f.explanation}</p>
                       {f.suggestion && (
                         <p className="text-sm text-muted-foreground"><strong>Como melhorar:</strong> {f.suggestion}</p>
@@ -239,7 +270,7 @@ export default function CorrectionResults({ correction, banca }) {
                     const cfg = TYPE_CONFIG[f.type] || TYPE_CONFIG.warning;
                     const Icon = cfg.icon;
                     return (
-                      <TableRow key={`${si}-${fi}`}>
+                      <TableRow key={`${si}-${fi}`} className={f.id ? 'cursor-pointer hover:bg-muted/50' : ''} onClick={f.id ? () => focusEl(`hl-${f.id}`) : undefined}>
                         <TableCell className="text-xs font-medium">{stage.stage.split('—')[0].trim()}</TableCell>
                         <TableCell>
                           <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${cfg.bg} ${cfg.text}`}>

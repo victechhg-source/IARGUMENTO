@@ -138,6 +138,7 @@ export default function Correction() {
               score: { type: "number" },
               max_score: { type: "number" },
               findings: { type: "array", items: { type: "object", properties: {
+                id: { type: "string" },
                 type: { type: "string" },
                 excerpt: { type: "string" },
                 explanation: { type: "string" },

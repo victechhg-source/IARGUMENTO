@@ -86,8 +86,9 @@ export default async function(req) {
           stage: { type: 'string' },
           summary: { type: 'string' },
           findings: { type: 'array', items: { type: 'object', properties: {
-            type: { type: 'string' },
-            excerpt: { type: 'string' },
+          id: { type: 'string' },
+          type: { type: 'string' },
+          excerpt: { type: 'string' },
             explanation: { type: 'string' },
             suggestion: { type: 'string' },
             video_suggestion: { type: 'string' }
@@ -125,9 +126,10 @@ NOTAS OFICIAIS ATRIBUÍDAS (use EXATAMENTE estes valores, não recalcule):
 - Competência IV: ${notaC4}/200
 - Competência V: ${notaC5}/200
 
-Monte a devolutiva final no formato JSON solicitado:
-1. "annotated_text": reproduza a redação integralmente PRESERVANDO EXATAMENTE os marcadores [[r:trecho]] que o Especialista C1 inseriu (grifo vermelho de norma-padrão). NÃO adicione novos [[r:]] — esse marcador é EXCLUSIVO do C1 e outros especialistas não o usam. Para os demais problemas use [[e:trecho]] (erros), [[w:trecho]] (avisos) e até 3 [[c:trecho]] (acertos memoráveis). Não use HTML nem negrito.
-2. "stages": 5 entradas nesta ordem: ${stageNames.map((name, i) => `"${name}" (score ${notes[i]})`).join(', ')}. Para cada uma, "max_score" 200, "summary" = síntese concisa e didática do parecer do especialista correspondente, e "findings" = observações com type ("correct"/"warning"/"error"), excerpt, explanation, suggestion e video_suggestion (termo curto de busca no YouTube).
+Monte a devolutiva final no formato JSON solicitado. A correção deve ser MINUCIOSA: enumere TODOS os pontos relevantes de cada competência (erros e acertos), com atenção especial aos ERROS — um finding por erro/acerto identificado, com explanation detalhada e didática e suggestion concreta. Não resuma em poucos itens; quanto mais pontos específicos mapeados no texto, melhor.
+
+1. "annotated_text": reproduza a redação integralmente PRESERVANDO os marcadores [[r:trecho]] que o Especialista C1 inseriu (grifo vermelho de norma-padrão) e acrescentando um ID em cada marcador, no formato [[r#<id>:trecho]] (use o mesmo <id> do finding correspondente). NÃO crie novos [[r:]] — esse marcador é EXCLUSIVO do C1. Para os demais problemas use [[e#<id>:trecho]] (erros), [[w#<id>:trecho]] (avisos) e [[c#<id>:trecho]] (acertos memoráveis, até 3). EXEMPLO: [[e#f3:trecho]] liga o trecho ao finding de id "f3". Não use HTML nem negrito.
+2. "stages": 5 entradas nesta ordem: ${stageNames.map((name, i) => `"${name}" (score ${notes[i]})`).join(', ')}. Para cada uma, "max_score" 200, "summary" = síntese concisa e didática do parecer do especialista correspondente, e "findings" = lista minuciosa de observações, CADA UMA com "id" (shortcode único, ex.: "f1" — o MESMO id usado no marcador do annotated_text), "type" ("correct"/"warning"/"error"), "excerpt" (o trecho exato, idêntico ao do marcador), "explanation" detalhada e didática do erro/acerto, "suggestion" concreta de melhoria e "video_suggestion" (termo curto de busca no YouTube).
 3. "memorable_strengths": até 3 acertos memoráveis.
 4. "writing_suggestions": 3 a 5 sugestões práticas de escrita.
 5. "study_suggestions": 3 a 5 sugestões de estudo focadas nas fraquezas.
