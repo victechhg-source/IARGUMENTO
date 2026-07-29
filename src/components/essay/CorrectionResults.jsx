@@ -61,6 +61,9 @@ export default function CorrectionResults({ correction, banca }) {
   const annotated = parseAnnotatedText(correction.annotated_text);
   const maxGrade = correction.max_grade || banca.max_grade;
   const gradePercent = (correction.final_grade / maxGrade) * 100;
+  const allFindings = (correction.stages || []).flatMap((s) => s.findings || []);
+  const errorCount = allFindings.filter((f) => f.type === 'error').length;
+  const correctCount = allFindings.filter((f) => f.type === 'correct').length;
 
   const focusEl = (id) => {
     const el = document.getElementById(id);
@@ -72,17 +75,37 @@ export default function CorrectionResults({ correction, banca }) {
 
   return (
     <div className="space-y-4">
-      {/* Final Grade */}
-      <Card className="p-6 text-center">
-        <p className="text-sm text-muted-foreground mb-2">Nota Final</p>
-        <div className="flex items-baseline justify-center gap-2">
-          <span className="text-4xl font-bold" style={{ color: banca.color }}>
-            {correction.final_grade}
-          </span>
-          <span className="text-lg text-muted-foreground">/ {maxGrade}</span>
-        </div>
-        <div className="w-full bg-muted rounded-full h-2 mt-3 overflow-hidden">
-          <div className="h-full rounded-full transition-all" style={{ width: `${gradePercent}%`, background: banca.color }} />
+      {/* Diagnóstico (mesmo estilo da home) */}
+      <Card className="p-0 overflow-hidden" style={{ borderRadius: '2rem' }}>
+        <div className="relative rounded-[2rem] bg-[#433c3f] p-6 text-gray-50 md:p-8">
+          <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-[#e9861a]" />
+          <div className="relative">
+            <div className="flex items-center justify-between">
+              <span className="font-display text-sm font-extrabold">Diagnóstico da redação</span>
+              <span className="rounded-full bg-accent px-3 py-1 text-xs font-bold text-accent-foreground">{banca.name}</span>
+            </div>
+            <div className="mt-6 flex items-baseline gap-2">
+              <span className="font-display text-5xl font-extrabold tracking-tight text-[#e9861a]">{correction.final_grade}</span>
+              <span className="text-lg text-white/70">/ {maxGrade}</span>
+            </div>
+            <div className="mt-4 h-3 overflow-hidden rounded-full bg-white/15">
+              <div className="h-full rounded-full bg-[#e9861a] transition-all" style={{ width: `${gradePercent}%` }} />
+            </div>
+            <div className="mt-5 grid grid-cols-3 gap-3">
+              <div className="rounded-2xl border border-white/15 p-4">
+                <p className="text-2xl font-extrabold">{correction.stages?.length || 0}</p>
+                <p className="mt-1 text-xs text-white/65">competências</p>
+              </div>
+              <div className="rounded-2xl border border-white/15 p-4">
+                <p className="text-2xl font-extrabold">{errorCount}</p>
+                <p className="mt-1 text-xs text-white/65">erros mapeados</p>
+              </div>
+              <div className="rounded-2xl border border-white/15 p-4">
+                <p className="text-2xl font-extrabold">{correctCount}</p>
+                <p className="mt-1 text-xs text-white/65">acertos</p>
+              </div>
+            </div>
+          </div>
         </div>
       </Card>
 

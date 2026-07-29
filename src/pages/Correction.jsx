@@ -184,7 +184,7 @@ export default function Correction() {
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       {/* Header */}
       <header className="border-b border-foreground/20 bg-background/95 sticky top-0 z-10">
-        <div className="max-w-3xl mx-auto px-4 py-3 flex items-center gap-3">
+        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center gap-3">
           <Link to="/">
             <Button variant="ghost" size="icon">
               <ArrowLeft className="w-4 h-4" />
@@ -202,7 +202,7 @@ export default function Correction() {
 
       {/* Chat area */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto">
-        <div className="max-w-3xl mx-auto w-full px-4 py-6 space-y-4">
+        <div className="max-w-5xl mx-auto w-full px-4 py-6 space-y-4">
           {messages.map((msg, i) => (
             <ChatMessage key={i} message={msg} banca={banca} />
           ))}
@@ -283,7 +283,7 @@ export default function Correction() {
       {/* Input area */}
       {phase === 'upload' && !loading && (
         <div className="border-t border-foreground/20 bg-background">
-          <div className="max-w-3xl mx-auto w-full p-4">
+          <div className="max-w-5xl mx-auto w-full p-4">
             <UploadArea onUpload={handleUpload} />
           </div>
         </div>

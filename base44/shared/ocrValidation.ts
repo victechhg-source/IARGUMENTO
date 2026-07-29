@@ -27,6 +27,9 @@ export interface ValidationResult {
 
 /**
  * Divide a transcrição em segmentos (por palavra) e valida cada um.
+ * Só marca como dúvida genuína (grifo) divergência de PALAVRA inteira;
+ * ambiguidades de uma única letra/acento são resolvidas pelo contexto e
+ * não são grifadas.
  */
 export function validateTranscription(
   primaryText: string,
@@ -44,42 +47,44 @@ export function validateTranscription(
     const secondaryWord = secondaryWords[i] || '';
     const issues: string[] = [];
 
-    // Confiança base: os dois reconhecedores concordam?
-    const normalizedPrimary = normalizeWord(primaryWord);
-    const normalizedSecondary = normalizeWord(secondaryWord);
-    const agree = normalizedPrimary === normalizedSecondary;
-
-    let confidence = agree ? 0.95 : 0.45;
-
-    // Marcador de incerteza explícito [?]
-    if (UNCERTAIN_MARKERS.test(primaryWord)) {
-      confidence = 0.2;
-      issues.push('Palavra marcada como ilegível pelo reconhecedor primário');
-      unrecognizedWords.push(primaryWord.replace(UNCERTAIN_MARKERS, '').trim() || '[ilegível]');
+    // Palavra explicitamente ilegível [?] → dúvida genuína (grifa a palavra)
+    if (primaryWord.includes('?') || secondaryWord.includes('?')) {
+      const cleaned = primaryWord.replace(/[?\[\]]/g, '').trim();
+      unrecognizedWords.push(cleaned || '[ilegível]');
+      segments.push({ text: primaryWord || secondaryWord, confidence: 0.2, issues: ['Palavra marcada como ilegível pelo reconhecedor'] });
+      continue;
     }
 
-    // Ruído: palavra de 1 caractere que não é pontuação
-    if (NOISE_PATTERNS.test(primaryWord) && !['a', 'e', 'o', 'é', 'à', 'os', 'as', 'um'].includes(primaryWord.toLowerCase())) {
-      confidence = Math.min(confidence, 0.3);
-      issues.push('Token muito curto — possível ruído de OCR');
+    const np = normalizeWord(primaryWord);
+    const ns = normalizeWord(secondaryWord);
+
+    // Concordam (ignora acento, caixa e pontuação) → contexto resolve
+    if (np && ns && np === ns) {
+      segments.push({ text: primaryWord, confidence: 0.92, issues });
+      continue;
     }
 
-    // Desalinhamento entre reconhecedores
-    if (!agree && primaryWord && secondaryWord) {
-      issues.push(`Reconhecedores divergem: "${primaryWord}" vs "${secondaryWord}"`);
-      confidence = Math.min(confidence, 0.5);
-    }
-
-    // Palavra faltando em um dos lados
+    // Falta de um dos lados → dúvida genuína
     if (!primaryWord || !secondaryWord) {
-      confidence = Math.min(confidence, 0.4);
-      issues.push('Extenso do texto divergente entre reconhecedores');
+      segments.push({ text: primaryWord || secondaryWord, confidence: 0.4, issues: ['Reconhecedores com extenso divergente'] });
+      continue;
     }
 
-    segments.push({ text: primaryWord, confidence, issues });
+    // Diferença de UMA letra (ou só acento) que o contexto resolve → não grifa
+    if (levenshtein(np, ns) <= 1) {
+      segments.push({ text: primaryWord, confidence: 0.78, issues });
+      continue;
+    }
+
+    // Divergência de PALAVRA inteira → dúvida genuína (grifa)
+    segments.push({
+      text: primaryWord,
+      confidence: 0.4,
+      issues: [`Reconhecedores divergem na palavra: "${primaryWord}" vs "${secondaryWord}"`]
+    });
   }
 
-  const flaggedCount = segments.filter(s => s.confidence < 0.7).length;
+  const flaggedCount = segments.filter(s => s.confidence < 0.6).length;
   const overallConfidence = segments.length > 0
     ? segments.reduce((sum, s) => sum + s.confidence, 0) / segments.length
     : 0;
@@ -92,12 +97,34 @@ export function validateTranscription(
   };
 }
 
+function stripAccents(word: string): string {
+  return word.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
 function normalizeWord(word: string): string {
-  return word
+  return stripAccents(word)
     .toLowerCase()
-    .replace(UNCERTAIN_MARKERS, '')
-    .replace(/[.,;:!?"'()]/g, '')
+    .replace(/[^a-z0-9]/gi, '')
     .trim();
+}
+
+function levenshtein(a: string, b: string): number {
+  const m = a.length;
+  const n = b.length;
+  if (m === 0) return n;
+  if (n === 0) return m;
+  const dp = Array.from({ length: m + 1 }, (_, i) => i);
+  for (let j = 1; j <= n; j++) {
+    let prev = dp[0];
+    dp[0] = j;
+    for (let i = 1; i <= m; i++) {
+      const tmp = dp[i];
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      dp[i] = Math.min(dp[i] + 1, dp[i - 1] + 1, prev + cost);
+      prev = tmp;
+    }
+  }
+  return dp[m];
 }
 
 /**

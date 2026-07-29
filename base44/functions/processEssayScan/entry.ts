@@ -58,7 +58,7 @@ export default async function(req: Request): Promise<Response> {
       transcription: mergedTranscription,
       confidence: overallConfidence,
       needsReview: true,
-      flaggedSegments: validation.segments.filter(s => s.confidence < 0.7),
+      flaggedSegments: validation.segments.filter(s => s.confidence < 0.6),
       unrecognizedWords: validation.unrecognizedWords,
       structureWarnings: structure.warnings,
       stages: [
@@ -76,7 +76,7 @@ export default async function(req: Request): Promise<Response> {
 
 async function runRecognizer(base44: any, fileUrl: string, type: 'primary' | 'secondary') {
   const prompt = type === 'primary'
-    ? `Você é o reconhecedor primário de OCR. Transcreva fielmente a redação manuscrita em português brasileiro. Preserve parágrafos e pontuação. Marque palavras ilegíveis com [?] ao lado: palavra[?]. Não invente conteúdo. Retorne apenas o JSON solicitado.`
+    ? `Você é o reconhecedor primário de OCR. Transcreva fielmente a redação manuscrita em português brasileiro. Preserve parágrafos e pontuação. USE O CONTEXTO da frase para resolver ambiguidades de uma única letra ou de acentuação — NÃO marque essas como dúvida. Marque palavra[?] APENAS quando uma PALAVRA inteira permanecer genuinamente ilegível. Não invente conteúdo. Retorne apenas o JSON solicitado.`
     : `Você é um reconhecedor independente de OCR. Sua tarefa é transcrever a redação manuscrita de forma autônoma, sem assumir contexto. Se não conseguir ler uma palavra, marque com [?]. Preserve parágrafos. Retorne apenas o JSON solicitado.`;
 
   const result = await base44.asServiceRole.integrations.Core.InvokeLLM({
