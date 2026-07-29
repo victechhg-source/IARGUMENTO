@@ -37,7 +37,7 @@ export default function EssayListItem({ essay, onDelete }) {
         <div className="text-right">
           {essay.status === 'completed' ?
           <>
-              <p className="font-bold text-sm bg-[#ffffff]" style={{ color: banca?.color }}>{essay.final_grade}/{maxGrade}</p>
+              <p className="font-bold text-sm bg-[#ffffff] text-[#bf317a]" style={{ color: banca?.color }}>{essay.final_grade}/{maxGrade}</p>
               <p className="text-xs text-muted-foreground">{percentage}%</p>
             </> :
 
