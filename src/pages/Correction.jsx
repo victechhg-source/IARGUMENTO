@@ -8,7 +8,8 @@ import TranscriptionReview from '@/components/essay/TranscriptionReview';
 import CorrectionProgress from '@/components/essay/CorrectionProgress';
 import CorrectionResults from '@/components/essay/CorrectionResults';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Check, PenLine, Plus } from 'lucide-react';
+import { ArrowLeft, Check, Plus } from 'lucide-react';
+import CorrectorAvatar from '@/components/essay/CorrectorAvatar';
 
 export default function Correction() {
   const [params] = useSearchParams();
@@ -190,9 +191,7 @@ export default function Correction() {
               <ArrowLeft className="w-4 h-4" />
             </Button>
           </Link>
-          <div className="w-9 h-9 rounded-full flex items-center justify-center" style={{ background: banca.color }}>
-            <PenLine className="w-5 h-5 text-white" />
-          </div>
+          <CorrectorAvatar banca={banca} size={36} />
           <div className="flex-1">
             <p className="font-semibold text-sm">Corretor {banca.name}</p>
             <p className="text-xs text-muted-foreground">{banca.full_name}</p>
@@ -209,9 +208,7 @@ export default function Correction() {
 
           {phase === 'transcribing' && loading && (
             <div className="flex gap-3 justify-start">
-              <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center mt-1" style={{ background: banca.color }}>
-                <PenLine className="w-4 h-4 text-white" />
-              </div>
+              <CorrectorAvatar banca={banca} size={32} className="mt-1" />
               <div className="max-w-[85%] rounded-sm px-4 py-3 bg-card text-card-foreground border border-card/20 w-full">
                 <div className="space-y-2">
                   {[
@@ -235,9 +232,7 @@ export default function Correction() {
 
           {phase === 'correcting' && (
             <div className="flex gap-3 justify-start">
-              <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center mt-1" style={{ background: banca.color }}>
-                <PenLine className="w-4 h-4 text-white" />
-              </div>
+              <CorrectorAvatar banca={banca} size={32} className="mt-1" />
               <div className="max-w-[85%] rounded-sm px-4 py-3 bg-card text-card-foreground border border-card/20 w-full">
                 <CorrectionProgress stages={banca.stages} />
               </div>
@@ -246,9 +241,7 @@ export default function Correction() {
 
           {phase === 'review' && (
             <div className="flex gap-3 justify-start">
-              <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center mt-1" style={{ background: banca.color }}>
-                <PenLine className="w-4 h-4 text-white" />
-              </div>
+              <CorrectorAvatar banca={banca} size={32} className="mt-1" />
               <div className="max-w-[90%] rounded-sm px-4 py-3 bg-card text-card-foreground border border-card/20 w-full">
                 <TranscriptionReview
                   transcription={transcription}
@@ -263,9 +256,7 @@ export default function Correction() {
 
           {phase === 'results' && correction && (
             <div className="flex gap-3 justify-start">
-              <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center mt-1" style={{ background: banca.color }}>
-                <PenLine className="w-4 h-4 text-white" />
-              </div>
+              <CorrectorAvatar banca={banca} size={32} className="mt-1" />
               <div className="max-w-[92%] w-full">
                 <CorrectionResults correction={correction} banca={banca} />
                 <div className="mt-4">

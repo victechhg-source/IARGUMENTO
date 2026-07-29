@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
-import { PenLine, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import CorrectorAvatar from '@/components/essay/CorrectorAvatar';
 
 export default function ChatMessage({ message, banca, loading }) {
   const isBot = message.role === 'bot';
@@ -8,9 +9,7 @@ export default function ChatMessage({ message, banca, loading }) {
   return (
     <div className={`flex gap-3 ${isBot ? 'justify-start' : 'justify-end'}`}>
       {isBot && (
-        <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center mt-1" style={{ background: banca?.color || '#4f46e5' }}>
-          <PenLine className="w-4 h-4 text-white" />
-        </div>
+        <CorrectorAvatar banca={banca} size={32} className="mt-1" />
       )}
       <div className={`max-w-[80%] rounded-2xl px-4 py-3 ${
         isBot

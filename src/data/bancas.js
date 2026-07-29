@@ -6,7 +6,7 @@ export const BANCAS = [
     description: "Redação dissertativo-argumentativa com proposta de intervenção detalhada.",
     max_grade: 1000,
     color: "#4f46e5",
-    logo_url: "",
+    logo_url: "https://media.base44.com/images/public/6a6602cb58785bab45511cab/7ab13ef60_Enem_logo.png",
     theme: "Dissertativo-argumentativa",
     official_criteria: `A redação do ENEM é avaliada por 5 competências, cada uma valendo 200 pontos (total 1000):
 1. Domínio da norma-padrão da língua escrita.
@@ -70,7 +70,7 @@ export const BANCAS = [
     description: "Redação com proposta temática específica, exige coerência e coesão.",
     max_grade: 100,
     color: "#dc2626",
-    logo_url: "",
+    logo_url: "https://media.base44.com/images/public/6a6602cb58785bab45511cab/31356a673_png-clipart-university-of-campinas-school-of-mechanical-engineering-unicamp-camp-quatre-saisons-vestibular-exam-kosrae-liberation-day-logo-university.png",
     theme: "Dissertativa com proposta temática",
     official_criteria: `A redação da UNICAMP avalia:
 - Atendimento à proposta (tipo textual exigido).
@@ -98,7 +98,7 @@ export const BANCAS = [
     description: "Redação dissertativo-argumentativa com foco em argumentação consistente.",
     max_grade: 100,
     color: "#0891b2",
-    logo_url: "",
+    logo_url: "https://media.base44.com/images/public/6a6602cb58785bab45511cab/3ecd73927_images.jpeg",
     theme: "Dissertativo-argumentativa",
     official_criteria: `A redação da UNIFESP avalia:
 - Compreensão e desenvolvimento do tema.
@@ -126,7 +126,7 @@ export const BANCAS = [
     description: "Redação dissertativo-argumentativa com proposta de intervenção social.",
     max_grade: 100,
     color: "#d97706",
-    logo_url: "",
+    logo_url: "https://media.base44.com/images/public/6a6602cb58785bab45511cab/63b1851f2_Logo-Uerj.png",
     theme: "Dissertativo-argumentativa",
     official_criteria: `A redação da UERJ avalia:
 - Compreensão e desenvolvimento da proposta.
