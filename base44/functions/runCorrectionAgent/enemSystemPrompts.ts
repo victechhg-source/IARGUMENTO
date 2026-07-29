@@ -123,8 +123,8 @@ Siga EXATAMENTE a estrutura abaixo em sua resposta, sem alterar títulos ou supr
 
 ## Nota: [0 / 40 / 80 / 120 / 160 / 200]
 
-### Transcrição da Redação com os Erros Destacados em NEGRITO
-Reproduza o texto do aluno INTEGRALMENTE, sem alterar nenhuma palavra, mantendo exatamente a paragrafação original. Destaque em **negrito** estritamente os trechos, pontuações ou palavras que contêm os desvios e falhas sintáticas identificados.
+### Transcrição da Redação com os Erros Destacados (marca-texto vermelho)
+Reproduza o texto do aluno INTEGRALMENTE, sem alterar nenhuma palavra, mantendo exatamente a paragrafação original. Marque CADA desvio/falha sintática identificado envolvendo o trecho exato com o marcador [[r:trecho]] — por exemplo, se o aluno escreveu "aguémos" em vez de "agüemos", escreva "[[r:aguémos]]". Não use negrito (\*\*) nem HTML. Esses marcadores [[r:...]] são EXCLUSIVOS da Competência 1 (norma-padrão) e serão convertidos depois em grifo vermelho de marca-texto. Os outros especialistas NÃO devem ver nem gerar marcadores [[r:]].
 
 ### Correção Detalhada Parágrafo por Parágrafo
 

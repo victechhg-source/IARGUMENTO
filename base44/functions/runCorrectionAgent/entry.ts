@@ -122,7 +122,7 @@ NOTAS OFICIAIS ATRIBUÍDAS (use EXATAMENTE estes valores, não recalcule):
 - Competência V: ${notaC5}/200
 
 Monte a devolutiva final no formato JSON solicitado:
-1. "annotated_text": reproduza a redação integralmente, marcando erros com [[e:trecho]], avisos com [[w:trecho]] e até 3 acertos memoráveis com [[c:trecho]]. Não use HTML.
+1. "annotated_text": reproduza a redação integralmente PRESERVANDO EXATAMENTE os marcadores [[r:trecho]] que o Especialista C1 inseriu (grifo vermelho de norma-padrão). NÃO adicione novos [[r:]] — esse marcador é EXCLUSIVO do C1 e outros especialistas não o usam. Para os demais problemas use [[e:trecho]] (erros), [[w:trecho]] (avisos) e até 3 [[c:trecho]] (acertos memoráveis). Não use HTML nem negrito.
 2. "stages": 5 entradas nesta ordem: ${stageNames.map((name, i) => `"${name}" (score ${notes[i]})`).join(', ')}. Para cada uma, "max_score" 200, "summary" = síntese concisa e didática do parecer do especialista correspondente, e "findings" = observações com type ("correct"/"warning"/"error"), excerpt, explanation, suggestion e video_suggestion (termo curto de busca no YouTube).
 3. "memorable_strengths": até 3 acertos memoráveis.
 4. "writing_suggestions": 3 a 5 sugestões práticas de escrita.
