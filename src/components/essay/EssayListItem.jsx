@@ -23,9 +23,9 @@ export default function EssayListItem({ essay, onDelete }) {
   };
 
   return (
-    <Card onClick={open} className="p-0 overflow-hidden cursor-pointer transition-shadow hover:shadow-md">
+    <Card onClick={open} className="p-0 overflow-hidden cursor-pointer transition-shadow hover:shadow-md bg-accent">
       <div className="flex items-center gap-4 p-4">
-        <div className="w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center flex-shrink-0 bg-accent ring-1 ring-border">
+        <div className="w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center flex-shrink-0 bg-white ring-1 ring-border">
           <Image src={banca?.logo_url || FALLBACK_LOGO} alt={`Logo ${banca?.name}`} fittingType="fit" className="w-full h-full" />
         </div>
         <div className="flex-1 min-w-0">
