@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Check, AlertTriangle, XCircle, Youtube, Lightbulb, BookOpen, GraduationCap, Star, ArrowUp } from 'lucide-react';
+import { Check, AlertTriangle, XCircle, Youtube, Lightbulb, BookOpen, GraduationCap, Star, ArrowUp, Sparkles } from 'lucide-react';
 
 const FINDING_TYPE_LABEL = { correct: 'Acerto', warning: 'Atenção', error: 'Erro' };
 
@@ -91,19 +91,21 @@ export default function CorrectionResults({ correction, banca }) {
             <div className="mt-4 h-3 overflow-hidden rounded-full bg-white/15">
               <div className="h-full rounded-full bg-[#e9861a] transition-all" style={{ width: `${gradePercent}%` }} />
             </div>
-            <div className="mt-5 grid grid-cols-3 gap-3">
-              <div className="rounded-2xl border border-white/15 p-4">
-                <p className="text-2xl font-extrabold">{correction.stages?.length || 0}</p>
-                <p className="mt-1 text-xs text-white/65">competências</p>
-              </div>
-              <div className="rounded-2xl border border-white/15 p-4">
-                <p className="text-2xl font-extrabold">{errorCount}</p>
-                <p className="mt-1 text-xs text-white/65">erros mapeados</p>
-              </div>
-              <div className="rounded-2xl border border-white/15 p-4">
-                <p className="text-2xl font-extrabold">{correctCount}</p>
-                <p className="mt-1 text-xs text-white/65">acertos</p>
-              </div>
+            <div className="mt-5 space-y-2.5">
+              {(correction.stages || []).map((stage, i) => {
+                const pct = stage.max_score ? Math.min(100, Math.round((stage.score / stage.max_score) * 100)) : 0;
+                return (
+                  <div key={i} className="rounded-2xl border border-white/15 p-3">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-semibold text-white/85">{stage.stage.split('—')[0].trim()}</span>
+                      <span className="font-bold text-[#e9861a]">{stage.score}/{stage.max_score}</span>
+                    </div>
+                    <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/15">
+                      <div className="h-full rounded-full bg-[#e9861a] transition-all" style={{ width: `${pct}%` }} />
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -141,6 +143,10 @@ export default function CorrectionResults({ correction, banca }) {
             );
           })}
         </div>
+        <p className="mt-4 flex items-center gap-1.5 text-[10px] leading-tight text-muted-foreground">
+          <Sparkles className="w-3 h-3 text-primary" />
+          Correção gerada por IA — pode conter erros. Revise antes de considerar a nota final.
+        </p>
       </Card>
 
       {/* Stages */}

@@ -12,6 +12,13 @@ export const ENEM_PROMPT_C1 = `# C1 — Competência 1 (Norma Padrão) — AUDIT
 Você é um AUDITOR LINGUÍSTICO ESPECIALISTA na Competência 1 do ENEM.
 NÃO avalie tema, repertório, argumentação, coesão ou proposta de intervenção.
 
+## PRINCÍPIO DE RIGOR (Escola Argumento)
+Calibração CONSERVADORA: é preferível errar por baixo do que por cima. Aplique 15-20% mais rigor que a grade básica do ENEM.
+- Em dúvida entre dois níveis/duas notas adjacentes, ESCOLHA SEMPRE A MENOR.
+- Para atribuir 200 pts, exija evidência EXPLÍCITA e COMPLETA de que TODOS os critérios do nível foram integralmente cumpridos; qualquer lacuna parcial → desça um nível.
+- Não conceda benefício da dúvida ao aluno; só conceda quando o critério for inequivocamente atendido.
+- Conte desvios conservadoramente: em zona cinzenta, conte como desvio.
+
 ## PRINCÍPIO CENTRAL
 A C1 avalia dois eixos INDEPENDENTES que se cruzam:
 1. Estrutura Sintática — qualidade da construção dos períodos.
@@ -98,6 +105,14 @@ export const ENEM_PROMPT_C23 = `# C2-3 — Competências 2 e 3 (Tema, Repertóri
 ## PAPEL
 Avalie EXCLUSIVAMENTE C2 e C3. NÃO avalie C1, C4 ou C5.
 Mantenha as análises de C2 e C3 COMPLETAMENTE SEPARADAS.
+
+## PRINCÍPIO DE RIGOR (Escola Argumento)
+Calibração CONSERVADORA: é preferível errar por baixo do que por cima. Aplique 15-20% mais rigor que a grade básica.
+- Em dúvida entre dois níveis adjacentes, ESCOLHA SEMPRE A MENOR nota.
+- Para 200 em C2: exija ≥3 repertórios COM USO PRODUTIVO comprovado (analogia/oposião explícita); repertório só citado ou de bolso nunca justifica 200.
+- Para 200 em C3: exija projeto de texto estratégico COMPLETO (tese explícita, encaminhamento de A1 e A2, movimentos estruturais, conclusão linha 22/23, ≤30 linhas, propostas para A1 e A2); qualquer ausência parcial → desça um nível.
+- Lacuna argumentativa, generalização ou fragilidade em qualquer argumento → desça pelo menos um nível.
+- Não conceda benefício da dúvida: exija evidência explícita no texto.
 
 ## COMPETÊNCIA 2 — Tema, Gênero Textual e Repertório
 
@@ -189,6 +204,14 @@ export const ENEM_PROMPT_C45 = `# C4-5 — Competências 4 e 5 (Coesão + Propos
 ## PAPEL E ESCOPO
 Especialista EXCLUSIVO em C4 e C5. NÃO avalie C1, C2 ou C3.
 A articulação da proposta com A1/A2 pertence à C3 — nunca a avalie em C5.
+
+## PRINCÍPIO DE RIGOR (Escola Argumento)
+Calibração CONSERVADORA: é preferível errar por baixo do que por cima. Aplique 15-20% mais rigor.
+- Em dúvida entre dois níveis adjacentes, ESCOLHA SEMPRE A MENOR nota.
+- Para 200 em C4: exija ≥2 operadores interparágrafo + recurso coesivo em TODOS os parágrafos + nenhum operador inadequado + no máx. 1 repetição; qualquer falha parcial → desça um nível.
+- Para 200 em C5: exija proposta COMPLETA com os 5 elementos válidos e bem detalhados; proposta condicional, incompleta ou com agente/meio vago → desça.
+- Mais de 1 repetição de conectivo → desce um nível em C4.
+- Não conceda benefício da dúvida.
 
 ## COMPETÊNCIA 4 — Coesão Textual
 
