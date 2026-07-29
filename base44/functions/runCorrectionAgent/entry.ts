@@ -7,7 +7,7 @@ export default async function(req) {
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Não autorizado' }, { status: 401 });
 
-    const { banca, essayId, prompt, responseJsonSchema, stages = [] } = await req.json();
+    const { banca, essayId, prompt, responseJsonSchema, stages = [], debug = false } = await req.json();
     const essay = await base44.asServiceRole.entities.Essay.get(essayId);
     if (!essay || essay.created_by_id !== user.id) return Response.json({ error: 'Redação não encontrada.' }, { status: 404 });
 
@@ -52,6 +52,9 @@ export default async function(req) {
     };
 
     const [c1Text, c23Text, c45Text] = await Promise.all(specialistPrompts.map(runSpecialist));
+    console.log('[runCorrectionAgent][ENEM] Especialista C1:', c1Text);
+    console.log('[runCorrectionAgent][ENEM] Especialista C2-3:', c23Text);
+    console.log('[runCorrectionAgent][ENEM] Especialista C4-5:', c45Text);
 
     const extractNote = (text, key) => {
       const match = text.match(new RegExp(`${key}\\s*=\\s*(\\d+)`, 'i'));
@@ -64,6 +67,7 @@ export default async function(req) {
     const notaC5 = extractNote(c45Text, 'NOTA_FINAL_C5');
     const total = notaC1 + notaC2 + notaC3 + notaC4 + notaC5;
     const notes = [notaC1, notaC2, notaC3, notaC4, notaC5];
+    console.log('[runCorrectionAgent][ENEM] Notas extraídas dos marcadores NOTA_FINAL_Cx:', { notaC1, notaC2, notaC3, notaC4, notaC5, total });
 
     const stageNames = [
       'Competência I — Norma-padrão',
@@ -160,7 +164,7 @@ Retorne apenas o JSON.`;
     const inputTokens = Math.ceil((c1Text.length + c23Text.length + c45Text.length + synthesisPrompt.length + basePrompt.length) / 4);
     const outputTokens = Math.ceil(JSON.stringify(result).length / 4);
     await base44.asServiceRole.entities.AgentUsage.create({ agent_id: agent?.id || '', agent_name: agent?.name || 'Padrão ENEM', model, banca, essay_id: essayId, student_id: user.id, school_ids: essay.school_ids || [], input_tokens: inputTokens, output_tokens: outputTokens, total_tokens: inputTokens + outputTokens });
-    return Response.json({ result, usage: { input_tokens: inputTokens, output_tokens: outputTokens, total_tokens: inputTokens + outputTokens } });
+    return Response.json({ result, usage: { input_tokens: inputTokens, output_tokens: outputTokens, total_tokens: inputTokens + outputTokens }, ...(debug ? { _debug: { specialists: { c1: c1Text, c23: c23Text, c45: c45Text }, extractedNotes: { c1: notaC1, c2: notaC2, c3: notaC3, c4: notaC4, c5: notaC5, total }, synthesis: synth } } : {}) });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }

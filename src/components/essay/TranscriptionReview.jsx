@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { AlertCircle, Check, ShieldCheck, ShieldAlert } from 'lucide-react';
+import { AlertCircle, Check, ShieldCheck, ShieldAlert, Highlighter } from 'lucide-react';
+import HighlightedTranscription from './HighlightedTranscription';
 
 export default function TranscriptionReview({ transcription, unrecognized, confidence, flaggedSegments, onConfirm }) {
   const [text, setText] = useState(transcription);
@@ -49,8 +50,23 @@ export default function TranscriptionReview({ transcription, unrecognized, confi
       )}
 
       <div>
+        <label className="text-sm font-medium mb-2 flex items-center gap-2">
+          <Highlighter className="w-4 h-4 text-red-500" />
+          Pontos de dúvida do reconhecimento
+        </label>
+        <HighlightedTranscription
+          transcription={transcription}
+          flaggedSegments={flaggedSegments}
+          unrecognized={unrecognized}
+        />
+        <p className="mt-1.5 text-xs text-muted-foreground">
+          Os trechos grifados em vermelho indicam onde o reconhecimento teve baixa confiança ou não conseguiu ler — confira esses pontos ao editar.
+        </p>
+      </div>
+
+      <div>
         <label className="text-sm font-medium mb-2 block">
-          Revise a transcrição {hasFlagged && '— trechos destacados precisam de atenção:'}
+          Revise a transcrição {hasFlagged && '— ajuste os trechos destacados acima:'}
         </label>
         <Textarea
           value={text}
@@ -58,8 +74,7 @@ export default function TranscriptionReview({ transcription, unrecognized, confi
           className="min-h-[200px] text-sm leading-relaxed"
         />
         <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-          <span className="flex items-center gap-1"><span className="w-3 h-3 bg-amber-200 rounded border border-amber-400" /> Baixa confiança</span>
-          <span className="flex items-center gap-1"><span className="w-3 h-3 bg-red-200 rounded border border-red-400" /> Ilegível</span>
+          <span className="flex items-center gap-1"><span className="w-3 h-3 bg-red-300/70 border border-red-400" /> Marca-texto: dúvida do OCR</span>
         </div>
       </div>
 
