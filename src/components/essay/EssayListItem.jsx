@@ -9,9 +9,9 @@ const FALLBACK_LOGO = 'https://media.base44.com/images/public/6a6602cb58785bab45
 
 export default function EssayListItem({ essay, onDelete }) {
   const navigate = useNavigate();
-  const banca = BANCAS.find(b => b.id === essay.banca);
+  const banca = BANCAS.find((b) => b.id === essay.banca);
   const maxGrade = essay.max_grade || banca?.max_grade || 100;
-  const percentage = essay.final_grade ? Math.round((essay.final_grade / maxGrade) * 100) : 0;
+  const percentage = essay.final_grade ? Math.round(essay.final_grade / maxGrade * 100) : 0;
   const date = new Date(essay.created_date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
 
   const open = () => navigate(`/historico/${essay.id}`);
@@ -35,25 +35,25 @@ export default function EssayListItem({ essay, onDelete }) {
           </p>
         </div>
         <div className="text-right">
-          {essay.status === 'completed' ? (
-            <>
-              <p className="font-bold text-sm" style={{ color: banca?.color }}>{essay.final_grade}/{maxGrade}</p>
+          {essay.status === 'completed' ?
+          <>
+              <p className="font-bold text-sm text-[#e9861a] bg-[#fae8db]" style={{ color: banca?.color }}>{essay.final_grade}/{maxGrade}</p>
               <p className="text-xs text-muted-foreground">{percentage}%</p>
-            </>
-          ) : (
-            <span className="rounded-full bg-black/5 px-2.5 py-1 text-xs font-medium">Em andamento</span>
-          )}
+            </> :
+
+          <span className="rounded-full bg-black/5 px-2.5 py-1 text-xs font-medium">Em andamento</span>
+          }
         </div>
         <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
         <button
           type="button"
           onClick={handleDelete}
           title="Excluir redação"
-          className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
-        >
+          className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors">
+          
           <Trash2 className="w-4 h-4" />
         </button>
       </div>
-    </Card>
-  );
+    </Card>);
+
 }
