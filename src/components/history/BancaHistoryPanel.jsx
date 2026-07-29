@@ -106,8 +106,8 @@ export default function BancaHistoryPanel({ banca, essays, onDelete }) {
               <Tooltip content={<ChartTooltip />} />
               <Scatter
                 data={scatterData}
-                fill={banca.color}
-                line={{ stroke: banca.color, strokeWidth: 1, strokeOpacity: 0.3 }}
+                fill="#E9861A"
+                line={{ stroke: "#E9861A", strokeWidth: 1.5, strokeOpacity: 0.5 }}
               />
             </ScatterChart>
           </ResponsiveContainer>
