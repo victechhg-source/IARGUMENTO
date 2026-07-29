@@ -28,7 +28,7 @@ export default function Historico() {
 
   if (essays === null) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin" />
       </div>
     );
@@ -37,8 +37,8 @@ export default function Historico() {
   const allBancas = BANCAS;
 
   return (
-    <div className="min-h-screen bg-white text-foreground">
-      <header className="border-b border-border bg-white/95 sticky top-0 z-10">
+    <div className="min-h-screen bg-background text-foreground">
+      <header className="border-b border-foreground/20 bg-background/95 sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 py-3 flex items-center gap-3">
           <Link to="/"><Button variant="ghost" size="icon"><ArrowLeft className="w-4 h-4" /></Button></Link>
           <h1 className="font-semibold text-sm flex-1">Meu histórico</h1>
@@ -48,9 +48,9 @@ export default function Historico() {
 
       <div className="max-w-4xl mx-auto px-4 py-6">
         <Tabs defaultValue={allBancas[0]?.id}>
-          <TabsList className="flex w-full flex-wrap h-auto justify-start gap-1 bg-transparent p-0">
+          <TabsList className="flex w-full flex-wrap h-auto justify-start gap-2 bg-transparent p-1 border-b border-border rounded-none">
             {allBancas.map(b => (
-              <TabsTrigger key={b.id} value={b.id} className="rounded-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <TabsTrigger key={b.id} value={b.id} className="rounded-full border border-border bg-card px-4 py-1.5 text-sm font-semibold text-muted-foreground shadow-sm hover:text-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:border-primary data-[state=active]:shadow-none">
                 {b.name}
               </TabsTrigger>
             ))}

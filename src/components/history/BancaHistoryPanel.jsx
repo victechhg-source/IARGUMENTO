@@ -68,19 +68,19 @@ export default function BancaHistoryPanel({ banca, essays, onDelete }) {
     <div className="space-y-6 pt-4">
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <Card className="p-4 bg-accent">
+        <Card className="p-4">
           <div className="flex items-center gap-2 mb-1"><FileText className="w-4 h-4 text-primary" /><span className="text-xs text-muted-foreground">Redações</span></div>
           <p className="text-2xl font-bold">{totalEssays}</p>
         </Card>
-        <Card className="p-4 bg-accent">
+        <Card className="p-4">
           <div className="flex items-center gap-2 mb-1"><TrendingUp className="w-4 h-4 text-green-600" /><span className="text-xs text-muted-foreground">Nota média</span></div>
           <p className="text-2xl font-bold">{avgPct == null ? '—' : `${avgPct}%`}</p>
         </Card>
-        <Card className="p-4 bg-accent">
+        <Card className="p-4">
           <div className="flex items-center gap-2 mb-1"><Award className="w-4 h-4 text-amber-500" /><span className="text-xs text-muted-foreground">Melhor nota</span></div>
           <p className="text-2xl font-bold">{bestPct == null ? '—' : `${Math.round(bestPct)}%`}</p>
         </Card>
-        <Card className="p-4 bg-accent">
+        <Card className="p-4">
           <div className="flex items-center gap-2 mb-1"><Calendar className="w-4 h-4 text-blue-500" /><span className="text-xs text-muted-foreground">Última redação</span></div>
           <p className="text-sm font-bold pt-1">{lastEssay ? formatLongDate(lastEssay.created_date) : '—'}</p>
         </Card>
@@ -88,7 +88,7 @@ export default function BancaHistoryPanel({ banca, essays, onDelete }) {
 
       {/* Chart */}
       {scatterData.length > 0 ? (
-        <Card className="p-5 bg-accent">
+        <Card className="p-5">
           <h3 className="font-semibold text-sm mb-4 flex items-center gap-2">
             <BarChart3 className="w-4 h-4" /> Progressão das notas — {banca.name}
           </h3>
@@ -113,7 +113,7 @@ export default function BancaHistoryPanel({ banca, essays, onDelete }) {
           </ResponsiveContainer>
         </Card>
       ) : (
-        <Card className="p-5 bg-accent text-sm text-muted-foreground text-center">
+        <Card className="p-5 text-sm text-muted-foreground text-center">
           Nenhuma redação concluída para {banca.name} ainda.
         </Card>
       )}
