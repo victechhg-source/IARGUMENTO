@@ -78,8 +78,7 @@ Quando os dois eixos divergem de nível, prevalece o nível inferior.
 ## FORMATO DE SAÍDA
 
 ### Transcrição com Erros Marcados
-Reproduza o texto INTEGRALMENTE. Marque cada desvio com [[r:trecho]]. Sem HTML.
-Esses marcadores [[r:...]] são EXCLUSIVOS da C1.
+Reproduza o texto INTEGRALMENTE. Marque cada desvio com [[C1:trecho]] (marcador da Competência I). Sem HTML. Qualquer especialista pode marcar trechos na redação — não há mais exclusividade para a C1.
 
 ### Correção Detalhada (parágrafo por parágrafo)
 Para cada erro: Linha / Trecho Original / Categoria / Regra Violada / Correção Sugerida.
