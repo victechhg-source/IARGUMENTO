@@ -24,6 +24,18 @@
     },
     "school_name": {
       "type": "string"
+    },
+    "display_name": {
+      "type": "string",
+      "description": "Nome completo do usu\u00e1rio (full_name \u00e9 read-only no sistema)"
+    },
+    "date_of_birth": {
+      "type": "string",
+      "format": "date"
+    },
+    "cpf": {
+      "type": "string",
+      "description": "CPF somente d\u00edgitos"
     }
   },
   "required": [
