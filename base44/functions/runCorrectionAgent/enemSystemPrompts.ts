@@ -1,4 +1,4 @@
-// System prompts da arquitetura de correção ENEM (Escola Argumento) — calibração fiel à grade oficial.
+// System prompts da arquitetura de correção ENEM (Escola Argumento).
 // Calibrados com base nos materiais de formação de professores da Argumento:
 // grade específica de competências, orientações sobre texto completo e notas,
 // material de C1 (norma-padrão), C2 (repertório), C4 (coesão) e C5 (intervenção).
