@@ -1,15 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import { AlertCircle, Check, ShieldCheck, ShieldAlert, Highlighter } from 'lucide-react';
-import HighlightedTranscription from './HighlightedTranscription';
+import HighlightTextarea from './HighlightTextarea';
 
 export default function TranscriptionReview({ transcription, unrecognized, confidence, flaggedSegments, onConfirm }) {
   const [text, setText] = useState(transcription);
-
-  const lowConfidenceWords = useMemo(() => {
-    return new Set((flaggedSegments || []).map(s => s.text.toLowerCase().replace(/[.,;:!?"'()]/g, '')));
-  }, [flaggedSegments]);
 
   const confidencePct = Math.round((confidence || 0) * 100);
   const hasFlagged = (flaggedSegments || []).length > 0;
@@ -25,7 +20,7 @@ export default function TranscriptionReview({ transcription, unrecognized, confi
           </p>
           <p className={`mt-0.5 ${hasFlagged ? 'text-amber-700' : 'text-sky-700'}`}>
             {hasFlagged
-              ? `${(flaggedSegments || []).length} segmento(s) com baixa confiança destacados abaixo. Revise com atenção antes de confirmar.`
+              ? `${(flaggedSegments || []).length} segmento(s) com baixa confiança destacados no texto. Revise com atenção antes de confirmar.`
               : 'Reconhecimento com boa confiança, mas a confirmação do aluno é sempre obrigatória antes da correção.'}
           </p>
           <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-white/60">
@@ -44,7 +39,7 @@ export default function TranscriptionReview({ transcription, unrecognized, confi
                 <span key={i} className="bg-red-200 text-red-900 text-xs px-2 py-0.5 rounded-full font-medium">{w}</span>
               ))}
             </div>
-            <p className="mt-2 text-xs text-red-700">Substitua ou remova as marcações [?] no texto abaixo.</p>
+            <p className="mt-2 text-xs text-red-700">Substitua ou remova as marcações [?] direto no texto abaixo.</p>
           </div>
         </div>
       )}
@@ -52,30 +47,17 @@ export default function TranscriptionReview({ transcription, unrecognized, confi
       <div>
         <label className="text-sm font-medium mb-2 flex items-center gap-2">
           <Highlighter className="w-4 h-4 text-red-500" />
-          Pontos de dúvida do reconhecimento
+          Revise a transcrição {hasFlagged && '— ajuste os trechos destacados:'}
         </label>
-        <HighlightedTranscription
-          transcription={transcription}
+        <HighlightTextarea
+          value={text}
+          onChange={setText}
           flaggedSegments={flaggedSegments}
           unrecognized={unrecognized}
         />
         <p className="mt-1.5 text-xs text-muted-foreground">
-          Os trechos grifados em vermelho indicam onde o reconhecimento teve baixa confiança ou não conseguiu ler — confira esses pontos ao editar.
+          Os trechos em vermelho indicam onde o reconhecimento teve baixa confiança ou não conseguiu ler. Edite direto no texto acima — a paragrafação é preservada.
         </p>
-      </div>
-
-      <div>
-        <label className="text-sm font-medium mb-2 block">
-          Revise a transcrição {hasFlagged && '— ajuste os trechos destacados acima:'}
-        </label>
-        <Textarea
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          className="min-h-[200px] text-sm leading-relaxed"
-        />
-        <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-          <span className="flex items-center gap-1"><span className="w-3 h-3 bg-red-300/70 border border-red-400" /> Marca-texto: dúvida do OCR</span>
-        </div>
       </div>
 
       <Button className="w-full" onClick={() => onConfirm(text)}>
