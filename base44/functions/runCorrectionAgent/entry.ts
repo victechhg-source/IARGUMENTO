@@ -1,6 +1,54 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
 import { ENEM_PROMPT_C1, ENEM_PROMPT_C23, ENEM_PROMPT_C45 } from './enemSystemPrompts.ts';
 
+// Anotação DETERMINÍSTICA: injeta marcadores por competência diretamente na
+// transcrição original (preservando paragrafação e texto exatos) com base nos
+// excerpts de cada finding. Não depende do LLM reproduzir o texto.
+function buildAnnotatedText(transcription: string, stages: any[]): string {
+  if (!transcription) return '';
+  const normalize = (s: string) => s
+    .toLowerCase()
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/[\u201c\u201d]/g, '"');
+  const normTrans = normalize(transcription);
+  const used: Array<[number, number]> = [];
+  const findOccurrence = (needle: string): number => {
+    const n = normalize(needle);
+    if (!n) return -1;
+    let from = 0;
+    while (true) {
+      const idx = normTrans.indexOf(n, from);
+      if (idx < 0) return -1;
+      const end = idx + n.length;
+      const overlap = used.some(([s, e]) => idx < e && end > s);
+      if (!overlap) { used.push([idx, end]); return idx; }
+      from = idx + 1;
+    }
+  };
+  const matches: Array<{ start: number; end: number; comp: number; id: string }> = [];
+  stages.forEach((stg, i) => {
+    const comp = i + 1;
+    (stg?.findings || []).forEach((f, fi) => {
+      const ex = String(f?.excerpt || '');
+      if (ex.length < 2) return;
+      const start = findOccurrence(ex);
+      if (start < 0) return;
+      matches.push({ start, end: start + ex.length, comp, id: f.id || `c${comp}-${fi + 1}` });
+    });
+  });
+  matches.sort((a, b) => a.start - b.start);
+  let out = '';
+  let last = 0;
+  for (const m of matches) {
+    if (m.start < last) continue;
+    out += transcription.slice(last, m.start);
+    out += `[[C${m.comp}#${m.id}:${transcription.slice(m.start, m.end)}]]`;
+    last = m.end;
+  }
+  out += transcription.slice(last);
+  return out || transcription;
+}
+
 export default async function(req) {
   try {
     const base44 = createClientFromRequest(req);
@@ -135,7 +183,7 @@ NOTAS POR COMPETÊNCIA: cada especialista já declarou a nota de cada competênc
 
 Monte a devolutiva final no formato JSON solicitado. A correção deve ser MINUCIOSA: enumere TODOS os pontos relevantes de cada competência (erros e acertos), com atenção especial aos ERROS — um finding por erro/acerto identificado, com explanation detalhada e didática e suggestion concreta. Não resuma em poucos itens; quanto mais pontos específicos mapeados no texto, melhor.
 
-1. "annotated_text": reproduza a redação original (transcrição) INTEGRALMENTE e marque TODOS os trechos citados nos findings com marcadores por COMPETÊNCIA no formato [[C{n}#<id>:trecho]], onde n = número da competência (1 a 5) e <id> = o MESMO id do finding correspondente. Cada competência ganha uma cor na interface, então use SEMPRE o marcador da competência a que o apontamento pertence (ex.: [[C3#f7:trecho]] para um apontamento da Competência III com id "f7"). Marque TODOS os findings — erros, avisos e acertos memoráveis —, cada um envolvendo o trecho exato com seu id correspondente. Trechos sem apontamento ficam sem marcador. QUALQUER especialista pode marcar trechos (C1, C2, C3, C4, C5 — não há mais exclusividade para a C1). NÃO use [[r:]], [[e:]], [[w:]] ou [[c:]]; não use HTML nem negrito. PRESERVE a paragrafação, as quebras de linha, a pontuação e o texto EXATAMENTE como transcritos após o aval do OCR — o texto integral (palavras e parágrafos) deve permanecer INALTERADO; insira apenas os marcadores, sem reescrever, reordenar, unir ou reformate parágrafos.
+1. "annotated_text": deixe como string VAZIA (""). A marcação do texto será gerada automaticamente a partir dos excerpts; NÃO reproduza nem marque o texto aqui. Em vez disso, garanta que CADA finding.excerpt seja uma CÓPIA EXATA (verbatim) de um trecho real da redação do aluno — mesma grafia, pontuação, acentos e erros; jamais corrija, parafraseie ou altere o texto do excerpt. PRESERVE a paragrafação e as quebras de linha exatamente como estão após o aval do OCR — o texto integral (palavras e parágrafos) permanece INALTERADO em todo lugar.
 2. "stages": 5 entradas nesta ordem: ${stageNames.map((name) => `"${name}"`).join(', ')}. Para cada uma, preencha "score" (0-200, LIDO do relatório do especialista correspondente — nunca padronize nem use sempre 120), "max_score" 200, "summary" = síntese concisa e didática do parecer do especialista correspondente, e "findings" = lista minuciosa de observações, CADA UMA com "id" (shortcode único, ex.: "f1" — o MESMO id usado no marcador do annotated_text), "type" ("correct"/"warning"/"error"), "excerpt" (o trecho exato, idêntico ao do marcador), "explanation" detalhada e didática do erro/acerto, "suggestion" concreta de melhoria e "video_suggestion" (termo curto de busca no YouTube).
 3. "memorable_strengths": até 3 acertos memoráveis.
 4. "writing_suggestions": 3 a 5 sugestões práticas de escrita.
@@ -161,13 +209,18 @@ Retorne apenas o JSON.`;
         findings: ss?.findings || []
       };
     });
+    finalStages.forEach((s, si) => {
+      (s.findings || []).forEach((f, fi) => {
+        if (!f.id) f.id = `c${si + 1}-${fi + 1}`;
+      });
+    });
     const computedTotal = finalStages.reduce((sum, s) => sum + s.score, 0);
     const allEqual = finalStages.length > 0 && finalStages.every((s) => s.score === finalStages[0].score);
     if (allEqual) console.warn('[runCorrectionAgent][ENEM] Notas idênticas em todas as competências — verificar relatórios dos especialistas:', finalStages.map((s) => s.score));
     console.log('[runCorrectionAgent][ENEM] Notas finais (synthesis + fallback marcador):', finalStages.map((s) => s.score), 'total', computedTotal, 'marcadores', notes);
 
     const result = {
-      annotated_text: synth.annotated_text || '',
+      annotated_text: buildAnnotatedText(transcription, finalStages) || synth.annotated_text || '',
       memorable_strengths: synth.memorable_strengths || [],
       stages: finalStages,
       writing_suggestions: synth.writing_suggestions || [],

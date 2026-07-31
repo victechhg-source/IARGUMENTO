@@ -23,6 +23,22 @@ const COMP_COLORS = [
 ];
 const compColor = (i) => COMP_COLORS[i % COMP_COLORS.length];
 
+function splitParagraphs(parts) {
+  const paras = [[]];
+  parts.forEach((p) => {
+    if (p.type === 'plain') {
+      const segs = p.text.split('\n');
+      segs.forEach((seg, idx) => {
+        if (idx > 0) paras.push([]);
+        if (seg.length) paras[paras.length - 1].push({ type: 'plain', text: seg });
+      });
+    } else {
+      paras[paras.length - 1].push(p);
+    }
+  });
+  return paras.filter((para) => para.length > 0);
+}
+
 function normExcerpt(s) {
   return (s || '').toLowerCase().replace(/['"“”]/g, '').replace(/\s+/g, ' ').trim();
 }
@@ -178,28 +194,32 @@ export default function CorrectionResults({ correction, banca }) {
           <button type="button" onClick={hideAll} className="text-xs font-semibold text-muted-foreground hover:underline">Nenhuma</button>
         </div>
         <p className="mb-3 text-xs text-muted-foreground">Toque em um trecho grifado para ir à explicação. Use os filtros acima para ver as marcações por competência.</p>
-        <div className="text-sm leading-7 whitespace-pre-wrap">
-          {annotated.map((part, i) => {
-            if (part.type === 'plain') return <span key={i}>{part.text}</span>;
-            const { compIndex, domId } = resolveMarker(part);
-            if (compIndex === null || !visible[compIndex]) return <span key={i}>{part.text}</span>;
-            const c = compColor(compIndex);
-            if (domId) {
-              return (
-                <button
-                  key={i}
-                  id={part.id ? `hl-${part.id}` : undefined}
-                  type="button"
-                  onClick={() => focusEl(domId)}
-                  title="Ver explicação"
-                  className={`${c.chip} cursor-pointer rounded px-0.5 border hover:brightness-95`}
-                >
-                  {part.text}
-                </button>
-              );
-            }
-            return <span key={i} className={`${c.chip} rounded px-0.5 border`}>{part.text}</span>;
-          })}
+        <div className="text-sm">
+          {splitParagraphs(annotated).map((para, pi) => (
+            <p key={pi} className="mb-4 leading-7 last:mb-0">
+              {para.map((part, i) => {
+                if (part.type === 'plain') return <span key={`${pi}-${i}`}>{part.text}</span>;
+                const { compIndex, domId } = resolveMarker(part);
+                if (compIndex === null || !visible[compIndex]) return <span key={`${pi}-${i}`}>{part.text}</span>;
+                const c = compColor(compIndex);
+                if (domId) {
+                  return (
+                    <button
+                      key={`${pi}-${i}`}
+                      id={part.id ? `hl-${part.id}` : undefined}
+                      type="button"
+                      onClick={() => focusEl(domId)}
+                      title="Ver explicação"
+                      className={`${c.chip} cursor-pointer rounded px-0.5 border hover:brightness-95`}
+                    >
+                      {part.text}
+                    </button>
+                  );
+                }
+                return <span key={`${pi}-${i}`} className={`${c.chip} rounded px-0.5 border`}>{part.text}</span>;
+              })}
+            </p>
+          ))}
         </div>
         <p className="mt-4 flex items-center gap-1.5 text-[10px] leading-tight text-muted-foreground">
           <Sparkles className="w-3 h-3 text-primary" />
