@@ -6,6 +6,7 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ScrollToTop from './components/ScrollToTop';
+import GoogleSignupCompletion from '@/components/GoogleSignupCompletion';
 // Add page imports here
 import Home from '@/pages/Home';
 import Correction from '@/pages/Correction';
@@ -41,8 +42,10 @@ const AuthenticatedApp = () => {
 
   // Render the main app
   return (
-    <Routes>
-      {/* Add your page Route elements here */}
+    <>
+      <GoogleSignupCompletion />
+      <Routes>
+        {/* Add your page Route elements here */}
       <Route path="/" element={<Home />} />
       <Route path="/correcao" element={<Correction />} />
       <Route path="/historico" element={<Historico />} />
@@ -58,7 +61,8 @@ const AuthenticatedApp = () => {
       <Route path="/StudentPerformance" element={<Navigate to="/historico" replace />} />
       <Route path="/admin" element={<AdminDashboard />} />
       <Route path="*" element={<PageNotFound />} />
-    </Routes>
+      </Routes>
+    </>
   );
 };
 
