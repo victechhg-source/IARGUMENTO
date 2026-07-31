@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Check, AlertTriangle, XCircle, Youtube, Lightbulb, BookOpen, GraduationCap, Star, ArrowUp, Sparkles } from 'lucide-react';
@@ -11,13 +11,21 @@ const TYPE_CONFIG = {
   error: { icon: XCircle, bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200', label: 'Erro' }
 };
 
-const SPAN_CLASS = {
-  c: 'bg-green-100 text-green-900 px-1 rounded',
-  w: 'bg-amber-100 text-amber-900 px-1 rounded',
-  e: 'bg-red-100 text-red-900 px-1 rounded',
-  r: 'bg-red-300/70 text-red-950 px-0.5 rounded shadow-[0_0_0_1px_rgba(220,38,38,0.15)]',
-  plain: ''
-};
+// Cores por competência (índice = posição em correction.stages)
+const COMP_COLORS = [
+  { chip: 'bg-red-200/70 text-red-900 border-red-300', dot: 'bg-red-400' },
+  { chip: 'bg-blue-200/70 text-blue-900 border-blue-300', dot: 'bg-blue-400' },
+  { chip: 'bg-violet-200/70 text-violet-900 border-violet-300', dot: 'bg-violet-400' },
+  { chip: 'bg-amber-200/70 text-amber-900 border-amber-300', dot: 'bg-amber-400' },
+  { chip: 'bg-emerald-200/70 text-emerald-900 border-emerald-300', dot: 'bg-emerald-400' },
+  { chip: 'bg-cyan-200/70 text-cyan-900 border-cyan-300', dot: 'bg-cyan-400' },
+  { chip: 'bg-pink-200/70 text-pink-900 border-pink-300', dot: 'bg-pink-400' },
+];
+const compColor = (i) => COMP_COLORS[i % COMP_COLORS.length];
+
+function normExcerpt(s) {
+  return (s || '').toLowerCase().replace(/['"“”]/g, '').replace(/\s+/g, ' ').trim();
+}
 
 function normalizeAnnotations(text) {
   // Converte marcações HTML eventualmente geradas (spans/marks com classes) para o formato [[c|w|e:...]]
@@ -40,7 +48,7 @@ function normalizeAnnotations(text) {
 function parseAnnotatedText(text) {
   if (!text) return [];
   text = normalizeAnnotations(text);
-  const regex = /\[\[(c|w|e|r)(?:#([a-zA-Z0-9_-]+))?:(.*?)\]\]/g;
+  const regex = /\[\[(C[1-5]|[rcwe])(?:#([a-zA-Z0-9_-]+))?:(.*?)\]\]/gi;
   const parts = [];
   let lastIndex = 0;
   let match;
@@ -64,6 +72,41 @@ export default function CorrectionResults({ correction, banca }) {
   const allFindings = (correction.stages || []).flatMap((s) => s.findings || []);
   const errorCount = allFindings.filter((f) => f.type === 'error').length;
   const correctCount = allFindings.filter((f) => f.type === 'correct').length;
+
+  // Índice de findings: mapeia id e trecho -> card de detalhe (competência)
+  const findingsIndex = [];
+  (correction.stages || []).forEach((s, si) =>
+    (s.findings || []).forEach((f, fi) => {
+      findingsIndex.push({ si, fi, f, domId: `finding-${f.id || `s${si}-f${fi}`}`, norm: normExcerpt(f.excerpt) });
+    })
+  );
+  const findById = {};
+  findingsIndex.forEach((o) => { if (o.f.id) findById[o.f.id] = o; });
+  const findByExcerpt = {};
+  findingsIndex.forEach((o) => { if (o.norm) findByExcerpt[o.norm] = o; });
+
+  const [visible, setVisible] = useState((correction.stages || []).map(() => true));
+
+  const resolveMarker = (part) => {
+    let target = null;
+    if (part.id && findById[part.id]) target = findById[part.id];
+    else if (part.text) {
+      const n = normExcerpt(part.text);
+      if (findByExcerpt[n]) target = findByExcerpt[n];
+    }
+    let compIndex = null;
+    if (target) compIndex = target.si;
+    else {
+      const m = /^[Cc]([1-5])$/.exec(part.type);
+      if (m) compIndex = parseInt(m[1], 10) - 1;
+      else if (/^r$/i.test(part.type)) compIndex = 0;
+    }
+    return { compIndex, domId: target ? target.domId : null };
+  };
+
+  const toggleComp = (i) => setVisible((v) => v.map((val, idx) => (idx === i ? !val : val)));
+  const showAll = () => setVisible((correction.stages || []).map(() => true));
+  const hideAll = () => setVisible((correction.stages || []).map(() => false));
 
   const focusEl = (id) => {
     const el = document.getElementById(id);
@@ -117,30 +160,45 @@ export default function CorrectionResults({ correction, banca }) {
           <BookOpen className="w-4 h-4" />
           Sua redação corrigida
         </h3>
-        <div className="flex flex-wrap gap-3 mb-3 text-xs text-muted-foreground">
-          <span className="flex items-center gap-1"><span className="w-3 h-3 bg-red-300/70 rounded border border-red-300"></span> Norma-padrão (C1)</span>
-          <span className="flex items-center gap-1"><span className="w-3 h-3 bg-green-100 rounded border border-green-300"></span> Acertos</span>
-          <span className="flex items-center gap-1"><span className="w-3 h-3 bg-amber-100 rounded border border-amber-300"></span> Avisos</span>
-          <span className="flex items-center gap-1"><span className="w-3 h-3 bg-red-100 rounded border border-red-300"></span> Erros</span>
+        <div className="flex flex-wrap items-center gap-2 mb-3">
+          {(correction.stages || []).map((s, i) => {
+            const c = compColor(i);
+            const label = (s.stage || `Competência ${i + 1}`).split('—')[0].trim();
+            return (
+              <label
+                key={i}
+                className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold cursor-pointer transition-colors ${visible[i] ? `${c.chip}` : 'bg-muted text-muted-foreground border-border'}`}
+              >
+                <input type="checkbox" checked={!!visible[i]} onChange={() => toggleComp(i)} className="h-3 w-3" />
+                {label}
+              </label>
+            );
+          })}
+          <button type="button" onClick={showAll} className="text-xs font-semibold text-primary hover:underline">Todas</button>
+          <button type="button" onClick={hideAll} className="text-xs font-semibold text-muted-foreground hover:underline">Nenhuma</button>
         </div>
-        <p className="mb-3 text-xs text-muted-foreground"><span className="text-primary">↕</span> Toque em um trecho grifado para abrir a explicação; use "Ver no texto" para voltar ao ponto exato da redação.</p>
+        <p className="mb-3 text-xs text-muted-foreground">Toque em um trecho grifado para ir à explicação. Use os filtros acima para ver as marcações por competência.</p>
         <div className="text-sm leading-7 whitespace-pre-wrap">
           {annotated.map((part, i) => {
-            if (part.type === 'plain' || !part.id) {
-              return <span key={i} className={SPAN_CLASS[part.type]}>{part.text}</span>;
+            if (part.type === 'plain') return <span key={i}>{part.text}</span>;
+            const { compIndex, domId } = resolveMarker(part);
+            if (compIndex === null || !visible[compIndex]) return <span key={i}>{part.text}</span>;
+            const c = compColor(compIndex);
+            if (domId) {
+              return (
+                <button
+                  key={i}
+                  id={part.id ? `hl-${part.id}` : undefined}
+                  type="button"
+                  onClick={() => focusEl(domId)}
+                  title="Ver explicação"
+                  className={`${c.chip} cursor-pointer rounded px-0.5 border hover:brightness-95`}
+                >
+                  {part.text}
+                </button>
+              );
             }
-            return (
-              <button
-                key={i}
-                id={`hl-${part.id}`}
-                type="button"
-                onClick={() => focusEl(`finding-${part.id}`)}
-                title="Ver explicação"
-                className={`${SPAN_CLASS[part.type]} cursor-pointer hover:brightness-95 hover:ring-1 hover:ring-red-500`}
-              >
-                {part.text}
-              </button>
-            );
+            return <span key={i} className={`${c.chip} rounded px-0.5 border`}>{part.text}</span>;
           })}
         </div>
         <p className="mt-4 flex items-center gap-1.5 text-[10px] leading-tight text-muted-foreground">
