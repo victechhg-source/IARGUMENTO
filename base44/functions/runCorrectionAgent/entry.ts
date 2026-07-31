@@ -3,37 +3,40 @@ import { ENEM_PROMPT_C1, ENEM_PROMPT_C23, ENEM_PROMPT_C45 } from './enemSystemPr
 
 // Anotação DETERMINÍSTICA: injeta marcadores por competência diretamente na
 // transcrição original (preservando paragrafação e texto exatos) com base nos
-// excerpts de cada finding. Não depende do LLM reproduzir o texto.
+// excerpts de cada finding — TODOS (erros, motivos de atenção e acertos).
+// Casamento por tokens: tolera diferenças de pontuação, aspas, acentos e caixa.
 function buildAnnotatedText(transcription: string, stages: any[]): string {
   if (!transcription) return '';
-  const normalize = (s: string) => s
-    .toLowerCase()
-    .replace(/[\u2018\u2019]/g, "'")
-    .replace(/[\u201c\u201d]/g, '"');
-  const normTrans = normalize(transcription);
+  const normToken = (s: string) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const transTokens = [...transcription.matchAll(/[\p{L}\p{N}]+/gu)].map((m) => ({
+    start: m.index as number,
+    end: (m.index as number) + m[0].length,
+    norm: normToken(m[0])
+  }));
   const used: Array<[number, number]> = [];
-  const findOccurrence = (needle: string): number => {
-    const n = normalize(needle);
-    if (!n) return -1;
-    let from = 0;
-    while (true) {
-      const idx = normTrans.indexOf(n, from);
-      if (idx < 0) return -1;
-      const end = idx + n.length;
-      const overlap = used.some(([s, e]) => idx < e && end > s);
-      if (!overlap) { used.push([idx, end]); return idx; }
-      from = idx + 1;
+  const findOccurrence = (excerpt: string): { start: number; end: number } | null => {
+    const exTokens = [...excerpt.matchAll(/[\p{L}\p{N}]+/gu)].map((m) => normToken(m[0]));
+    if (!exTokens.length) return null;
+    for (let i = 0; i + exTokens.length <= transTokens.length; i++) {
+      let ok = true;
+      for (let j = 0; j < exTokens.length; j++) {
+        if (transTokens[i + j].norm !== exTokens[j]) { ok = false; break; }
+      }
+      if (!ok) continue;
+      const start = transTokens[i].start;
+      const end = transTokens[i + exTokens.length - 1].end;
+      const overlap = used.some(([s, e]) => start < e && end > s);
+      if (!overlap) { used.push([start, end]); return { start, end }; }
     }
+    return null;
   };
   const matches: Array<{ start: number; end: number; comp: number; id: string }> = [];
   stages.forEach((stg, i) => {
     const comp = i + 1;
     (stg?.findings || []).forEach((f, fi) => {
-      const ex = String(f?.excerpt || '');
-      if (ex.length < 2) return;
-      const start = findOccurrence(ex);
-      if (start < 0) return;
-      matches.push({ start, end: start + ex.length, comp, id: f.id || `c${comp}-${fi + 1}` });
+      const occ = findOccurrence(String(f?.excerpt || ''));
+      if (!occ) return;
+      matches.push({ start: occ.start, end: occ.end, comp, id: f.id || `c${comp}-${fi + 1}` });
     });
   });
   matches.sort((a, b) => a.start - b.start);
