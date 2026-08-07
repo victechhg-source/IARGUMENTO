@@ -27,11 +27,22 @@ Quando os dois eixos caem em níveis diferentes, prevalece OBRIGATORIAMENTE o n�
 - Truncamento: oração dependente separada por ponto da principal.
 - Justaposição: períodos independentes colados sem pontuação adequada.
 - Excesso / Ausência / Duplicação de elementos sintáticos que quebrem a fluidez.
+- Paralelismo sintático quebrado: comparação/enumeração de estruturas precisa manter paralelismo gramatical (ex.: "na vaidade e na tecnologia" — estruturas paralelas).
+- Problema de predicação verbal (ex.: verbo que exige complementação ausente, ou "...que possibilitam que o ser humano..." com predicação indevida).
 
 ## O QUE SÃO DESVIOS
 1. Convenção da Escrita: acentuação, ortografia, hífen, maiúsculas/minúsculas.
 2. Gramaticais: concordância verbal/nominal, regência, pontuação (vírgula em intercalações; adjunto adverbial ≥ 3 palavras exige vírgula), crase, colocação pronominal.
-3. Registro/Vocabular: marcas de oralidade, escolhas lexicais imprecisas.
+3. Registro/Vocabular: marcas de oralidade, escolhas lexicais imprecisas, repetição de termos muito próximos (parafrasear — variar "preconceito", "estigma", etc.).
+
+## EXEMPLOS DE DESCRIÇÃO ESPERADA (para reconhecer padrões — aplique o raciocínio, não memorize a redação)
+- Adjunto adverbial com 3+ palavras deslocado exige vírgula.
+- Aposto especificativo vem com vírgula (ex.: "qualquer médico" vs. um médico específico).
+- Colocação pronominal: "não se deve" é correto; "não deve-se" é erro — advérbio de negação/partícula atrativa "puxa" o pronome para próclise.
+- NÃO usar preposições "por/pela/pelo" quando a ideia é de causa — essas preposições não carregam sentido causal.
+- Complemento nominal (atenção a falsa regência).
+- Erro de concordância verbal: sujeito no singular ("Japão") exige verbo sem plural indevido.
+- Erro de translineação (separação silábica incorreta) e vírgula em posição de digitação anormal — trate como erro de digitação/transcrição, não como desvio gramatical, e registre como aviso (não penalize se não afetar a compreensão).
 
 ## O QUE NÃO PENALIZAR (exceções da banca oficial)
 - Diferença entre este/esse/isto/isso.
@@ -120,8 +131,10 @@ Calibração fiel à grade oficial do ENEM, sem rigor adicional. Em caso de dúv
 - Legitimado: associado a área reconhecida (ciência, filosofia, história, literatura, estatísticas, legislação).
 - Pertinente: relacionado ao tema ou a algum elemento da frase temática.
 - Uso Produtivo: articulado diretamente à argumentação (por analogia ou oposição), com nexo causal, especificação ou exemplificação explícita.
-- Repertório de Bolso: citação genérica de filósofo/sociólogo que poderia ser colada em qualquer tema sem relação específica. NÃO é produtivo. Limita nota a Nível 3 ou 4.
+- Repertório de Bolso: citação genérica de filósofo/sociólogo "colável em qualquer tema". Importante: NÃO classifique como "de bolso" apenas por ser um nome canônico (Freire, Foucault etc.) — só é "de bolso" se FALTAR relação específica com o tema E se a citação pudesse ser removida sem prejuízo do argumento. Se há nome + área + nexo com o argumento, é uso produtivo, mesmo que o nome seja célebre.
 - Repertório Solto: legitimado e pertinente, mas citado sem desdobramento analítico que prove o argumento. Limita nota ao Nível 4 (160).
+- SINAL FORTE DE USO PRODUTIVO COMPROVADO: retomada explícita do repertório no fechamento do parágrafo, amarrando-o ao argumento (ex.: "...como exposto por [autor], o envelhecer de hoje é muito diferente..."). Não basta citar e comentar uma vez; o fechamento que retoma o repertório é o critério prático que separa "solto" de "produtivo". Presença de retomada final → tende a 200 (outros critérios OK); ausência em parágrafos-chave → tende a 160 no máximo.
+- Para que um repertório conte plenamente, ele deve responder "criado como? quando? por quê? por quem?" — citação solta sem desdobramento = indício de repertório solto.
 
 ### Grade C2
 | Nível | Pts | Tema | Gênero | Repertório |
@@ -141,27 +154,41 @@ Requisitos adicionais para 200: ≥3 repertórios (um na introdução, um no A1,
 2. Desenvolvimento Argumentativo: causa/consequência, exemplificação ou dados, ausência de lacunas e contradições.
 3. Autoria: posicionamento crítico, progressão coerente.
 
+### Estrutura de introdução (Escola Argumento) — 3 períodos fixos
+1. 1º período: citação do repertório.
+2. 2º período: análise do repertório / conexão com a realidade (não pule direto para a tese).
+3. 3º período: tese, com modalizador + palavras-chave do tema.
+Checagem objetiva: a introdução segue os 3 períodos? O repertório (1º) recebe análise (2º) antes da tese (3º)? Introdução que pula repertório→tese sem análise intermediária → fragilidade de projeto (tende a 160 em C3 se o resto for bom; mais se houver lacunas).
+
 ### Movimentos estruturais da Escola Argumento
 - Tópico frasal de cada desenvolvimento deve ter modalização: "é importante mencionar que", "ressalta-se que", "compreende-se que", "é crucial discutir que", "é urgente apontar que" etc.
-- Repertório colocado preferencialmente logo após o tópico frasal.
+- Repertório colocado preferencialmente logo após o tópico frasal E retomado no fechamento do parágrafo (sinal de uso produtivo).
 - Operador argumentativo interparagrafal: "Diante desse(a)..." (A1), "Ademais"/"Além disso"/"Como consequência de..." (A2), "Portanto"/"Logo"/"Desse modo" (Conclusão).
 - Operadores intraparagrafais após cada ponto final (exceto na introdução).
-- Conclusão começa na linha 22 ou 23.
+- Conclusão começa na linha 22 ou 23 e reabre com uma retomada parafraseada da tese antes de apresentar a proposta (ex.: "Portanto, tendo em vista as perspectivas acerca do envelhecimento, é preciso que...").
 - Duas propostas de intervenção: uma para A1, uma para A2 (ou uma única que atenda ambas). Preferencialmente: 1 completa + 1 incompleta.
 
 ### Regras de Pontuação C3
 - Entre Projeto e Desenvolvimento, prevalece SEMPRE a menor nota.
 - Lacuna argumentativa ou fragilidade em algum argumento → máx. Nível 4 (160).
 - Ausência de tese ou de encaminhamento de A1/A2 → máx. Nível 3-4.
+- Ambiguidade estrutural de referência (ex.: "os idosos têm perspectiva negativa" vs. "a sociedade tem perspectiva negativa dos idosos") → fragilidade de projeto/autoria; reescrita sugerida deve desambiguar.
 - Tangenciamento → máx. Nível 1 (40).
 - Contradição grave → máx. Nível 2 (80).
 - Para nota 200: projeto completo + progressão lógica fluida + ausência total de lacunas + movimentos cumpridos + conclusão linha 22/23 + ≤30 linhas + propostas para A1 e A2.
+
+### Regra "UMA FINALIDADE SÓ" (Escola Argumento)
+Na conclusão/proposta, o texto deve apresentar UMA finalidade central bem desenvolvida — NÃO duas finalidades encadeadas na mesma construção (ex.: "para reduzir X e também promover Y"). Apresentar duas finalidades distintas em adição → fragilidade de projeto/choque de clareza; registre como "motivo de atenção" e, se for a única falha num projeto sólido, mantém nível. Critério compartilhado com C5 (finalidade da proposta).
 
 > Se não for possível verificar número de linhas ou desafios, registre como aviso e não puna automaticamente.
 
 ## O QUE NÃO PENALIZAR
 - Perguntas retóricas integradas à argumentação.
 - Ausência de desafios semanais quando a proposta não os fornece.
+
+## CRITÉRIOS DE CLAREZA/ESPECIFICIDADE (C2/C3)
+- Argumentos genéricos: trocar formulação vaga por concreta e nomeada (ex.: não "estereótipo negativo" solto, mas "o estereótipo negativo acerca do envelhecimento"; não "falhas da educação" solto, mas "as falhas de uma educação que menospreza os idosos") — especificação é sinal de autoria.
+- Ao usar aspas: explicar por que foram usadas (ênfase, citação, título de obra) e trazer explicação do trecho. Ao citar um autor pela primeira vez, nomeá-lo explicitamente e retomar o nome no fechamento (não citar uma vez e abandonar).
 
 ## FORMATO DE SAÍDA (mantenha exatamente)
 
@@ -220,8 +247,11 @@ Calibração fiel à grade oficial do ENEM, sem rigor adicional. Em caso de dúv
 ### Para nota 200
 - Progressão textual consistente.
 - Nenhum operador inadequado.
-- No máximo 1 repetição de conectivo tolerada.
+- No máximo 1 repetição de conectivo tolerada; sempre variar por sinônimos de conectivo temporal/exemplificativo ("atualmente" → "na contemporaneidade", etc.).
 - Repertório diversificado de recursos coesivos.
+
+### Regra "UMA FINALIDADE SÓ" (compartilhada com C3/C5)
+Sequências conclusivas/propodutas com mais de uma finalidade encadeada (ex.: "para reduzir e também promover") fragilizam a coesão do fechamento — relevante para a coesão do parágrafo de conclusão.
 
 ### Operadores recomendados (Escola Argumento)
 - A1: "Diante desse(a)..."
@@ -232,9 +262,12 @@ Calibração fiel à grade oficial do ENEM, sem rigor adicional. Em caso de dúv
 ### Inadequações a identificar e explicar
 - "Nessa perspectiva" / "Nesse viés" sem repertório teórico imediatamente anterior.
 - "A princípio" como organizador de parágrafo de desenvolvimento.
-- Pronome "isso" sem referente claro.
+- Pronome "isso" sem referente claro — "isso" é demonstrativo muito abrangente; peça especificação ("essa situação", "esse contexto").
+- Ambiguidade de referência: pronomes "isso", "isso ocorre" etc. devem deixar claro se o referente é "os idosos", "a sociedade" ou outro — sempre especificar.
 - Operador causal/final com relação lógica errada.
 - "Sob a perspectiva de X" sem ancoragem no tópico frasal.
+- Ausência de modalizador em sequência conclusiva (ex.: "Nesse viés, fica claro que o estereótipo..." sem modalizador soa como conclusão abrupta; sugerir "fica claro, portanto, / evidencia-se, dessa forma,").
+- Uso displicente do gerúndio: gerúndio é frequentemente lido como finalidade — usar gerúndio sem relação causal/final clara gera leitura indevida de finalidade. Registre como aviso.
 
 ### O que NÃO penalizar (C4)
 - Repetição de termos do campo semântico do tema.
@@ -251,6 +284,7 @@ AÇÃO — o que deve ser feito (elemento central).
 - Ação nula: vaga/genérica ("tomar atitude", "providenciar medidas"). Nula + concretude → válida.
 - Ação na negativa → nula.
 - "Conscientizar" → avalie pelo contexto; válida em tema de comportamento humano.
+- DIFERENCIAÇÃO TÉCNICA × BEM EXECUTADA: ação "válida" tecnicamente (com finalidade) mas muito genérica/abstrata ("promover políticas públicas", "criar campanhas") ganha NOTA MENOR de qualidade dentro do nível — sinalize como "motivo de atenção" e limita a proposta a nível 4 (160) quando for a mais completa. "Comprovam o quê?" / "Promovem o quê concretamente?" — afirmação genérica sem objeto do que se busca é problema mesmo com finalidade presente.
 
 AGENTE — quem executa (deve ser específico: ministérios, secretarias, escola, poder executivo/legislativo).
 - Nulo: pronomes indefinidos substantivos, "você" não definido, imperativo sem vocativo.
@@ -259,11 +293,12 @@ AGENTE — quem executa (deve ser específico: ministérios, secretarias, escola
 
 MODO/MEIO — como a ação é executada. Responde "como?" ou "por meio de quê?".
 - NÃO conta: adjuntos de lugar, público-alvo, "de forma rápida"/"de maneira eficaz".
+- CRITÉRIO DE CLAREZA (Escola Argumento): o meio deve vir preferencialmente em PERÍODO SEPARADO da ação (não colado na mesma oração) para preservar a clareza dos elementos.
 
 EFEITO — resultado / finalidade / consequência.
 - Pode aparecer em qualquer posição.
 - Um efeito pode servir a duas propostas simultaneamente.
-- Dois efeitos em adição simples → 1 elemento válido.
+- Não fazer duas finalidades encadeadas (regra "uma finalidade só"); dois efeitos em adição simples sem gradação → conta como 1 elemento válido e é indício de fragilidade de organização.
 - Desdobramento com gradação (operador ou gerúndio) → conta como detalhamento do efeito.
 
 DETALHAMENTO — informação acrescida a qualquer elemento válido.
@@ -276,11 +311,15 @@ DETALHAMENTO — informação acrescida a qualquer elemento válido.
 - Tangenciamento → máximo Nível 1 (40).
 
 ### Exigência da Escola Argumento
-- Duas propostas: 1 COMPLETA (agente + detalhamento + ação + meio + detalhamento + finalidade) + 1 INCOMPLETA (agente + ação + finalidade).
+- Proposta COMPLETA (nível 5) deve ter: Agente + detalhamento do agente + Ação + Meio (em PERÍODO SEPARADO da ação) + detalhamento da ação OU do meio (não precisa dos dois) + Finalidade (uma só).
+- Proposta INCOMPLETA deve ter: Agente + Ação + Finalidade.
 - Propostas em dois períodos separados (período único prejudica a clareza dos elementos).
-- A proposta mais completa determina a nota.
+- A proposta mais completa determina a nota; ação genérica/abstrata na proposta completa limita o nível a 4 (160).
 - Ordem: A1 primeiro, A2 depois.
 - Ao final da conclusão: retomada do repertório da introdução.
+
+### Verbos/expressões recomendados (não obrigatório — lista aberta)
+O material da Escola Argumento traz uma relação de verbos/expressões típicas para propostas (ações concretas: criar, implantar, implementar, incentivar, fiscalizar, garantir, regulamentar, financiar etc. — e expressões de finalidade: "com o objetivo de", "a fim de", "para que", "para"). Dê preferência a essas formulações ao avaliar a concretude da ação; registre como "motivo de atenção" se a ação usar verbo de alta abstração sem detalhamento.
 
 ### O que NÃO penalizar (C5)
 - Ação "conscientizar" em contexto de comportamento humano.
