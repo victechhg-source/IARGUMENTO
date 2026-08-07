@@ -63,7 +63,7 @@ export default function EssayDetail() {
         </div>
       </header>
       <div className="max-w-3xl mx-auto w-full px-4 py-6">
-        <CorrectionResults correction={correction} banca={banca} />
+        <CorrectionResults correction={correction} banca={banca} transcription={essay.transcription} />
       </div>
     </div>
   );

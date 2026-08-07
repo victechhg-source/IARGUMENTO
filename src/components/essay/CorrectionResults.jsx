@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Check, AlertTriangle, XCircle, Youtube, Lightbulb, BookOpen, GraduationCap, Star, ArrowUp, Sparkles } from 'lucide-react';
+import buildAnnotatedText from './buildAnnotatedText';
 
 const FINDING_TYPE_LABEL = { correct: 'Acerto', warning: 'Atenção', error: 'Erro' };
 
@@ -81,8 +82,19 @@ function parseAnnotatedText(text) {
   return parts;
 }
 
-export default function CorrectionResults({ correction, banca }) {
-  const annotated = parseAnnotatedText(correction.annotated_text);
+export default function CorrectionResults({ correction, banca, transcription }) {
+  // IDs determinísticos e únicos por competência — garante grifo e card
+  // "Ver no texto" sempre apontem para a mesma observação, inclusive em
+  // redações antigas em que os findings vieram sem id do backend.
+  (correction.stages || []).forEach((s, si) =>
+    (s.findings || []).forEach((f, fi) => { f.id = `c${si + 1}-${fi + 1}`; })
+  );
+  // Grifo client-side a partir da transcrição real + findings (robusto a
+  // pontuação/aspas/caixa/acentos e a pequenas diferenças de palavra).
+  const annotatedSource = transcription
+    ? buildAnnotatedText(transcription, correction.stages || [])
+    : (correction.annotated_text || '');
+  const annotated = parseAnnotatedText(annotatedSource);
   const maxGrade = correction.max_grade || banca.max_grade;
   const gradePercent = (correction.final_grade / maxGrade) * 100;
   const allFindings = (correction.stages || []).flatMap((s) => s.findings || []);
@@ -126,16 +138,7 @@ export default function CorrectionResults({ correction, banca }) {
 
   const focusEl = (id) => {
     const el = document.getElementById(id);
-    if (!el) {
-      // Fallback: se o trecho não foi grifado (excerpt não localizável), destaca o card da redação.
-      const card = document.getElementById('annotated-essay');
-      if (card) {
-        card.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        card.classList.add('ring-2', 'ring-offset-1', 'ring-primary/60');
-        setTimeout(() => card.classList.remove('ring-2', 'ring-offset-1', 'ring-primary/60'), 1400);
-      }
-      return;
-    }
+    if (!el) return;
     el.scrollIntoView({ behavior: 'smooth', block: 'center' });
     el.classList.add('ring-2', 'ring-offset-1', 'ring-primary/60');
     setTimeout(() => el.classList.remove('ring-2', 'ring-offset-1', 'ring-primary/60'), 1400);
@@ -180,7 +183,7 @@ export default function CorrectionResults({ correction, banca }) {
       </Card>
 
       {/* Annotated Essay */}
-      <Card id="annotated-essay" className="p-5 scroll-mt-24">
+      <Card className="p-5">
         <h3 className="font-semibold text-sm mb-3 flex items-center gap-2">
           <BookOpen className="w-4 h-4" />
           Sua redação corrigida

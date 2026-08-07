@@ -258,7 +258,7 @@ export default function Correction() {
             <div className="flex gap-3 justify-start">
               <CorrectorAvatar banca={banca} size={32} className="mt-1" />
               <div className="max-w-[92%] w-full">
-                <CorrectionResults correction={correction} banca={banca} />
+                <CorrectionResults correction={correction} banca={banca} transcription={transcription} />
                 <div className="mt-4">
                   <Button className="w-full" onClick={() => navigate('/')}>
                     <Plus className="w-4 h-4 mr-2" />
