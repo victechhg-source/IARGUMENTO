@@ -17,11 +17,15 @@ export default function AuthNav() {
     );
   }
 
-  const name = (user?.full_name || user?.email || 'Aluno').split(' ')[0];
+  const name = (user?.display_name || user?.full_name || user?.email || 'Aluno').split(' ')[0];
+  const email = user?.email || '';
 
   return (
     <div className="ml-1 flex items-center gap-2">
-      <span className="hidden text-sm text-muted-foreground sm:inline">Olá, {name}</span>
+      <div className="hidden text-right leading-tight sm:block">
+        <span className="block max-w-[160px] truncate text-sm font-medium">{name}</span>
+        <span className="block max-w-[180px] truncate text-[11px] text-muted-foreground">{email}</span>
+      </div>
       <Button
         size="sm"
         variant="outline"

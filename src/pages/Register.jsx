@@ -8,6 +8,7 @@ import { UserPlus, Mail, Lock, Loader2, GraduationCap, School, User, Calendar, C
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import AuthLayout from "@/components/AuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
+import { makeRegisteredId } from '@/lib/registeredId';
 
 const maskCpf = (v) =>
   v.replace(/\D/g, "").slice(0, 11)
@@ -54,7 +55,7 @@ export default function Register() {
       await base44.auth.register({ email, password });
       setShowOtp(true);
     } catch (err) {
-      setError(err.message || "Não foi possível criar a conta");
+      setError(err?.data?.message || err?.message || `Não foi possível criar a conta${err?.status ? ` (${err.status})` : ''}`);
     } finally {
       setLoading(false);
     }
@@ -78,9 +79,11 @@ export default function Register() {
       if (accountType === "student") {
         await base44.functions.invoke("requestClassJoin", { code: classCode });
       }
+      // ID público único (PRO-/ALU-), mantido na versão final para identificar a conta.
+      await base44.auth.updateMe({ registered_id: makeRegisteredId('user', accountType) });
       window.location.href = "/";
     } catch (err) {
-      setError(err.message || "Código de verificação inválido");
+      setError(err?.data?.message || err?.message || `Falha na verificação do código${err?.status ? ` (${err.status})` : ''}`);
     } finally {
       setLoading(false);
     }
