@@ -5,6 +5,8 @@ import { BANCAS } from '@/data/bancas';
 import { Button } from '@/components/ui/button';
 import IArgumentoLogo from '@/components/brand/IArgumentoLogo';
 import AccountNav from '@/components/account/AccountNav';
+import AuthNav from '@/components/account/AuthNav';
+import { useAuth } from '@/lib/AuthContext';
 import { Image } from '@/components/ui/image';
 
 const PLACEHOLDER_LOGO = 'https://media.base44.com/images/public/6a6602cb58785bab45511cab/56e253dba_ICON_logo.png';
@@ -17,13 +19,15 @@ const benefits = [
 
 
 export default function Home() {
+  const { isAuthenticated } = useAuth();
   return (
     <main className="min-h-screen overflow-hidden bg-background text-foreground">
       <header className="mx-auto flex max-w-7xl items-center justify-between px-5 py-5 md:px-10">
         <IArgumentoLogo />
         <nav className="flex items-center gap-1" aria-label="Navegação principal">
-          <Link to="/historico" className="kinetic-link"><History className="h-4 w-4" />Meu progresso</Link>
-          <AccountNav />
+          {isAuthenticated && <Link to="/historico" className="kinetic-link"><History className="h-4 w-4" />Meu progresso</Link>}
+          {isAuthenticated && <AccountNav />}
+          <AuthNav />
         </nav>
       </header>
 

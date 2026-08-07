@@ -16,12 +16,20 @@ import TeacherDashboard from '@/pages/TeacherDashboard';
 import StudentClasses from '@/pages/StudentClasses';
 import StudentPerformance from '@/pages/StudentPerformance';
 import AdminDashboard from '@/pages/AdminDashboard';
+import Login from '@/pages/Login';
+import Register from '@/pages/Register';
+import ForgotPassword from '@/pages/ForgotPassword';
+import ResetPassword from '@/pages/ResetPassword';
+import OAuthConsent from '@/pages/OAuthConsent';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+  const { isLoadingPublicSettings, authError } = useAuth();
 
-  // Show loading spinner while checking app public settings or auth
-  if (isLoadingPublicSettings || isLoadingAuth) {
+  // Spinner apenas enquanto as settings públicas do app carregam. A detecção
+  // de autenticação é feita por rota (ProtectedRoute), permitindo que a landing
+  // "/" e as telas de login/cadastro sejam acessíveis sem sessão.
+  if (isLoadingPublicSettings) {
     return (
       <div className="fixed inset-0 flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
@@ -29,38 +37,45 @@ const AuthenticatedApp = () => {
     );
   }
 
-  // Handle authentication errors
-  if (authError) {
-    if (authError.type === 'user_not_registered') {
-      return <UserNotRegisteredError />;
-    } else if (authError.type === 'auth_required') {
-      // Redirect to login automatically
-      navigateToLogin();
-      return null;
-    }
+  // Usuário autenticado na plataforma, mas sem perfil cadastrado neste app.
+  if (authError?.type === 'user_not_registered') {
+    return <UserNotRegisteredError />;
   }
 
-  // Render the main app
   return (
     <>
       <GoogleSignupCompletion />
       <Routes>
-        {/* Add your page Route elements here */}
-      <Route path="/" element={<Home />} />
-      <Route path="/correcao" element={<Correction />} />
-      <Route path="/historico" element={<Historico />} />
-      <Route path="/historico/:id" element={<EssayDetail />} />
-      <Route path="/professor" element={<TeacherDashboard />} />
-      <Route path="/professor/aluno/:studentId" element={<StudentPerformance />} />
-      <Route path="/minhas-turmas" element={<StudentClasses />} />
-      <Route path="/StudentClasses" element={<Navigate to="/minhas-turmas" replace />} />
-      <Route path="/Correction" element={<Navigate to="/correcao" replace />} />
-      <Route path="/Historico" element={<Navigate to="/historico" replace />} />
-      <Route path="/TeacherDashboard" element={<Navigate to="/professor" replace />} />
-      <Route path="/AdminDashboard" element={<Navigate to="/admin" replace />} />
-      <Route path="/StudentPerformance" element={<Navigate to="/historico" replace />} />
-      <Route path="/admin" element={<AdminDashboard />} />
-      <Route path="*" element={<PageNotFound />} />
+        {/* Telas públicas de autenticação */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/oauth-consent" element={<OAuthConsent />} />
+
+        {/* Landing pública */}
+        <Route path="/" element={<Home />} />
+
+        {/* Rotas protegidas: exigem sessão ativa (dados individuais do aluno) */}
+        <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
+          <Route path="/correcao" element={<Correction />} />
+          <Route path="/historico" element={<Historico />} />
+          <Route path="/historico/:id" element={<EssayDetail />} />
+          <Route path="/professor" element={<TeacherDashboard />} />
+          <Route path="/professor/aluno/:studentId" element={<StudentPerformance />} />
+          <Route path="/minhas-turmas" element={<StudentClasses />} />
+          <Route path="/admin" element={<AdminDashboard />} />
+        </Route>
+
+        {/* Aliases legados */}
+        <Route path="/StudentClasses" element={<Navigate to="/minhas-turmas" replace />} />
+        <Route path="/Correction" element={<Navigate to="/correcao" replace />} />
+        <Route path="/Historico" element={<Navigate to="/historico" replace />} />
+        <Route path="/TeacherDashboard" element={<Navigate to="/professor" replace />} />
+        <Route path="/AdminDashboard" element={<Navigate to="/admin" replace />} />
+        <Route path="/StudentPerformance" element={<Navigate to="/historico" replace />} />
+
+        <Route path="*" element={<PageNotFound />} />
       </Routes>
     </>
   );
