@@ -1,0 +1,74 @@
+{
+  "name": "Corretor ENEM (Escola Argumento)",
+  "description": "Visualiza\u00e7\u00e3o do pipeline de corre\u00e7\u00e3o ENEM. detalhe: este workflow est\u00e1 DESATIVADO por padr\u00e3o \u2014 a corre\u00e7\u00e3o real continua sendo disparada sob demanda pela p\u00e1gina de Corre\u00e7\u00e3o. pipeline interno (3 especialistas C1 / C2-3 / C4-5 em paralelo + s\u00edntese) rodou dentro do runCorrectionAgent; como workflows Base44 s\u00e3o estritamente sequenciais, o graph mostra a chamada \u00fanica que representa todo o fluxo.",
+  "trigger": {
+    "config": {
+      "trigger_type": "entity",
+      "entity_name": "Essay",
+      "events": [
+        "update"
+      ]
+    },
+    "condition": "${ .trigger.data.status == \"correcting\" and .trigger.old_data.status != \"correcting\" and .trigger.data.banca == \"ENEM\" }"
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "corretor_enem",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "validar_e_carregar": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "runCorrectionAgent",
+            "args": {
+              "banca": "${ .trigger.data.banca }",
+              "essayId": "${ .trigger.entity_id }",
+              "stages": [
+                1,
+                2,
+                3,
+                4,
+                5
+              ],
+              "debug": false
+            }
+          },
+          "then": "salvar_resultado",
+          "x-base44": {
+            "title": "Disparar corre\u00e7\u00e3o ENEM",
+            "description": "Chama runCorrectionAgent: internamente rodam 3 especialistas (C1, C2-3, C4-5) em paralelo + s\u00edntese da devolutiva + anota\u00e7\u00e3o determin\u00edstica do texto."
+          }
+        }
+      },
+      {
+        "salvar_resultado": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "runCorrectionAgent",
+            "args": {
+              "banca": "${ .trigger.data.banca }",
+              "essayId": "${ .trigger.entity_id }",
+              "stages": [
+                1,
+                2,
+                3,
+                4,
+                5
+              ],
+              "debug": false
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Persistir devolutiva",
+            "description": "Etapa conceitual (mesma fun\u00e7\u00e3o): resultado j\u00e1 \u00e9 gravado na Essay pela p\u00e1gina de Corre\u00e7\u00e3o. Mantida apenas para visualizar o fechamento do fluxo."
+          }
+        }
+      }
+    ]
+  }
+}
