@@ -126,7 +126,16 @@ export default function CorrectionResults({ correction, banca }) {
 
   const focusEl = (id) => {
     const el = document.getElementById(id);
-    if (!el) return;
+    if (!el) {
+      // Fallback: se o trecho não foi grifado (excerpt não localizável), destaca o card da redação.
+      const card = document.getElementById('annotated-essay');
+      if (card) {
+        card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        card.classList.add('ring-2', 'ring-offset-1', 'ring-primary/60');
+        setTimeout(() => card.classList.remove('ring-2', 'ring-offset-1', 'ring-primary/60'), 1400);
+      }
+      return;
+    }
     el.scrollIntoView({ behavior: 'smooth', block: 'center' });
     el.classList.add('ring-2', 'ring-offset-1', 'ring-primary/60');
     setTimeout(() => el.classList.remove('ring-2', 'ring-offset-1', 'ring-primary/60'), 1400);
@@ -171,7 +180,7 @@ export default function CorrectionResults({ correction, banca }) {
       </Card>
 
       {/* Annotated Essay */}
-      <Card className="p-5">
+      <Card id="annotated-essay" className="p-5 scroll-mt-24">
         <h3 className="font-semibold text-sm mb-3 flex items-center gap-2">
           <BookOpen className="w-4 h-4" />
           Sua redação corrigida
