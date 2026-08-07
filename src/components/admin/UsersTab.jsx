@@ -3,7 +3,7 @@ import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 // Lista de contas com ID único (ADM-/PRO-/ALU-), papel e instituição — painel admin.
-export default function UsersTab({ users = [], schools = [] }) {
+export default function UsersTab({ users = [], schools = [], currentUserId = null }) {
   const schoolName = (id) => (schools.find((s) => s.id === id)?.name) || '—';
   const sorted = [...users].sort((a, b) =>
     String(b.created_date || '').localeCompare(String(a.created_date || ''))
@@ -30,6 +30,7 @@ export default function UsersTab({ users = [], schools = [] }) {
           <TableBody>
             {sorted.map((u) => {
               const isTeacher = u.role !== 'admin' && u.account_type === 'teacher';
+              const isMe = u.id === currentUserId;
               const badge = u.role === 'admin'
                 ? 'bg-primary/15 text-primary'
                 : isTeacher
@@ -37,9 +38,9 @@ export default function UsersTab({ users = [], schools = [] }) {
                   : 'bg-blue-100 text-blue-800';
               const label = u.role === 'admin' ? 'Administrador' : isTeacher ? 'Professor' : 'Aluno';
               return (
-                <TableRow key={u.id}>
+                <TableRow key={u.id} className={isMe ? 'bg-accent/40' : ''}>
                   <TableCell className="font-mono text-xs">{u.registered_id || '—'}</TableCell>
-                  <TableCell className="font-medium">{u.display_name || u.full_name || '—'}</TableCell>
+                  <TableCell className="font-medium">{u.display_name || u.full_name || '—'}{isMe && <span className="ml-2 text-xs text-primary">(você)</span>}</TableCell>
                   <TableCell className="text-sm">{u.email || '—'}</TableCell>
                   <TableCell>
                     <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${badge}`}>{label}</span>

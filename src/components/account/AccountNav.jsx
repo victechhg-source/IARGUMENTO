@@ -31,7 +31,7 @@ export default function AccountNav() {
           {admin ? 'Administração' : 'Painel do professor'}
         </Link>
       )}
-      {!teacher && (
+      {!teacher && !admin && (
         <Link to="/minhas-turmas" className="kinetic-link">
           <GraduationCap className="w-4 h-4" />
           Minhas turmas

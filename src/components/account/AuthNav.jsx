@@ -25,6 +25,7 @@ export default function AuthNav() {
       <div className="hidden text-right leading-tight sm:block">
         <span className="block max-w-[160px] truncate text-sm font-medium">{name}</span>
         <span className="block max-w-[180px] truncate text-[11px] text-muted-foreground">{email}</span>
+        {user?.registered_id && <span className="block font-mono text-[10px] text-primary/80">{user.registered_id}</span>}
       </div>
       <Button
         size="sm"
