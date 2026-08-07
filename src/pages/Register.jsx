@@ -4,25 +4,17 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { UserPlus, Mail, Lock, Loader2, GraduationCap, School, User, Calendar, CreditCard, Hash } from "lucide-react";
+import { UserPlus, Mail, Lock, Loader2, GraduationCap, School, User, Hash } from "lucide-react";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import AuthLayout from "@/components/AuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
 import { makeRegisteredId } from '@/lib/registeredId';
-
-const maskCpf = (v) =>
-  v.replace(/\D/g, "").slice(0, 11)
-    .replace(/(\d{3})(\d)/, "$1.$2")
-    .replace(/(\d{3})(\d)/, "$1.$2")
-    .replace(/(\d{3})(\d)/, "$1-$2");
 
 export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [fullName, setFullName] = useState("");
-  const [birthDate, setBirthDate] = useState("");
-  const [cpf, setCpf] = useState("");
   const [accountType, setAccountType] = useState("student");
   const [schoolCode, setSchoolCode] = useState("");
   const [classCode, setClassCode] = useState("");
@@ -31,14 +23,11 @@ export default function Register() {
   const [showOtp, setShowOtp] = useState(false);
   const [otpCode, setOtpCode] = useState("");
 
-  const isCpfValid = cpf.replace(/\D/g, "").length === 11;
   const institutionalOk = !!schoolCode.trim() && (accountType === "teacher" || !!classCode.trim());
-  const personalOk = !!fullName.trim() && !!birthDate && isCpfValid;
+  const personalOk = !!fullName.trim();
 
   const validate = () => {
     if (!fullName.trim()) return "Informe seu nome completo";
-    if (!birthDate) return "Informe sua data de nascimento";
-    if (!isCpfValid) return "Informe um CPF válido (11 dígitos)";
     if (password !== confirmPassword) return "As senhas não coincidem";
     if (!schoolCode.trim()) return "Informe o código institucional da escola";
     if (accountType === "student" && !classCode.trim()) return "Informe o código da turma";
@@ -75,8 +64,6 @@ export default function Register() {
       // Dados pessoais + criação do registro do usuário (id único automático)
       await base44.auth.updateMe({
         display_name: fullName.trim(),
-        date_of_birth: birthDate,
-        cpf: cpf.replace(/\D/g, ""),
       });
       // Vínculo institucional (escola + tipo de conta)
       await base44.functions.invoke("redeemSchoolCode", { code: schoolCode, account_type: accountType });
@@ -108,8 +95,6 @@ export default function Register() {
     localStorage.setItem("pendingAccountType", accountType);
     localStorage.setItem("pendingSchoolCode", schoolCode);
     localStorage.setItem("pendingFullName", fullName);
-    localStorage.setItem("pendingBirthDate", birthDate);
-    localStorage.setItem("pendingCpf", cpf.replace(/\D/g, ""));
     if (accountType === "student") localStorage.setItem("pendingClassCode", classCode);
     base44.auth.loginWithProvider("google", "/");
   };
@@ -196,22 +181,6 @@ export default function Register() {
           <div className="relative">
             <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
             <Input id="full-name" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Seu nome completo" className="pl-10 h-12" autoComplete="name" required />
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-2">
-            <Label htmlFor="birth-date">Data de nascimento</Label>
-            <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" aria-hidden="true" />
-              <Input id="birth-date" type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} className="pl-10 h-12" required />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="cpf">CPF</Label>
-            <div className="relative">
-              <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
-              <Input id="cpf" inputMode="numeric" value={cpf} onChange={(e) => setCpf(maskCpf(e.target.value))} placeholder="000.000.000-00" className="pl-10 h-12" required />
-            </div>
           </div>
         </div>
       </div>
