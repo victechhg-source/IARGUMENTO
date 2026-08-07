@@ -52,7 +52,9 @@ export default function Register() {
     if (v) { setError(v); return; }
     setLoading(true);
     try {
-      await base44.auth.register({ email, password });
+      const e = email.trim().toLowerCase();
+      setEmail(e);
+      await base44.auth.register({ email: e, password });
       setShowOtp(true);
     } catch (err) {
       setError(err?.data?.message || err?.message || `Não foi possível criar a conta${err?.status ? ` (${err.status})` : ''}`);
@@ -65,8 +67,11 @@ export default function Register() {
     setError("");
     setLoading(true);
     try {
-      const result = await base44.auth.verifyOtp({ email, otpCode });
+      const e = (email || '').trim().toLowerCase();
+      const result = await base44.auth.verifyOtp({ email: e, otpCode });
+      // Sessão: usa o token recebido, ou faz login direto com e-mail/senha (doc oficial).
       if (result?.access_token) base44.auth.setToken(result.access_token);
+      else await base44.auth.loginViaEmailPassword(e, password);
       // Dados pessoais + criação do registro do usuário (id único automático)
       await base44.auth.updateMe({
         display_name: fullName.trim(),
@@ -83,7 +88,8 @@ export default function Register() {
       await base44.auth.updateMe({ registered_id: makeRegisteredId('user', accountType) });
       window.location.href = "/";
     } catch (err) {
-      setError(err?.data?.message || err?.message || `Falha na verificação do código${err?.status ? ` (${err.status})` : ''}`);
+      const raw = err?.data?.message || err?.message || `Falha na verificação do código${err?.status ? ` (${err.status})` : ''}`;
+      setError(/not found/i.test(raw) ? `${raw} — o código pode ter expirado. Clique em "Reenviar" para receber um novo e use-o imediatamente.` : raw);
     } finally {
       setLoading(false);
     }
@@ -92,7 +98,7 @@ export default function Register() {
   const handleReenviar = async () => {
     setError("");
     try {
-      await base44.auth.resendOtp(email);
+      await base44.auth.resendOtp(email.trim().toLowerCase());
     } catch (err) {
       setError(err.message || "Não foi possível reenviar o código");
     }
