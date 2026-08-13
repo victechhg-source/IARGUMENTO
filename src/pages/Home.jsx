@@ -118,10 +118,10 @@ export default function Home() {
             <div className="mt-5"><h3 className="font-display text-2xl font-extrabold tracking-tight">{BANCAS[2].name}</h3><p className="mt-2 max-w-sm text-sm leading-snug text-card-foreground/75">{BANCAS[2].description}</p></div>
             <div className="mt-5 flex items-end justify-between gap-4"><span className="text-xs text-card-foreground/70">{BANCAS[2].theme}</span><ArrowRight className="h-5 w-5 transition-transform duration-200 group-hover:translate-x-1" /></div>
           </Link>
-          <Link to="/correcao?banca=UERJ" className="banca-card group">
+          <Link to="/correcao?banca=UFG" className="banca-card group">
             <div className="flex items-start justify-between gap-4">
               <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center overflow-hidden rounded-2xl">
-                <Image src="https://media.base44.com/images/public/6a6602cb58785bab45511cab/63b1851f2_Logo-Uerj.png" alt="Logo UERJ" fittingType="fit" className="h-11 w-11" />
+                <Image src="https://media.base44.com/images/public/6a6602cb58785bab45511cab/d09d1b9e4_image.png" alt="Logo UFG" fittingType="fit" className="h-11 w-11" />
               </div>
               <div className="banca-grade"><Sparkles className="h-3 w-3" />Nota máx: {BANCAS[4].max_grade}</div>
             </div>

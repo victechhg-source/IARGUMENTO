@@ -120,31 +120,36 @@ export const BANCAS = [
     ]
   },
   {
-    id: "UERJ",
-    name: "UERJ",
-    full_name: "Universidade do Estado do Rio de Janeiro",
-    description: "Redação dissertativo-argumentativa com proposta de intervenção social.",
-    max_grade: 100,
-    color: "#d97706",
-    logo_url: "https://media.base44.com/images/public/6a6602cb58785bab45511cab/63b1851f2_Logo-Uerj.png",
+    id: "UFG",
+    name: "UFG",
+    full_name: "Universidade Federal de Goiás",
+    description: "Redação dissertativo-argumentativa com até 30 linhas, coletânea de apoio e defesa de ponto de vista.",
+    max_grade: 24,
+    color: "#0073CF",
+    logo_url: "https://media.base44.com/images/public/6a6602cb58785bab45511cab/d09d1b9e4_image.png",
     theme: "Dissertativo-argumentativa",
-    official_criteria: `A redação da UERJ avalia:
-- Compreensão e desenvolvimento da proposta.
-- Argumentação consistente e posicionamento crítico.
-- Coesão e coerência textuais.
-- Domínio da norma-padrão.
-- Proposta de intervenção para o problema abordado.`,
+    official_criteria: `A redação da UFG (Vestibular 2026) é dissertativo-argumentativa, vale 24 pontos e tem correção dupla (média de dois corretores independentes). O texto deve ter no máximo 30 linhas, defender um ponto de vista sobre o tema, usar argumentos consistentes e apresentar coesão e coerência. Uma coletânea de textos serve de apoio à escrita (citações diretas, paráfrases, explicitação de pressupostos), de forma coerente com o projeto de texto. A conclusão é livre (síntese do desenvolvimento, retomada do ponto de vista, questionamentos das ideias, perspectivas futuras, reavaliação da frase-temática, entre outras). É atribuída nota ZERO em caso de fuga ao tema, letra ilegível ou não produção de texto em prosa; nota mínima exigida de 10 pontos. Critérios:
+1. Adequação ao tema (0 a 9 pontos): desenvolver ideias relativas ao tema proposto, considerando os textos da coletânea, de forma reflexiva e articulada; para a nota máxima, mobilizar diferentes vozes, diferenciando-as e articulando-as num projeto de texto definido.
+2. Adequação ao gênero textual (0 a 5 pontos): conhecimento da estrutura que caracteriza o texto dissertativo-argumentativo.
+3. Adequação à modalidade escrita (0 a 5 pontos): uso dos recursos linguísticos (domínios morfológico, sintático, semântico e de convenção ortográfica).
+4. Coesão e coerência (0 a 5 pontos): utilização de elementos de articulação textual — sistemas de pontuação, de construção frasal, de escolha lexical — e recursos lógico-semânticos como inferência e generalização pertinente.`,
     school_criteria: `Critérios complementares da escola de redações (peso menor):
-- Repertório sociocultural diversificado.
-- Clareza e precisão argumentativa.
-- Uso adequado de conectivos lógicos.
-- Maturidade e originalidade na abordagem.`,
+- Uso produtivo da coletânea (citação, paráfrase, pressupostos) a favor de um projeto de texto — não cópia solta.
+- Repertório sociocultural pertinente e articulado à tese.
+- Coesão inter e intraparagrafal com conectivos diversificados e adequados.
+- Tese explícita e progressão argumentativa coerente; conclusão articulada ao desenvolvimento.
+- Domínio da norma-padrão (registro formal, concisão, precisão lexical).`,
+    agent_guidance: `GRADE ESPECÍFICA UFG — aplique como referência prioritária (nota máxima 24 pontos):
+- Adequação ao tema (0-9): 9 exige desenvolvimento reflexivo e articulado do tema, uso produtivo da coletânea (vozes diferenciadas e articuladas) e tese clara; 6-7 para desenvolvimento competente com articulação razoável; 3-5 para abordagem parcial ou superficial; 0-2 para fuga ao tema, tangenciamento ou desconsideração da coletânea. Fuga ao tema = nota 0 na redação (eliminatório).
+- Adequação ao gênero textual (0-5): 5 exige texto dissertativo-argumentativo completo (introdução com tese, desenvolvimento com argumentos, conclusão articulada) e defesa de ponto de vista; 3-4 para estrutura presente com falhas; 0-2 para texto que não configura dissertação-argumentação. Não produzir texto em prosa = nota 0 na redação.
+- Adequação à modalidade escrita (0-5): 5 nenhum desvio gramatical/ortográfico e registro formal consistente; 3-4 poucos desvios esporádicos; 0-2 muitos desvios ou registro informal.
+- Coesão e coerência (0-5): 5 articulação fluida, pontuação e escolha lexical adequadas, progressão e unidade textuais, uso de recursos lógico-semânticos (inferência, generalização); 3-4 coesão adequada com falhas pontuais; 0-2 incoerência, monobloco ou articulação precária.
+- Atribua a cada critério um valor dentro da faixa (acesse o continuum, não apenas os extremos). final_grade = soma dos 4 critérios (0 a 24). Letra ilegível, não prosa ou fuga total ao tema = nota 0. Piso do processo seletivo: 10 pontos.`,
     stages: [
-      { name: "Proposta e tema", max_score: 25, description: "Compreensão e desenvolvimento da proposta" },
-      { name: "Argumentação", max_score: 25, description: "Posicionamento crítico e consistência" },
-      { name: "Coesão e coerência", max_score: 20, description: "Fluidez e unidade textual" },
-      { name: "Norma-padrão", max_score: 20, description: "Gramática, ortografia e pontuação" },
-      { name: "Proposta de intervenção", max_score: 10, description: "Elaboração de proposta de intervenção social" }
+      { name: "Adequação ao tema", max_score: 9, description: "Desenvolvimento reflexivo e articulado do tema, com uso produtivo da coletânea" },
+      { name: "Adequação ao gênero textual", max_score: 5, description: "Estrutura do texto dissertativo-argumentativo e defesa de ponto de vista" },
+      { name: "Adequação à modalidade escrita", max_score: 5, description: "Recursos linguísticos: morfologia, sintaxe, semântica e convenção ortográfica" },
+      { name: "Coesão e coerência", max_score: 5, description: "Articulação textual, pontuação, escolha lexical e recursos lógico-semânticos" }
     ]
   }
 ];
