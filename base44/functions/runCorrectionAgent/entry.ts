@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
 import { ENEM_PROMPT_C1, ENEM_PROMPT_C23, ENEM_PROMPT_C45 } from './enemSystemPrompts.ts';
+import { UFG_PROMPT_MOD, UFG_PROMPT_TEMA, UFG_PROMPT_GENERO_COESAO } from './ufgSystemPrompts.ts';
 
 // Anotação DETERMINÍSTICA: injeta marcadores por competência diretamente na
 // transcrição original (preservando paragrafação e texto exatos) com base nos
@@ -70,7 +71,7 @@ export default async function(req) {
     const fileUrls = resources.filter((resource) => resource.file_url).map((resource) => resource.file_url);
     const model = agent?.model || 'automatic';
 
-    if (banca !== 'ENEM' || stages.length !== 5) {
+    if (banca !== 'ENEM' && banca !== 'UFG') {
       const result = await base44.asServiceRole.integrations.Core.InvokeLLM({
         prompt: basePrompt,
         response_json_schema: responseJsonSchema,
@@ -81,6 +82,145 @@ export default async function(req) {
       const outputTokens = Math.ceil(JSON.stringify(result).length / 4);
       await base44.asServiceRole.entities.AgentUsage.create({ agent_id: agent?.id || '', agent_name: agent?.name || `Padrão ${banca}`, model, banca, essay_id: essayId, student_id: user.id, school_ids: essay.school_ids || [], input_tokens: inputTokens, output_tokens: outputTokens, total_tokens: inputTokens + outputTokens });
       return Response.json({ result, usage: { input_tokens: inputTokens, output_tokens: outputTokens, total_tokens: inputTokens + outputTokens } });
+    }
+
+    // ─── Arquitetura UFG (Vestibular 2026) ───
+    // Três corretores especialistas rodam em paralelo (Modalidade Escrita,
+    // Tema, Gênero Textual + Coesão/Coerência), cada um com seu system prompt.
+    // As notas são extraídas deterministicamente dos marcadores NOTA_FINAL_*;
+    // uma chamada final de síntese adapta os relatórios ao formato estruturado.
+    if (banca === 'UFG') {
+      const ufgTranscription = essay.transcription || '';
+      const ufgSpecialistPrompts = [UFG_PROMPT_MOD, UFG_PROMPT_TEMA, UFG_PROMPT_GENERO_COESAO];
+      const ufgContextBlock = context ? `### Base de referência (Orientações Gerais — Prova de Redação Vestibular UFG 2026)\n${context}\n\n` : '';
+      const runUfgSpecialist = async (sysPrompt: string) => {
+        const fullPrompt = `${sysPrompt}\n\n${ufgContextBlock}REDAÇÃO DO ALUNO:\n"""\n${ufgTranscription}\n"""`;
+        const output = await base44.asServiceRole.integrations.Core.InvokeLLM({
+          prompt: fullPrompt,
+          model,
+          ...(fileUrls.length ? { file_urls: fileUrls } : {})
+        });
+        return String(output || '');
+      };
+      const [modText, temaText, generoCoesaoText] = await Promise.all(ufgSpecialistPrompts.map(runUfgSpecialist));
+      console.log('[runCorrectionAgent][UFG] Especialista Modalidade Escrita:', modText);
+      console.log('[runCorrectionAgent][UFG] Especialista Tema:', temaText);
+      console.log('[runCorrectionAgent][UFG] Especialista Gênero+Coesão:', generoCoesaoText);
+
+      const ufgExtractNote = (text: string, key: string, max: number) => {
+        const clamp = (v: number) => Math.max(0, Math.min(max, Number(v) || 0));
+        const m1 = text.match(new RegExp(`${key}\\s*=\\s*(\\d+)`, 'i'));
+        if (m1) return clamp(Number(m1[1]));
+        const m2 = text.match(new RegExp(`${key}\\s*:\\s*(\\d+)`, 'i'));
+        if (m2) return clamp(Number(m2[1]));
+        return 0;
+      };
+      const notaME = ufgExtractNote(modText, 'NOTA_FINAL_MODESCRITA', 5);
+      const notaTEMA = ufgExtractNote(temaText, 'NOTA_FINAL_TEMA', 9);
+      const notaGENERO = ufgExtractNote(generoCoesaoText, 'NOTA_FINAL_GENERO', 5);
+      const notaCOESAO = ufgExtractNote(generoCoesaoText, 'NOTA_FINAL_COESAO', 5);
+      const ufgTotal = notaME + notaTEMA + notaGENERO + notaCOESAO;
+      const eliminado = ufgTotal < 10;
+      console.log('[runCorrectionAgent][UFG] Notas extraídas:', { notaME, notaTEMA, notaGENERO, notaCOESAO, total: ufgTotal, eliminado });
+
+      const ufgStageNames = ['Adequação ao tema', 'Adequação ao gênero textual', 'Adequação à modalidade escrita', 'Coesão e coerência'];
+      const ufgMaxScores = [9, 5, 5, 5];
+      const ufgNotes = [notaTEMA, notaGENERO, notaME, notaCOESAO];
+      const ufgSpecialists = { mod: modText, tema: temaText, generoCoesao: generoCoesaoText };
+      const ufgStageListStr = ufgStageNames.map((n) => `"${n}"`).join(', ');
+      const ufgMaxListStr = ufgMaxScores.join(', ');
+      const ufgElimAviso = eliminado ? ` Inclua por último em study_suggestions um aviso claro de que a nota total (${ufgTotal}/24) está abaixo do corte eliminatório de 10 pontos, e o candidato seria eliminado do processo seletivo.` : '';
+
+      const ufgSynthesisSchema = {
+        type: 'object',
+        properties: {
+          annotated_text: { type: 'string' },
+          memorable_strengths: { type: 'array', items: { type: 'string' } },
+          stages: { type: 'array', items: { type: 'object', properties: {
+            stage: { type: 'string' },
+            score: { type: 'number' },
+            max_score: { type: 'number' },
+            summary: { type: 'string' },
+            findings: { type: 'array', items: { type: 'object', properties: {
+              id: { type: 'string' },
+              type: { type: 'string' },
+              excerpt: { type: 'string' },
+              explanation: { type: 'string' },
+              suggestion: { type: 'string' },
+              video_suggestion: { type: 'string' }
+            } } }
+          }, required: ['stage', 'summary', 'findings'] } },
+          writing_suggestions: { type: 'array', items: { type: 'string' } },
+          study_suggestions: { type: 'array', items: { type: 'string' } }
+        },
+        required: ['annotated_text', 'memorable_strengths', 'stages', 'writing_suggestions', 'study_suggestions']
+      };
+
+      const ufgSynthesisPrompt = `Você é o ORQUESTRADOR da devolutiva final da redação do Vestibular UFG 2026. Três corretores avaliaram a redação em paralelo:
+- Corretor 1 — Modalidade Escrita (norma-padrão, estrutura sintática e registro)
+- Corretor 2 — Tema (tema, coletânea e repertório sociocultural)
+- Corretor 3 — Gênero Textual e Coesão/Coerência
+
+RELATÓRIOS DOS CORRETORES:
+--- Modalidade Escrita ---
+${modText}
+--- Tema ---
+${temaText}
+--- Gênero + Coesão ---
+${generoCoesaoText}
+---
+
+REDAÇÃO DO ALUNO:
+"""
+${ufgTranscription}
+"""
+
+NOTAS POR CRITÉRIO (extraídas dos marcadores NOTA_FINAL_* declarados por cada corretor): Modalidade Escrita = ${notaME}/5, Tema = ${notaTEMA}/9, Gênero Textual = ${notaGENERO}/5, Coesão/Coerência = ${notaCOESAO}/5 — Total = ${ufgTotal}/24${eliminado ? ' (ABAIXO do corte eliminatório de 10 pontos — candidato eliminado)' : ''}. Preencha "score" e "max_score" de cada stage EXATAMENTE com esses valores; não recalcule, não padronize.
+
+Monte a devolutiva final no formato JSON. A correção deve ser MINUCIOSA: enumere TODOS os pontos relevantes de cada critério (erros e acertos), com atenção especial aos ERROS — um finding por erro/acerto identificado, com explanation detalhada e didática e suggestion concreta.
+
+1. "annotated_text": deixe como string VAZIA (""). A marcação do texto será gerada automaticamente a partir dos excerpts; NÃO reproduza nem marque o texto aqui. Garanta que CADA finding.excerpt seja uma CÓPIA EXATA (verbatim) de um trecho real da redação do aluno — mesma grafia, pontuação, acentos e erros; jamais corrija, parafraseie ou altere o trecho. PRESERVE a paragrafação e as quebras de linha exatamente como estão.
+2. "stages": 4 entradas nesta ordem: ${ufgStageListStr}. Para cada uma, preencha "score" (o valor indicado acima), "max_score" (respectivamente ${ufgMaxListStr}), "summary" = síntese concisa e didática do parecer do corretor correspondente, e "findings" = lista minuciosa, CADA UMA com "id" (shortcode único, ex.: "f1"), "type" ("correct"/"warning"/"error"), "excerpt" (trecho exato), "explanation" detalhada e didática, "suggestion" concreta e "video_suggestion" (termo curto de busca no YouTube).
+   - Stage 1 (Adequação ao tema): baseie-se no relatório do Corretor 2 (Tema).
+   - Stage 2 (Adequação ao gênero textual): baseie-se na parte Gênero Textual do Corretor 3.
+   - Stage 3 (Adequação à modalidade escrita): baseie-se no relatório do Corretor 1.
+   - Stage 4 (Coesão e coerência): baseie-se na parte Coesão/Coerência do Corretor 3.
+3. "memorable_strengths": até 3 acertos memoráveis.
+4. "writing_suggestions": 3 a 5 sugestões práticas de escrita.
+5. "study_suggestions": 3 a 5 sugestões de estudo focadas nas fraquezas.${ufgElimAviso}
+Retorne apenas o JSON.`;
+
+      const ufgSynth = await base44.asServiceRole.integrations.Core.InvokeLLM({
+        prompt: ufgSynthesisPrompt,
+        response_json_schema: ufgSynthesisSchema,
+        model,
+        ...(fileUrls.length ? { file_urls: fileUrls } : {})
+      });
+
+      const ufgFinalStages = ufgStageNames.map((name, i) => {
+        const ss = Array.isArray(ufgSynth?.stages) ? ufgSynth.stages[i] : null;
+        const synthScore = typeof ss?.score === 'number' ? ss.score : null;
+        const score = synthScore !== null ? Math.max(0, Math.min(ufgMaxScores[i], synthScore)) : ufgNotes[i];
+        const findings = (ss?.findings || []).map((f, fi) => ({ ...f, id: f?.id || `c${i + 1}-${fi + 1}` }));
+        return { stage: ss?.stage || name, score, max_score: ufgMaxScores[i], summary: ss?.summary || '', findings };
+      });
+      const ufgComputedTotal = ufgFinalStages.reduce((s, st) => s + st.score, 0);
+      console.log('[runCorrectionAgent][UFG] Notas finais (synthesis + fallback marcador):', ufgFinalStages.map((s) => s.score), 'total', ufgComputedTotal);
+
+      const ufgResult = {
+        annotated_text: buildAnnotatedText(ufgTranscription, ufgFinalStages) || ufgSynth?.annotated_text || '',
+        memorable_strengths: ufgSynth?.memorable_strengths || [],
+        stages: ufgFinalStages,
+        writing_suggestions: ufgSynth?.writing_suggestions || [],
+        study_suggestions: ufgSynth?.study_suggestions || [],
+        final_grade: ufgComputedTotal,
+        max_grade: 24
+      };
+
+      const ufgInputTokens = Math.ceil((modText.length + temaText.length + generoCoesaoText.length + ufgSynthesisPrompt.length + basePrompt.length) / 4);
+      const ufgOutputTokens = Math.ceil(JSON.stringify(ufgResult).length / 4);
+      await base44.asServiceRole.entities.AgentUsage.create({ agent_id: agent?.id || '', agent_name: agent?.name || 'Padrão UFG', model, banca, essay_id: essayId, student_id: user.id, school_ids: essay.school_ids || [], input_tokens: ufgInputTokens, output_tokens: ufgOutputTokens, total_tokens: ufgInputTokens + ufgOutputTokens });
+      return Response.json({ result: ufgResult, usage: { input_tokens: ufgInputTokens, output_tokens: ufgOutputTokens, total_tokens: ufgInputTokens + ufgOutputTokens }, ...(debug ? { _debug: { specialists: ufgSpecialists, extractedNotes: { notaME, notaTEMA, notaGENERO, notaCOESAO, total: ufgTotal, eliminado }, synthesis: ufgSynth } } : {}) });
     }
 
     // ─── Arquitetura ENEM (Escola Argumento) ───
