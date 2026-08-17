@@ -45,11 +45,12 @@ export default function Register() {
         class_code: accountType === "student" ? classCode.trim() : "",
         account_type: accountType,
       });
-      if (res?.valid) {
+      const payload = res?.data ?? res;
+      if (payload?.valid) {
         setCodeStatus({ state: "ok", message: "Códigos verificados ✓" });
         return true;
       }
-      setCodeStatus({ state: "error", message: res?.error || "Código inválido." });
+      setCodeStatus({ state: "error", message: payload?.error || "Código inválido." });
       return false;
     } catch (err) {
       const msg = err?.data?.error || err?.message || "Não foi possível validar os códigos.";
