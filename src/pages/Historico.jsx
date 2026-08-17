@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Plus, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import BancaHistoryPanel from '@/components/history/BancaHistoryPanel';
+import HistoryOverview from '@/components/history/HistoryOverview';
 
 export default function Historico() {
   const [essays, setEssays] = useState(null);
@@ -47,6 +48,8 @@ export default function Historico() {
       </header>
 
       <div className="max-w-4xl mx-auto px-4 py-6">
+        <HistoryOverview essays={essays} />
+
         {/* Aba por banca */}
         <div className="flex flex-wrap gap-2 border-b border-border pb-3 mb-4">
           {BANCAS.map(b => {
