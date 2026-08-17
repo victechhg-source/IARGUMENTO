@@ -65,7 +65,7 @@ function normalizeAnnotations(text) {
 function parseAnnotatedText(text) {
   if (!text) return [];
   text = normalizeAnnotations(text);
-  const regex = /\[\[(C[1-5]|[rcwe])(?:#([a-zA-Z0-9_-]+))?:(.*?)\]\]/gi;
+  const regex = /\[\[(C[1-5]|NP|GEN|COE|TEMA|[rcwe])(?:#([a-zA-Z0-9_-]+))?:(.*?)\]\]/gi;
   const parts = [];
   let lastIndex = 0;
   let match;
@@ -128,6 +128,11 @@ export default function CorrectionResults({ correction, banca, transcription }) 
       const m = /^[Cc]([1-5])$/.exec(part.type);
       if (m) compIndex = parseInt(m[1], 10) - 1;
       else if (/^r$/i.test(part.type)) compIndex = 0;
+      // Marcadores FUVEST: NP→0, GEN→1, COE→2, TEMA→3
+      else if (/^NP$/i.test(part.type)) compIndex = 0;
+      else if (/^GEN$/i.test(part.type)) compIndex = 1;
+      else if (/^COE$/i.test(part.type)) compIndex = 2;
+      else if (/^TEMA$/i.test(part.type)) compIndex = 3;
     }
     return { compIndex, domId: target ? target.domId : null };
   };
