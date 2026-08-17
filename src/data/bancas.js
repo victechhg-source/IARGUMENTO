@@ -40,27 +40,25 @@ export const BANCAS = [
     name: "FUVEST",
     full_name: "Fundação Universitária para o Vestibular",
     description: "Redação dissertativa ou narrativa, com foco em originalidade e argumentação.",
-    max_grade: 100,
+    max_grade: 50,
     color: "#059669",
     logo_url: "https://media.base44.com/images/public/6a6602cb58785bab45511cab/b17222b33_img-logo-fuvest-1.png",
     theme: "Dissertativa ou narrativa",
-    official_criteria: `A redação da FUVEST é avaliada por critérios de conteúdo e forma:
-- Adequação ao tema e à proposta.
-- Argumentação consistente e coerente.
-- Estrutura textual organizada (introdução, desenvolvimento, conclusão).
-- Domínio da norma-padrão (gramática, ortografia, pontuação).
-- Originalidade e maturidade na abordagem.`,
+    official_criteria: `A redação da FUVEST é avaliada por 4 eixos (total 50 pontos):
+1. Norma Padrão (0 a 10 pontos): domínio da ortografia, gramática, regência, concordância e convenções da norma-padrão escrita.
+2. Gênero Textual e Projeto de Texto (0 a 10 pontos): adequação ao gênero dissertativo-argumentativo, projeto de texto e recursos de persuasão.
+3. Coesão e Coerência (0 a 15 pontos): articulação formal e de sentido, sintaxe, predicação, conectivos e ausência de contradições.
+4. Tema e Coletânea (0 a 15 pontos): desenvolvimento do tema, apropriação crítica da coletânea e indícios de autoria.`,
     school_criteria: `Critérios complementares da escola de redações (peso menor):
 - Riqueza vocabular e precisão linguística.
 - Uso adequado de conectivos argumentativos.
 - Profundidade crítica e leitura de mundo.
 - Clareza e objetividade na exposição de ideias.`,
     stages: [
-      { name: "Adequação ao tema", max_score: 25, description: "Compreensão e atendimento à proposta" },
-      { name: "Argumentação", max_score: 25, description: "Consistência e coerência dos argumentos" },
-      { name: "Estrutura", max_score: 20, description: "Organização textual e progressão temática" },
-      { name: "Norma-padrão", max_score: 20, description: "Gramática, ortografia e pontuação" },
-      { name: "Originalidade", max_score: 10, description: "Maturidade e criatividade na abordagem" }
+      { name: "Norma Padrão", max_score: 10, description: "Ortografia, gramática, regência, concordância e convenções da norma-padrão" },
+      { name: "Gênero Textual e Projeto de Texto", max_score: 10, description: "Adequação ao gênero, projeto de texto e recursos argumentativos" },
+      { name: "Coesão e Coerência", max_score: 15, description: "Articulação formal e de sentido, predicação e conectivos" },
+      { name: "Tema e Coletânea", max_score: 15, description: "Desenvolvimento do tema, apropriação da coletânea e indícios de autoria" }
     ]
   },
   {
