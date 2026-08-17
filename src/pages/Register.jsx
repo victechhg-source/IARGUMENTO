@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import AuthLayout from "@/components/AuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
 import { makeRegisteredId } from '@/lib/registeredId';
+import { CheckCircle2, XCircle } from "lucide-react";
 
 export default function Register() {
   const [email, setEmail] = useState("");
@@ -22,17 +23,48 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [showOtp, setShowOtp] = useState(false);
   const [otpCode, setOtpCode] = useState("");
+  const [codeStatus, setCodeStatus] = useState({ state: "idle", message: "" });
 
   const institutionalOk = !!schoolCode.trim() && (accountType === "teacher" || !!classCode.trim());
   const personalOk = !!fullName.trim();
 
   const validate = () => {
     if (!fullName.trim()) return "Informe seu nome completo";
-    if (password !== confirmPassword) return "As senhas não coincidem";
     if (!schoolCode.trim()) return "Informe o código institucional da escola";
     if (accountType === "student" && !classCode.trim()) return "Informe o código da turma";
     return null;
   };
+
+  // Valida códigos de escola (e turma, se aluno) no backend antes de
+  // prosseguir — usado tanto no fluxo Google quanto no e-mail/senha.
+  const validateCodesBackend = async () => {
+    setCodeStatus({ state: "checking", message: "" });
+    try {
+      const res = await base44.functions.invoke("validateSignupCodes", {
+        school_code: schoolCode.trim(),
+        class_code: accountType === "student" ? classCode.trim() : "",
+        account_type: accountType,
+      });
+      if (res?.valid) {
+        setCodeStatus({ state: "ok", message: "Códigos verificados ✓" });
+        return true;
+      }
+      setCodeStatus({ state: "error", message: res?.error || "Código inválido." });
+      return false;
+    } catch (err) {
+      const msg = err?.data?.error || err?.message || "Não foi possível validar os códigos.";
+      setCodeStatus({ state: "error", message: msg });
+      return false;
+    }
+  };
+
+  // Revalida quando os códigos mudam (debounce simples)
+  useEffect(() => {
+    if (!schoolCode.trim()) { setCodeStatus({ state: "idle", message: "" }); return; }
+    if (accountType === "student" && !classCode.trim()) { setCodeStatus({ state: "idle", message: "" }); return; }
+    const t = setTimeout(() => { validateCodesBackend(); }, 600);
+    return () => clearTimeout(t);
+  }, [schoolCode, classCode, accountType]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -41,8 +73,12 @@ export default function Register() {
     if (v) { setError(v); return; }
     setLoading(true);
     try {
+      // Valida códigos institucionais antes de criar a conta
+      const codesOk = await validateCodesBackend();
+      if (!codesOk) { setLoading(false); return; }
       const e = email.trim().toLowerCase();
       setEmail(e);
+      if (password !== confirmPassword) { setError("As senhas não coincidem"); setLoading(false); return; }
       await base44.auth.register({ email: e, password });
       setShowOtp(true);
     } catch (err) {
@@ -91,7 +127,13 @@ export default function Register() {
     }
   };
 
-  const handleGoogle = () => {
+  const handleGoogle = async () => {
+    setError("");
+    const v = validate();
+    if (v) { setError(v); return; }
+    // Valida códigos institucionais antes de redirecionar para o Google
+    const codesOk = await validateCodesBackend();
+    if (!codesOk) return;
     localStorage.setItem("pendingAccountType", accountType);
     localStorage.setItem("pendingSchoolCode", schoolCode);
     localStorage.setItem("pendingFullName", fullName);
@@ -186,7 +228,7 @@ export default function Register() {
       </div>
 
       {/* Vínculo institucional */}
-      <div className="space-y-4 mb-6">
+      <div className="space-y-4 mb-4">
         <div className="space-y-2">
           <Label htmlFor="school-code">Código institucional da escola</Label>
           <div className="relative">
@@ -203,24 +245,32 @@ export default function Register() {
             </div>
           </div>
         )}
+        {codeStatus.state !== "idle" && (
+          <div className={`flex items-center gap-1.5 text-xs font-medium ${codeStatus.state === "ok" ? "text-emerald-600" : codeStatus.state === "error" ? "text-destructive" : "text-muted-foreground"}`}>
+            {codeStatus.state === "ok" && <CheckCircle2 className="w-3.5 h-3.5" />}
+            {codeStatus.state === "error" && <XCircle className="w-3.5 h-3.5" />}
+            {codeStatus.state === "checking" && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+            {codeStatus.message}
+          </div>
+        )}
       </div>
 
       <Button
-        variant="outline"
-        className="w-full h-12 text-sm font-medium mb-6"
-        disabled={!googleReady}
+        className="w-full h-12 text-sm font-medium mb-2"
+        disabled={!googleReady || codeStatus.state !== "ok"}
         onClick={handleGoogle}
       >
         <GoogleIcon className="w-5 h-5 mr-2" />
         Continuar com Google
       </Button>
+      <p className="mb-6 text-center text-xs text-muted-foreground">Recomendado — sem necessidade de confirmar e-mail.</p>
 
       <div className="relative mb-6">
         <div className="absolute inset-0 flex items-center">
           <div className="w-full border-t border-border" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-card px-3 text-muted-foreground">ou</span>
+          <span className="bg-card px-3 text-muted-foreground">ou cadastre-se com e-mail</span>
         </div>
       </div>
 
@@ -239,7 +289,6 @@ export default function Register() {
               id="email"
               type="email"
               autoComplete="email"
-              autoFocus
               placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -280,14 +329,14 @@ export default function Register() {
             />
           </div>
         </div>
-        <Button type="submit" className="w-full h-12 font-medium" disabled={loading}>
+        <Button type="submit" variant="outline" className="w-full h-12 font-medium" disabled={loading || codeStatus.state === "error"}>
           {loading ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
               Criando conta...
             </>
           ) : (
-            "Criar conta"
+            "Criar conta com e-mail"
           )}
         </Button>
       </form>
