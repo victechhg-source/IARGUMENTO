@@ -16,6 +16,7 @@ import TeacherDashboard from '@/pages/TeacherDashboard';
 import StudentClasses from '@/pages/StudentClasses';
 import StudentPerformance from '@/pages/StudentPerformance';
 import AdminDashboard from '@/pages/AdminDashboard';
+import DirectorDashboard from '@/pages/DirectorDashboard';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
 import ForgotPassword from '@/pages/ForgotPassword';
@@ -64,6 +65,7 @@ const AuthenticatedApp = () => {
           <Route path="/professor" element={<TeacherDashboard />} />
           <Route path="/professor/aluno/:studentId" element={<StudentPerformance />} />
           <Route path="/minhas-turmas" element={<StudentClasses />} />
+          <Route path="/diretor" element={<DirectorDashboard />} />
           <Route path="/admin" element={<AdminDashboard />} />
         </Route>
 

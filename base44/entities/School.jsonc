@@ -8,6 +8,12 @@
     "institutional_code": {
       "type": "string"
     },
+    "director_id": {
+      "type": "string"
+    },
+    "director_email": {
+      "type": "string"
+    },
     "status": {
       "type": "string",
       "enum": [
