@@ -59,6 +59,7 @@ export default function BancaHistoryPanel({ banca, essays, onDelete }) {
     statusFilter === 'all' ? true : statusFilter === 'completed' ? e.status === 'completed' : e.status !== 'completed'
   );
 
+  const hasData = scatterData.length > 0;
   const timestamps = scatterData.map(d => d.timestamp);
   const minTime = timestamps.length ? Math.min(...timestamps) : 0;
   const maxTime = timestamps.length ? Math.max(...timestamps) : 0;
@@ -87,36 +88,35 @@ export default function BancaHistoryPanel({ banca, essays, onDelete }) {
       </div>
 
       {/* Chart */}
-      {scatterData.length > 0 ? (
-        <Card className="p-5">
-          <h3 className="font-semibold text-sm mb-4 flex items-center gap-2">
-            <BarChart3 className="w-4 h-4" /> Progressão das notas — {banca.name}
-          </h3>
-          <ResponsiveContainer width="100%" height={260}>
-            <ScatterChart>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-              <XAxis
-                type="number"
-                dataKey="timestamp"
-                domain={[minTime - padding, maxTime + padding]}
-                tickFormatter={(t) => formatShortDate(new Date(t).toISOString())}
-                tick={{ fontSize: 11 }}
-              />
-              <YAxis type="number" dataKey="percentage" domain={[0, 100]} tick={{ fontSize: 11 }} unit="%" />
-              <Tooltip content={<ChartTooltip />} />
-              <Scatter
-                data={scatterData}
-                fill="#E9861A"
-                line={{ stroke: "#E9861A", strokeWidth: 1.5, strokeOpacity: 0.5 }}
-              />
-            </ScatterChart>
-          </ResponsiveContainer>
-        </Card>
-      ) : (
-        <Card className="p-5 text-sm text-muted-foreground text-center">
-          Nenhuma redação concluída para {banca.name} ainda.
-        </Card>
-      )}
+      <Card className="p-5">
+        <h3 className="font-semibold text-sm mb-4 flex items-center gap-2">
+          <BarChart3 className="w-4 h-4" /> Progressão das notas — {banca.name}
+        </h3>
+        <ResponsiveContainer width="100%" height={260}>
+          <ScatterChart>
+            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+            <XAxis
+              type="number"
+              dataKey="timestamp"
+              domain={hasData ? [minTime - padding, maxTime + padding] : ['auto', 'auto']}
+              tickFormatter={(t) => (hasData ? formatShortDate(new Date(t).toISOString()) : '')}
+              tick={{ fontSize: 11 }}
+            />
+            <YAxis type="number" dataKey="percentage" domain={[0, 100]} tick={{ fontSize: 11 }} unit="%" />
+            <Tooltip content={<ChartTooltip />} />
+            <Scatter
+              data={scatterData}
+              fill="#E9861A"
+              line={{ stroke: "#E9861A", strokeWidth: 1.5, strokeOpacity: 0.5 }}
+            />
+          </ScatterChart>
+        </ResponsiveContainer>
+        {!hasData && (
+          <p className="mt-2 text-center text-sm text-muted-foreground">
+            Nenhuma redação concluída para {banca.name} ainda.
+          </p>
+        )}
+      </Card>
 
       {/* List */}
       <div>
