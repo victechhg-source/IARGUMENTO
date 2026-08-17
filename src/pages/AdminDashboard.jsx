@@ -5,6 +5,8 @@ import { ArrowLeft, Loader2 } from 'lucide-react'; import AdminMetricCards from 
 import UsersTab from '@/components/admin/UsersTab';
 import ClassesTab from '@/components/admin/ClassesTab';
 import InviteUser from '@/components/admin/InviteUser';
+import RoleTestPanel from '@/components/admin/RoleTestPanel';
+import RoleTestPlaybook from '@/components/admin/RoleTestPlaybook';
 
 export default function AdminDashboard() {
   const [user, setUser] = useState(null); const [data, setData] = useState(null);
@@ -15,7 +17,9 @@ export default function AdminDashboard() {
   const students = new Set(data.memberships.filter(m => m.status === 'approved').map(m => m.student_id)).size; const teachers = data.users.filter(u => u.account_type === 'teacher').length; const tokens = data.usages.reduce((n, u) => n + (u.total_tokens || 0), 0);
   return <div className="min-h-screen bg-background text-foreground"><header className="sticky top-0 z-20 border-b border-foreground/25 bg-background/95 backdrop-blur"><div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-4"><Link to="/"><Button variant="ghost" size="icon" aria-label="Voltar"><ArrowLeft className="w-4 h-4" /></Button></Link><div><p className="text-[11px] font-semibold uppercase tracking-widest text-primary">IArgumento</p><h1 className="font-display text-xl font-extrabold tracking-tight">Administração</h1></div></div></header><main className="mx-auto max-w-7xl p-4 py-8"><Tabs defaultValue="overview"><TabsList className="admin-tabs mb-8 h-auto"><TabsTrigger value="overview" className="admin-tab">Visão geral</TabsTrigger><TabsTrigger value="performance" className="admin-tab">Comparativo</TabsTrigger><TabsTrigger value="schools" className="admin-tab">Escolas</TabsTrigger><TabsTrigger value="agents" className="admin-tab">Agentes</TabsTrigger>
 <TabsTrigger value="users" className="admin-tab">Contas</TabsTrigger>
-<TabsTrigger value="classes" className="admin-tab">Turmas</TabsTrigger></TabsList><TabsContent value="overview" className="space-y-5"><AdminMetricCards schools={data.schools.length} teachers={teachers} students={students} classes={data.classes.length} tokens={tokens} /><SchoolAnalytics {...data} /></TabsContent><TabsContent value="performance"><PerformanceComparison {...data} /></TabsContent><TabsContent value="schools"><SchoolManager schools={data.schools} onChange={load} /></TabsContent><TabsContent value="agents"><AgentManager /></TabsContent>
+<TabsTrigger value="classes" className="admin-tab">Turmas</TabsTrigger>
+<TabsTrigger value="tests" className="admin-tab">Testes</TabsTrigger></TabsList><TabsContent value="overview" className="space-y-5"><AdminMetricCards schools={data.schools.length} teachers={teachers} students={students} classes={data.classes.length} tokens={tokens} /><SchoolAnalytics {...data} /></TabsContent><TabsContent value="performance"><PerformanceComparison {...data} /></TabsContent><TabsContent value="schools"><SchoolManager schools={data.schools} onChange={load} /></TabsContent><TabsContent value="agents"><AgentManager /></TabsContent>
 <TabsContent value="users"><InviteUser schools={data.schools} onInvited={load} /><UsersTab users={data.users} schools={data.schools} currentUserId={user?.id} /></TabsContent>
-<TabsContent value="classes"><ClassesTab classes={data.classes} memberships={data.memberships} /></TabsContent></Tabs></main></div>;
+<TabsContent value="classes"><ClassesTab classes={data.classes} memberships={data.memberships} /></TabsContent>
+<TabsContent value="tests" className="space-y-5"><RoleTestPanel user={user} schools={data.schools} onChange={load} /><RoleTestPlaybook /></TabsContent></Tabs></main></div>;
 }
