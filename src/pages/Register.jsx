@@ -129,16 +129,23 @@ export default function Register() {
 
   const handleGoogle = async () => {
     setError("");
-    const v = validate();
-    if (v) { setError(v); return; }
-    // Valida códigos institucionais antes de redirecionar para o Google
-    const codesOk = await validateCodesBackend();
-    if (!codesOk) return;
-    localStorage.setItem("pendingAccountType", accountType);
-    localStorage.setItem("pendingSchoolCode", schoolCode);
-    localStorage.setItem("pendingFullName", fullName);
-    if (accountType === "student") localStorage.setItem("pendingClassCode", classCode);
-    base44.auth.loginWithProvider("google", "/");
+    setLoading(true);
+    try {
+      const v = validate();
+      if (v) { setError(v); return; }
+      // Valida códigos institucionais antes de redirecionar para o Google
+      const codesOk = await validateCodesBackend();
+      if (!codesOk) return;
+      localStorage.setItem("pendingAccountType", accountType);
+      localStorage.setItem("pendingSchoolCode", schoolCode);
+      localStorage.setItem("pendingFullName", fullName);
+      if (accountType === "student") localStorage.setItem("pendingClassCode", classCode);
+      await base44.auth.loginWithProvider("google", "/");
+    } catch (err) {
+      setError(err?.data?.message || err?.message || "Não foi possível conectar ao Google. Tente o cadastro por e-mail.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (showOtp) {
@@ -257,7 +264,7 @@ export default function Register() {
 
       <Button
         className="w-full h-12 text-sm font-medium mb-2"
-        disabled={!googleReady || codeStatus.state !== "ok"}
+        disabled={!googleReady || codeStatus.state === "error" || loading}
         onClick={handleGoogle}
       >
         <GoogleIcon className="w-5 h-5 mr-2" />
