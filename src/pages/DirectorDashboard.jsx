@@ -5,12 +5,20 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import SchoolMetricCards from '@/components/director/SchoolMetricCards';
 import SchoolBancaChart from '@/components/director/SchoolBancaChart';
-import { ArrowLeft, Loader2 } from 'lucide-react';
+import { Loader2, Copy, Check, Download, KeyRound, ArrowRight } from 'lucide-react';
+
+const CODE_FIELDS = [
+  { label: 'Aluno', field: 'student_code' },
+  { label: 'Professor', field: 'teacher_code' },
+  { label: 'Diretor', field: 'director_code' },
+];
 
 export default function DirectorDashboard() {
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+  const [copied, setCopied] = useState(null);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -25,40 +33,96 @@ export default function DirectorDashboard() {
     })();
   }, []);
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin" /></div>;
+  const copyCode = async (field, value) => {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(field);
+      setTimeout(() => setCopied(null), 1500);
+    } catch {
+      // fallback silencioso
+    }
+  };
 
+  const downloadCSV = async () => {
+    setExporting(true);
+    try {
+      const res = await base44.functions.invoke('exportSchoolSummary', {});
+      const rows = res?.rows || [];
+      const headers = ['turma', 'professor', 'aluno', 'email', 'banca', 'nota', 'nota_max', 'data'];
+      const esc = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+      const csv = [headers.join(','), ...rows.map((r) => headers.map((h) => esc(r[h])).join(','))].join('\n');
+      const blob = new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'resumo-escola.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  if (loading) {
+    return <div className="flex items-center justify-center py-24"><Loader2 className="w-8 h-8 animate-spin" /></div>;
+  }
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
+      <div className="flex items-center justify-center py-24">
         <Card className="p-6 text-center max-w-sm">
           <p className="mb-4">{error}</p>
-          <Link to="/diretor"><Button>Voltar</Button></Link>
+          <Link to="/diretor"><Button variant="outline">Voltar</Button></Link>
         </Card>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <div className="max-w-5xl mx-auto px-4 pt-6 flex items-center gap-3">
-        <div className="flex-1">
+    <div className="max-w-5xl mx-auto p-4 py-6 space-y-6">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div>
           <h1 className="font-semibold">Painel da escola</h1>
           <p className="text-sm text-muted-foreground">{data?.school?.name || 'Sua escola'}</p>
         </div>
-        {data?.school?.code && (
-          <code className="text-sm font-bold tracking-widest bg-muted px-3 py-2 rounded">{data.school.code}</code>
-        )}
+        <Button variant="outline" onClick={downloadCSV} disabled={exporting}>
+          {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+          Exportar CSV
+        </Button>
       </div>
 
-      <main className="max-w-5xl mx-auto p-4 py-6 space-y-6">
-        <SchoolMetricCards metrics={data?.metrics} />
-        <SchoolBancaChart bancas={data?.bancas || []} />
+      <SchoolMetricCards metrics={data?.metrics} />
+      <SchoolBancaChart bancas={data?.bancas || []} />
 
-        <section>
-          <h2 className="font-semibold mb-3">Turmas da escola</h2>
-          <div className="space-y-2">
-            {(data?.classes || []).map((c) => (
-              <Card key={c.id} className="p-4 flex flex-wrap items-center justify-between gap-3">
+      {/* Códigos de cadastro — somente leitura (rotação é admin) */}
+      <Card className="p-5 space-y-4">
+        <div className="flex items-center gap-2">
+          <KeyRound className="w-4 h-4 text-muted-foreground" />
+          <h2 className="font-semibold">Códigos de cadastro</h2>
+        </div>
+        <div className="space-y-3">
+          {CODE_FIELDS.map(({ label, field }) => (
+            <div key={field} className="flex items-center gap-3 flex-wrap">
+              <div className="w-24 text-sm font-medium">{label}</div>
+              <code className="flex-1 min-w-[140px] rounded-lg bg-muted px-3 py-2 text-sm font-bold tracking-wider">
+                {data?.school?.[field] || '—'}
+              </code>
+              <Button variant="outline" size="sm" onClick={() => copyCode(field, data?.school?.[field])} disabled={!data?.school?.[field]}>
+                {copied === field ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                {copied === field ? 'Copiado' : 'Copiar'}
+              </Button>
+            </div>
+          ))}
+        </div>
+        <p className="text-xs text-muted-foreground">Código institucional (ESC): <code className="font-bold">{data?.school?.code}</code></p>
+      </Card>
+
+      {/* Turmas clicáveis */}
+      <section>
+        <h2 className="font-semibold mb-3">Turmas da escola</h2>
+        <div className="space-y-2">
+          {(data?.classes || []).map((c) => (
+            <Link key={c.id} to={`/diretor/turma/${c.id}`} className="block">
+              <Card className="p-4 flex flex-wrap items-center justify-between gap-3 hover:shadow-md transition-shadow">
                 <div>
                   <p className="font-medium">{c.name}</p>
                   <p className="text-sm text-muted-foreground">Professor: {c.teacher_name || '—'}</p>
@@ -66,26 +130,27 @@ export default function DirectorDashboard() {
                 <div className="flex items-center gap-3">
                   <span className="text-sm text-muted-foreground">{c.students} aluno(s)</span>
                   <code className="text-sm font-bold tracking-widest bg-muted px-2 py-1 rounded">{c.code}</code>
+                  <ArrowRight className="w-4 h-4 text-muted-foreground" />
                 </div>
               </Card>
-            ))}
-            {!data?.classes?.length && <p className="text-sm text-muted-foreground">Nenhuma turma cadastrada.</p>}
-          </div>
-        </section>
+            </Link>
+          ))}
+          {!data?.classes?.length && <p className="text-sm text-muted-foreground">Nenhuma turma cadastrada.</p>}
+        </div>
+      </section>
 
-        <section>
-          <h2 className="font-semibold mb-3">Professores vinculados</h2>
-          <div className="space-y-2">
-            {(data?.teachers || []).map((t) => (
-              <Card key={t.id} className="p-4">
-                <p className="font-medium">{t.name}</p>
-                <p className="text-sm text-muted-foreground">{t.email}</p>
-              </Card>
-            ))}
-            {!data?.teachers?.length && <p className="text-sm text-muted-foreground">Nenhum professor vinculado.</p>}
-          </div>
-        </section>
-      </main>
+      <section>
+        <h2 className="font-semibold mb-3">Professores vinculados</h2>
+        <div className="space-y-2">
+          {(data?.teachers || []).map((t) => (
+            <Card key={t.id} className="p-4">
+              <p className="font-medium">{t.name}</p>
+              <p className="text-sm text-muted-foreground">{t.email}</p>
+            </Card>
+          ))}
+          {!data?.teachers?.length && <p className="text-sm text-muted-foreground">Nenhum professor vinculado.</p>}
+        </div>
+      </section>
     </div>
   );
 }

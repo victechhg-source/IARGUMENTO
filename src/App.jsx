@@ -18,6 +18,9 @@ import StudentClasses from '@/pages/StudentClasses';
 import StudentPerformance from '@/pages/StudentPerformance';
 import AdminDashboard from '@/pages/AdminDashboard';
 import DirectorDashboard from '@/pages/DirectorDashboard';
+import DirectorClass from '@/pages/DirectorClass';
+import DirectorStudentPerformance from '@/pages/DirectorStudentPerformance';
+import DirectorEssayDetail from '@/pages/DirectorEssayDetail';
 import ProfessorEssayDetail from '@/pages/ProfessorEssayDetail';
 import SchoolDetail from '@/pages/SchoolDetail';
 import Login from '@/pages/Login';
@@ -96,6 +99,9 @@ const AuthenticatedApp = () => {
             {/* Diretor */}
             <Route element={<RoleRoute allow={['director']} />}>
               <Route path="/diretor" element={<DirectorDashboard />} />
+              <Route path="/diretor/turma/:id" element={<DirectorClass />} />
+              <Route path="/diretor/aluno/:studentId" element={<DirectorStudentPerformance />} />
+              <Route path="/diretor/redacao/:id" element={<DirectorEssayDetail />} />
             </Route>
 
             {/* Administração */}

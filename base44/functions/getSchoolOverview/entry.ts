@@ -39,7 +39,7 @@ Deno.serve(async (req) => {
     }
 
     return Response.json({
-      school: schools[0] ? { id: schools[0].id, name: schools[0].name, code: schools[0].institutional_code } : null,
+      school: schools[0] ? { id: schools[0].id, name: schools[0].name, code: schools[0].institutional_code, student_code: schools[0].student_code, teacher_code: schools[0].teacher_code, director_code: schools[0].director_code } : null,
       metrics: {
         students: studentIds.length,
         teachers: users.filter((u) => u.account_type === 'teacher').length,
