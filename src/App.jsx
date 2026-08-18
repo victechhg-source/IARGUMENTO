@@ -19,6 +19,7 @@ import StudentPerformance from '@/pages/StudentPerformance';
 import AdminDashboard from '@/pages/AdminDashboard';
 import DirectorDashboard from '@/pages/DirectorDashboard';
 import ProfessorEssayDetail from '@/pages/ProfessorEssayDetail';
+import SchoolDetail from '@/pages/SchoolDetail';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
 import CompleteSignup from '@/pages/CompleteSignup';
@@ -88,6 +89,7 @@ const AuthenticatedApp = () => {
             {/* Administração */}
             <Route element={<RoleRoute adminOnly />}>
               <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/escolas/:id" element={<SchoolDetail />} />
             </Route>
           </Route>
         </Route>

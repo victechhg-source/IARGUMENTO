@@ -3,7 +3,8 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import { Plus } from 'lucide-react';
+import { Plus, ExternalLink } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import SchoolCodes from '@/components/admin/SchoolCodes';
 
 const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -45,6 +46,9 @@ export default function SchoolManager({ schools, onChange }) {
               <p className="text-sm text-muted-foreground">{s.status === 'active' ? 'Ativa' : 'Inativa'}</p>
             </div>
             <SchoolCodes school={s} />
+            <Link to={`/admin/escolas/${s.id}`} className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline">
+              <ExternalLink className="w-3.5 h-3.5" /> Abrir ficha
+            </Link>
           </Card>
         ))}
       </div>

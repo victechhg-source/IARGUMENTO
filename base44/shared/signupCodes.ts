@@ -47,6 +47,19 @@ export async function resolveClassroom(base44, rawCode, school) {
   return { classroom };
 }
 
+// Gera um código de acesso único (PREFIX-XXXXXX) para o campo informado,
+// verificando colisão entre todas as escolas. Usado por rotateSchoolCode.
+export async function generateAccessCode(base44, prefix, field) {
+  for (let attempt = 0; attempt < 12; attempt++) {
+    let suffix = '';
+    for (let i = 0; i < 6; i++) suffix += ALPHABET[Math.floor(Math.random() * ALPHABET.length)];
+    const candidate = `${prefix}-${suffix}`;
+    const taken = await base44.asServiceRole.entities.School.filter({ [field]: candidate });
+    if (!taken.length) return candidate;
+  }
+  throw new Error('Não foi possível gerar um código único. Tente novamente.');
+}
+
 // ID público único, gerado no servidor com verificação de colisão.
 export async function generateRegisteredId(base44, role, accountType) {
   const prefix = role === 'admin' ? 'ADM' : prefixForAccountType(accountType);
