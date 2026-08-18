@@ -18,6 +18,7 @@ import StudentClasses from '@/pages/StudentClasses';
 import StudentPerformance from '@/pages/StudentPerformance';
 import AdminDashboard from '@/pages/AdminDashboard';
 import DirectorDashboard from '@/pages/DirectorDashboard';
+import ProfessorEssayDetail from '@/pages/ProfessorEssayDetail';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
 import CompleteSignup from '@/pages/CompleteSignup';
@@ -76,6 +77,7 @@ const AuthenticatedApp = () => {
             <Route element={<RoleRoute allow={['teacher']} />}>
               <Route path="/professor" element={<TeacherDashboard />} />
               <Route path="/professor/aluno/:studentId" element={<StudentPerformance />} />
+              <Route path="/professor/redacao/:id" element={<ProfessorEssayDetail />} />
             </Route>
 
             {/* Diretor */}

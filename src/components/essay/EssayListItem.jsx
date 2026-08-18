@@ -7,14 +7,14 @@ import { Image } from '@/components/ui/image';
 
 const FALLBACK_LOGO = 'https://media.base44.com/images/public/6a6602cb58785bab45511cab/8aa46b329_image.png';
 
-export default function EssayListItem({ essay, onDelete }) {
+export default function EssayListItem({ essay, onDelete, href, showDelete = true }) {
   const navigate = useNavigate();
   const banca = BANCAS.find((b) => b.id === essay.banca);
   const maxGrade = essay.max_grade || banca?.max_grade || 100;
   const percentage = essay.final_grade ? Math.round(essay.final_grade / maxGrade * 100) : 0;
   const date = new Date(essay.created_date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
 
-  const open = () => navigate(`/historico/${essay.id}`);
+  const open = () => navigate(href || `/historico/${essay.id}`);
 
   const handleDelete = (e) => {
     e.stopPropagation();
@@ -45,6 +45,7 @@ export default function EssayListItem({ essay, onDelete }) {
           }
         </div>
         <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+        {showDelete && (
         <button
           type="button"
           onClick={handleDelete}
@@ -53,6 +54,7 @@ export default function EssayListItem({ essay, onDelete }) {
           
           <Trash2 className="w-4 h-4" />
         </button>
+        )}
       </div>
     </Card>);
 
