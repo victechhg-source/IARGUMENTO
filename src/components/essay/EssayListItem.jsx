@@ -14,7 +14,8 @@ export default function EssayListItem({ essay, onDelete, href, showDelete = true
   const percentage = essay.final_grade ? Math.round(essay.final_grade / maxGrade * 100) : 0;
   const date = new Date(essay.created_date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
 
-  const open = () => navigate(href || `/historico/${essay.id}`);
+  const inProgress = essay.status !== 'completed';
+  const open = () => navigate(href || (inProgress ? `/correcao?banca=${essay.banca}&essay=${essay.id}` : `/historico/${essay.id}`));
 
   const handleDelete = (e) => {
     e.stopPropagation();
@@ -41,7 +42,7 @@ export default function EssayListItem({ essay, onDelete, href, showDelete = true
               <p className="text-xs text-muted-foreground">{percentage}%</p>
             </> :
 
-          <span className="rounded-full bg-black/5 px-2.5 py-1 text-xs font-medium">Em andamento</span>
+          <span className="rounded-full bg-primary/10 text-primary px-3 py-1.5 text-xs font-semibold">Retomar</span>
           }
         </div>
         <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />

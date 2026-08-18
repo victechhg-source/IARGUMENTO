@@ -4,7 +4,7 @@ import { useAuth } from '@/lib/AuthContext';
 import { homePathFor } from '@/lib/roles';
 import AuthNav from '@/components/account/AuthNav';
 import { Image } from '@/components/ui/image';
-import { GraduationCap, Users, Building2, Shield, History, Plus } from 'lucide-react';
+import { GraduationCap, Users, Building2, Shield, History, Plus, User } from 'lucide-react';
 
 // Shell autenticado: header global em TODAS as páginas protegidas.
 // Logo → home do papel; links por papel; AuthNav à direita.
@@ -37,6 +37,7 @@ export default function AppShell() {
             {role === 'admin' && (
               <Link to="/admin" className="kinetic-link"><Shield className="w-4 h-4" />Administração</Link>
             )}
+            <Link to="/conta" className="kinetic-link"><User className="w-4 h-4" />Conta</Link>
             <AuthNav />
           </nav>
         </div>

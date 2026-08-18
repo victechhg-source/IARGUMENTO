@@ -31,6 +31,7 @@ import ResetPassword from '@/pages/ResetPassword';
 import OAuthConsent from '@/pages/OAuthConsent';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import AppShell from '@/components/AppShell';
+import Account from '@/pages/Account';
 import EscolherBanca from '@/pages/EscolherBanca';
 import { homePathFor } from '@/lib/roles';
 
@@ -80,6 +81,7 @@ const AuthenticatedApp = () => {
           {/* Sem vínculo institucional gravado, nenhuma tela do app abre */}
           <Route element={<RequireProfile />}>
             <Route element={<AppShell />}>
+            <Route path="/conta" element={<Account />} />
             {/* Aluno */}
             <Route element={<RoleRoute allow={['student']} />}>
               <Route path="/nova-redacao" element={<EscolherBanca />} />
