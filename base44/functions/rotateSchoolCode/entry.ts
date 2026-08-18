@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
 import { generateAccessCode } from '../../shared/signupCodes.ts';
+import { logAdminAction } from '../../shared/auditLog.ts';
 
 // Rotaciona um código de acesso de escola (ALU/PRO/DIR). Somente admin.
 // O código antigo deixa de funcionar imediatamente para novos cadastros.
@@ -28,6 +29,10 @@ export default async function (req) {
 
     const newCode = await generateAccessCode(base44, prefix, field);
     await base44.asServiceRole.entities.School.update(school.id, { [field]: newCode });
+    await logAdminAction(base44, {
+      actor_id: user.id, actor_email: user.email, action: 'rotate_school_code',
+      target_type: 'school', target_id: school.id, school_id: school.id, detail: `field=${field}`,
+    });
 
     return Response.json({ field, code: newCode });
   } catch (error) {

@@ -41,6 +41,11 @@
     "registered_id": {
       "type": "string",
       "description": "ID p\u00fablico \u00fanico da conta (ADM-/DIR-/PRO-/ALU-XXXXXX), gerado no servidor no cadastro"
+    },
+    "suspended": {
+      "type": "boolean",
+      "default": false,
+      "description": "Conta suspensa pelo admin \u2014 bloqueia o acesso ao app"
     }
   },
   "required": [

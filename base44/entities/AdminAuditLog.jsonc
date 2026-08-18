@@ -1,0 +1,56 @@
+{
+  "name": "AdminAuditLog",
+  "type": "object",
+  "properties": {
+    "actor_id": {
+      "type": "string"
+    },
+    "actor_email": {
+      "type": "string"
+    },
+    "action": {
+      "type": "string",
+      "description": "rotate_school_code | school_status | attach_school | detach_school | set_account_type | suspend | unsuspend | invite"
+    },
+    "target_type": {
+      "type": "string",
+      "description": "school | user"
+    },
+    "target_id": {
+      "type": "string"
+    },
+    "school_id": {
+      "type": "string"
+    },
+    "detail": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "action",
+    "target_type",
+    "target_id"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "__disabled__"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "__disabled__"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "__disabled__"
+      }
+    }
+  }
+}

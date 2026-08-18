@@ -25,6 +25,16 @@ export default function RequireProfile() {
     }
   }, [user]);
 
+  if (user?.suspended) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center">
+        <ShieldAlert className="w-12 h-12 text-muted-foreground mb-4" />
+        <h1 className="text-xl font-bold mb-2">Conta suspensa</h1>
+        <p className="text-muted-foreground max-w-sm">Sua conta foi suspensa. Fale com o administrador da instituição.</p>
+      </div>
+    );
+  }
+
   if (user && user.role !== 'admin' && !user.school_id) {
     return <Navigate to="/completar-cadastro" replace />;
   }

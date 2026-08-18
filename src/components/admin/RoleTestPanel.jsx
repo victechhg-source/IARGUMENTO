@@ -35,6 +35,9 @@ export default function RoleTestPanel({ user, schools, onChange }) {
 
   return (
     <Card className="p-5 space-y-4">
+      <div className="rounded-lg border border-amber-300/60 bg-amber-50 px-4 py-3 text-xs text-amber-800">
+        Altera a SUA conta admin para simular um papel. Não use em produção para gerir escolas.
+      </div>
       <div className="flex items-start gap-3">
         <UserCog className="w-5 h-5 text-primary mt-0.5" />
         <div>

@@ -59,7 +59,7 @@ export default function SchoolDetail() {
     if (!window.confirm(`Tem certeza que deseja ${verb} esta escola? ${next === 'inactive' ? 'Quem já está logado continuará usando, mas novos cadastros com os códigos atuais serão bloqueados.' : '' }`)) return;
     setToggling(true);
     try {
-      await base44.entities.School.update(id, { status: next });
+      await base44.functions.invoke('adminUpdateAccount', { action: 'school_status', schoolId: id, status: next });
       setSchool((prev) => ({ ...prev, status: next }));
     } finally {
       setToggling(false);
