@@ -8,13 +8,10 @@ import { Loader2 } from 'lucide-react';
 import AdminMetricCards from '@/components/admin/AdminMetricCards';
 import SchoolManager from '@/components/admin/SchoolManager';
 import SchoolAnalytics from '@/components/admin/SchoolAnalytics';
-import PerformanceComparison from '@/components/admin/PerformanceComparison';
 import AgentManager from '@/components/admin/AgentManager';
 import UsersTab from '@/components/admin/UsersTab';
 import ClassesTab from '@/components/admin/ClassesTab';
 import InviteUser from '@/components/admin/InviteUser';
-import RoleTestPanel from '@/components/admin/RoleTestPanel';
-import RoleTestPlaybook from '@/components/admin/RoleTestPlaybook';
 import AuditLogTab from '@/components/admin/AuditLogTab';
 
 const SAMPLE_NOTE = 'Amostra das 100 redações/usos mais recentes.';
@@ -52,12 +49,6 @@ export default function AdminDashboard() {
           base44.entities.AgentUsage.list('-created_date', 100),
         ]);
         payload = { users, memberships, classes, essays, usages };
-      } else if (t === 'performance') {
-        const [essays, usages] = await Promise.all([
-          base44.entities.Essay.list('-created_date', 100),
-          base44.entities.AgentUsage.list('-created_date', 100),
-        ]);
-        payload = { essays, usages };
       } else if (t === 'users') {
         payload = { users: await base44.entities.User.list() };
       } else if (t === 'classes') {
@@ -112,11 +103,9 @@ export default function AdminDashboard() {
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList className="admin-tabs mb-8 h-auto">
           <TabsTrigger value="overview" className="admin-tab">Visão geral</TabsTrigger>
-          <TabsTrigger value="performance" className="admin-tab">Comparativo</TabsTrigger>
           <TabsTrigger value="schools" className="admin-tab">Escolas</TabsTrigger>
           <TabsTrigger value="users" className="admin-tab">Contas</TabsTrigger>
           <TabsTrigger value="classes" className="admin-tab">Turmas</TabsTrigger>
-          <TabsTrigger value="tests" className="admin-tab">Testes</TabsTrigger>
           <TabsTrigger value="audit" className="admin-tab">Auditoria</TabsTrigger>
           <TabsTrigger value="agents" className="admin-tab">Agentes</TabsTrigger>
         </TabsList>
@@ -130,14 +119,6 @@ export default function AdminDashboard() {
               <p className="text-xs text-muted-foreground">{SAMPLE_NOTE}</p>
               <SchoolAnalytics schools={schools} essays={ov.essays || []} usages={ov.usages || []} memberships={ov.memberships || []} classes={ov.classes || []} users={ov.users || []} />
             </>
-          )}
-        </TabsContent>
-
-        <TabsContent value="performance">
-          {loadingTab || !td.essays ? (
-            <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin" /></div>
-          ) : (
-            <PerformanceComparison schools={schools} essays={td.essays || []} usages={td.usages || []} />
           )}
         </TabsContent>
 
@@ -160,11 +141,6 @@ export default function AdminDashboard() {
           ) : (
             <ClassesTab classes={td.classes} memberships={td.memberships} />
           )}
-        </TabsContent>
-
-        <TabsContent value="tests" className="space-y-5">
-          <RoleTestPanel user={user} schools={schools} onChange={reload} />
-          <RoleTestPlaybook />
         </TabsContent>
 
         <TabsContent value="audit">
