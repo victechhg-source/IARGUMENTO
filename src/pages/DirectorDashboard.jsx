@@ -32,7 +32,7 @@ export default function DirectorDashboard() {
       <div className="min-h-screen flex items-center justify-center p-4">
         <Card className="p-6 text-center max-w-sm">
           <p className="mb-4">{error}</p>
-          <Link to="/"><Button>Voltar ao início</Button></Link>
+          <Link to="/diretor"><Button>Voltar</Button></Link>
         </Card>
       </div>
     );
@@ -40,18 +40,15 @@ export default function DirectorDashboard() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <header className="border-b border-foreground/20 bg-background/95 sticky top-0 z-20">
-        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center gap-3">
-          <Link to="/"><Button variant="ghost" size="icon" aria-label="Voltar"><ArrowLeft className="w-4 h-4" /></Button></Link>
-          <div className="flex-1">
-            <h1 className="font-semibold">Painel da escola</h1>
-            <p className="text-sm text-muted-foreground">{data?.school?.name || 'Sua escola'}</p>
-          </div>
-          {data?.school?.code && (
-            <code className="text-sm font-bold tracking-widest bg-muted px-3 py-2 rounded">{data.school.code}</code>
-          )}
+      <div className="max-w-5xl mx-auto px-4 pt-6 flex items-center gap-3">
+        <div className="flex-1">
+          <h1 className="font-semibold">Painel da escola</h1>
+          <p className="text-sm text-muted-foreground">{data?.school?.name || 'Sua escola'}</p>
         </div>
-      </header>
+        {data?.school?.code && (
+          <code className="text-sm font-bold tracking-widest bg-muted px-3 py-2 rounded">{data.school.code}</code>
+        )}
+      </div>
 
       <main className="max-w-5xl mx-auto p-4 py-6 space-y-6">
         <SchoolMetricCards metrics={data?.metrics} />

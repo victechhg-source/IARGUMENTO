@@ -27,6 +27,16 @@ import ForgotPassword from '@/pages/ForgotPassword';
 import ResetPassword from '@/pages/ResetPassword';
 import OAuthConsent from '@/pages/OAuthConsent';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import AppShell from '@/components/AppShell';
+import EscolherBanca from '@/pages/EscolherBanca';
+import { homePathFor } from '@/lib/roles';
+
+const HomeOrRedirect = () => {
+  const { isAuthenticated, user, isLoadingPublicSettings } = useAuth();
+  if (isLoadingPublicSettings) return null;
+  if (isAuthenticated) return <Navigate to={homePathFor(user)} replace />;
+  return <Home />;
+};
 
 const AuthenticatedApp = () => {
   const { isLoadingPublicSettings, authError } = useAuth();
@@ -57,8 +67,8 @@ const AuthenticatedApp = () => {
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/oauth-consent" element={<OAuthConsent />} />
 
-        {/* Landing pública */}
-        <Route path="/" element={<Home />} />
+        {/* Landing pública: visitante vê a vitrine; logado vai para a home do papel */}
+        <Route path="/" element={<HomeOrRedirect />} />
 
         {/* Rotas protegidas: exigem sessão ativa (dados individuais do aluno) */}
         <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
@@ -66,8 +76,10 @@ const AuthenticatedApp = () => {
 
           {/* Sem vínculo institucional gravado, nenhuma tela do app abre */}
           <Route element={<RequireProfile />}>
+            <Route element={<AppShell />}>
             {/* Aluno */}
             <Route element={<RoleRoute allow={['student']} />}>
+              <Route path="/nova-redacao" element={<EscolherBanca />} />
               <Route path="/correcao" element={<Correction />} />
               <Route path="/historico" element={<Historico />} />
               <Route path="/historico/:id" element={<EssayDetail />} />
@@ -90,6 +102,7 @@ const AuthenticatedApp = () => {
             <Route element={<RoleRoute adminOnly />}>
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/escolas/:id" element={<SchoolDetail />} />
+            </Route>
             </Route>
           </Route>
         </Route>

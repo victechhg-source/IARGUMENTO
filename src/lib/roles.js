@@ -17,7 +17,7 @@ export function homePathFor(user) {
   if (user.account_type === 'director') return '/diretor';
   if (user.account_type === 'teacher') return '/professor';
   if (user.role === 'admin') return '/admin';
-  return '/correcao';
+  return '/historico';
 }
 
 // Chaves de cadastro pendente (usadas para pré-preencher a tela de conclusão).

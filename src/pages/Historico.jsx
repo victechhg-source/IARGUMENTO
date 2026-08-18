@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { BANCAS } from '@/data/bancas';
 import { Button } from '@/components/ui/button';
-import { Plus, ArrowLeft } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import BancaHistoryPanel from '@/components/history/BancaHistoryPanel';
 import HistoryOverview from '@/components/history/HistoryOverview';
@@ -29,7 +29,7 @@ export default function Historico() {
 
   if (essays === null) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="flex items-center justify-center py-24">
         <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin" />
       </div>
     );
@@ -38,47 +38,41 @@ export default function Historico() {
   const activeBancaData = BANCAS.find(b => b.id === activeBanca) || BANCAS[0];
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <header className="border-b border-foreground/20 bg-background/95 sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center gap-3">
-          <Link to="/"><Button variant="ghost" size="icon"><ArrowLeft className="w-4 h-4" /></Button></Link>
-          <h1 className="font-semibold text-sm flex-1">Meu histórico</h1>
-          <Link to="/"><Button size="sm"><Plus className="w-4 h-4 mr-1" /> Nova redação</Button></Link>
-        </div>
-      </header>
-
-      <div className="max-w-4xl mx-auto px-4 py-6">
-        <HistoryOverview essays={essays} />
-
-        {/* Aba por banca */}
-        <div className="flex flex-wrap gap-2 border-b border-border pb-3 mb-4">
-          {BANCAS.map(b => {
-            const isActive = b.id === activeBanca;
-            return (
-              <button
-                key={b.id}
-                type="button"
-                onClick={() => setActiveBanca(b.id)}
-                className={
-                  'rounded-full border px-4 py-1.5 text-sm font-bold transition-colors ' +
-                  (isActive
-                    ? 'border-primary bg-primary text-primary-foreground shadow-sm'
-                    : 'border-border bg-card text-muted-foreground hover:text-foreground')
-                }
-              >
-                {b.name}
-              </button>
-            );
-          })}
-        </div>
-
-        <BancaHistoryPanel
-          key={activeBancaData.id}
-          banca={activeBancaData}
-          essays={essays.filter(e => e.banca === activeBancaData.id)}
-          onDelete={handleDelete}
-        />
+    <div className="max-w-4xl mx-auto px-4 py-6">
+      <div className="flex items-center justify-between gap-3 mb-4">
+        <h1 className="font-semibold text-sm">Meu histórico</h1>
+        <Link to="/nova-redacao"><Button size="sm"><Plus className="w-4 h-4 mr-1" /> Nova redação</Button></Link>
       </div>
+
+      <HistoryOverview essays={essays} />
+
+      <div className="flex flex-wrap gap-2 border-b border-border pb-3 mb-4">
+        {BANCAS.map(b => {
+          const isActive = b.id === activeBanca;
+          return (
+            <button
+              key={b.id}
+              type="button"
+              onClick={() => setActiveBanca(b.id)}
+              className={
+                'rounded-full border px-4 py-1.5 text-sm font-bold transition-colors ' +
+                (isActive
+                  ? 'border-primary bg-primary text-primary-foreground shadow-sm'
+                  : 'border-border bg-card text-muted-foreground hover:text-foreground')
+              }
+            >
+              {b.name}
+            </button>
+          );
+        })}
+      </div>
+
+      <BancaHistoryPanel
+        key={activeBancaData.id}
+        banca={activeBancaData}
+        essays={essays.filter(e => e.banca === activeBancaData.id)}
+        onDelete={handleDelete}
+      />
     </div>
   );
 }

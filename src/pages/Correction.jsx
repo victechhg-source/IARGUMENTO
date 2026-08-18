@@ -32,7 +32,7 @@ export default function Correction() {
 
   useEffect(() => {
     if (!banca) {
-      navigate('/');
+      navigate('/nova-redacao');
       return;
     }
     addBotMessage(
@@ -183,21 +183,13 @@ export default function Correction() {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
-      {/* Header */}
-      <header className="border-b border-foreground/20 bg-background/95 sticky top-0 z-10">
-        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center gap-3">
-          <Link to="/">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="w-4 h-4" />
-            </Button>
-          </Link>
-          <CorrectorAvatar banca={banca} size={36} />
-          <div className="flex-1">
-            <p className="font-semibold text-sm">Corretor {banca.name}</p>
-            <p className="text-xs text-muted-foreground">{banca.full_name}</p>
-          </div>
+      <div className="max-w-5xl mx-auto w-full px-4 pt-4 flex items-center gap-3">
+        <CorrectorAvatar banca={banca} size={32} />
+        <div className="flex-1">
+          <p className="font-semibold text-sm">Corretor {banca.name}</p>
+          <p className="text-xs text-muted-foreground">{banca.full_name}</p>
         </div>
-      </header>
+      </div>
 
       {/* Chat area */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto">
@@ -260,7 +252,7 @@ export default function Correction() {
               <div className="max-w-[92%] w-full">
                 <CorrectionResults correction={correction} banca={banca} transcription={transcription} />
                 <div className="mt-4">
-                  <Button className="w-full" onClick={() => navigate('/')}>
+                  <Button className="w-full" onClick={() => navigate('/nova-redacao')}>
                     <Plus className="w-4 h-4 mr-2" />
                     Corrigir outra redação
                   </Button>
