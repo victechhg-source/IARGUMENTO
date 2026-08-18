@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Lock, Loader2, AlertTriangle } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
+import { validatePassword } from "@/lib/password";
 
 export default function ResetPassword() {
   const [searchParams] = useSearchParams();
@@ -21,6 +22,11 @@ export default function ResetPassword() {
     setError("");
     if (newPassword !== confirmPassword) {
       setError("As senhas não coincidem");
+      return;
+    }
+    const weak = validatePassword(newPassword);
+    if (weak) {
+      setError(weak);
       return;
     }
     setLoading(true);
@@ -81,6 +87,7 @@ export default function ResetPassword() {
               required
             />
           </div>
+          <p className="text-xs text-muted-foreground">Mínimo de 8 caracteres, com ao menos uma letra e um número.</p>
         </div>
         <div className="space-y-2">
           <Label htmlFor="confirm">Confirmar senha</Label>

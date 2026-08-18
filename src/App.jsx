@@ -4,9 +4,10 @@ import { queryClientInstance } from '@/lib/query-client'
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
-import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ScrollToTop from './components/ScrollToTop';
-import GoogleSignupCompletion from '@/components/GoogleSignupCompletion';
+import RequireProfile from '@/components/RequireProfile';
+import RoleRoute from '@/components/RoleRoute';
+import RedirectIfAuthenticated from '@/components/RedirectIfAuthenticated';
 // Add page imports here
 import Home from '@/pages/Home';
 import Correction from '@/pages/Correction';
@@ -19,6 +20,7 @@ import AdminDashboard from '@/pages/AdminDashboard';
 import DirectorDashboard from '@/pages/DirectorDashboard';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
+import CompleteSignup from '@/pages/CompleteSignup';
 import ForgotPassword from '@/pages/ForgotPassword';
 import ResetPassword from '@/pages/ResetPassword';
 import OAuthConsent from '@/pages/OAuthConsent';
@@ -38,18 +40,17 @@ const AuthenticatedApp = () => {
     );
   }
 
-  // Usuário autenticado na plataforma, mas sem perfil cadastrado neste app.
-  if (authError?.type === 'user_not_registered') {
-    return <UserNotRegisteredError />;
-  }
+  // "user_not_registered" é tratado por rota (ProtectedRoute), para não bloquear
+  // a landing pública nem as telas de login/cadastro.
 
   return (
     <>
-      <GoogleSignupCompletion />
       <Routes>
         {/* Telas públicas de autenticação */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        <Route element={<RedirectIfAuthenticated />}>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+        </Route>
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/oauth-consent" element={<OAuthConsent />} />
@@ -59,14 +60,34 @@ const AuthenticatedApp = () => {
 
         {/* Rotas protegidas: exigem sessão ativa (dados individuais do aluno) */}
         <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
-          <Route path="/correcao" element={<Correction />} />
-          <Route path="/historico" element={<Historico />} />
-          <Route path="/historico/:id" element={<EssayDetail />} />
-          <Route path="/professor" element={<TeacherDashboard />} />
-          <Route path="/professor/aluno/:studentId" element={<StudentPerformance />} />
-          <Route path="/minhas-turmas" element={<StudentClasses />} />
-          <Route path="/diretor" element={<DirectorDashboard />} />
-          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/completar-cadastro" element={<CompleteSignup />} />
+
+          {/* Sem vínculo institucional gravado, nenhuma tela do app abre */}
+          <Route element={<RequireProfile />}>
+            {/* Aluno */}
+            <Route element={<RoleRoute allow={['student']} />}>
+              <Route path="/correcao" element={<Correction />} />
+              <Route path="/historico" element={<Historico />} />
+              <Route path="/historico/:id" element={<EssayDetail />} />
+              <Route path="/minhas-turmas" element={<StudentClasses />} />
+            </Route>
+
+            {/* Professor */}
+            <Route element={<RoleRoute allow={['teacher']} />}>
+              <Route path="/professor" element={<TeacherDashboard />} />
+              <Route path="/professor/aluno/:studentId" element={<StudentPerformance />} />
+            </Route>
+
+            {/* Diretor */}
+            <Route element={<RoleRoute allow={['director']} />}>
+              <Route path="/diretor" element={<DirectorDashboard />} />
+            </Route>
+
+            {/* Administração */}
+            <Route element={<RoleRoute adminOnly />}>
+              <Route path="/admin" element={<AdminDashboard />} />
+            </Route>
+          </Route>
         </Route>
 
         {/* Aliases legados */}

@@ -6,18 +6,10 @@ import { GraduationCap, Users, Shield, Building2 } from 'lucide-react';
 export default function AccountNav() {
   const [type, setType] = useState(null);
 
+  // O papel vem exclusivamente do perfil gravado no servidor.
   useEffect(() => {
-    base44.auth.me().then(async (user) => {
-      const pending = localStorage.getItem('pendingAccountType');
-      if (pending) {
-        if (pending === 'teacher') {
-          const code = localStorage.getItem('pendingSchoolCode');
-          await base44.functions.invoke('redeemSchoolCode', { code });
-          localStorage.removeItem('pendingSchoolCode');
-        } else await base44.auth.updateMe({ account_type: pending });
-        localStorage.removeItem('pendingAccountType');
-        setType(pending);
-      } else setType(user.role === 'admin' ? 'admin' : (user.account_type || 'student'));
+    base44.auth.me().then((user) => {
+      setType(user.role === 'admin' ? 'admin' : (user.account_type || 'student'));
     });
   }, []);
 

@@ -28,7 +28,7 @@ export default function RoleTestPanel({ user, schools, onChange }) {
 
   const reset = async () => {
     setSaving('reset');
-    await base44.auth.updateMe({ account_type: 'admin' });
+    await base44.auth.updateMe({ account_type: 'student', school_id: '' });
     await onChange();
     setSaving('');
   };
