@@ -6,7 +6,20 @@
       "type": "string"
     },
     "institutional_code": {
-      "type": "string"
+      "type": "string",
+      "description": "C\u00f3digo legado da escola (aceito como c\u00f3digo de aluno)"
+    },
+    "student_code": {
+      "type": "string",
+      "description": "C\u00f3digo de acesso que cadastra ALUNOS (ALU-XXXXXX)"
+    },
+    "teacher_code": {
+      "type": "string",
+      "description": "C\u00f3digo de acesso que cadastra PROFESSORES (PRO-XXXXXX)"
+    },
+    "director_code": {
+      "type": "string",
+      "description": "C\u00f3digo de acesso que cadastra DIRETORES (DIR-XXXXXX)"
     },
     "director_id": {
       "type": "string"
