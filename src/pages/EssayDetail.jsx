@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { BANCAS } from '@/data/bancas';
 import CorrectionResults from '@/components/essay/CorrectionResults';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { ArrowLeft, PenLine } from 'lucide-react';
 
 export default function EssayDetail() {
@@ -62,7 +63,13 @@ export default function EssayDetail() {
           </div>
         </div>
       </header>
-      <div className="max-w-3xl mx-auto w-full px-4 py-6">
+      <div className="max-w-3xl mx-auto w-full px-4 py-6 space-y-4">
+        {essay.teacher_note ? (
+          <Card className="p-4 border-primary/30 bg-accent/40">
+            <h2 className="font-semibold text-sm mb-1 flex items-center gap-2"><PenLine className="w-4 h-4 text-primary" />Recado do professor</h2>
+            <p className="text-sm whitespace-pre-wrap">{essay.teacher_note}</p>
+          </Card>
+        ) : null}
         <CorrectionResults correction={correction} banca={banca} transcription={essay.transcription} />
       </div>
     </div>

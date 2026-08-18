@@ -60,6 +60,18 @@ export async function generateAccessCode(base44, prefix, field) {
   throw new Error('Não foi possível gerar um código único. Tente novamente.');
 }
 
+// Código de turma único (6 chars, mesmo alfabeto), verificando colisão entre
+// todas as turmas. Usado por teacherRotateClassCode.
+export async function generateUniqueClassCode(base44) {
+  for (let attempt = 0; attempt < 12; attempt++) {
+    let code = '';
+    for (let i = 0; i < 6; i++) code += ALPHABET[Math.floor(Math.random() * ALPHABET.length)];
+    const taken = await base44.asServiceRole.entities.Classroom.filter({ code });
+    if (!taken.length) return code;
+  }
+  throw new Error('Não foi possível gerar um código único. Tente novamente.');
+}
+
 // ID público único, gerado no servidor com verificação de colisão.
 export async function generateRegisteredId(base44, role, accountType) {
   const prefix = role === 'admin' ? 'ADM' : prefixForAccountType(accountType);

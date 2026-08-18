@@ -34,7 +34,8 @@
       "enum": [
         "pending",
         "approved",
-        "rejected"
+        "rejected",
+        "removed"
       ],
       "default": "pending"
     }

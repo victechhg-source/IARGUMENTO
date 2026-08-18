@@ -23,6 +23,9 @@ export default async function (req) {
     if (classroom.school_id && classroom.school_id !== user.school_id) {
       return Response.json({ error: 'Esta turma não pertence à sua escola.' }, { status: 403 });
     }
+    if (classroom.archived) {
+      return Response.json({ error: 'Esta turma não aceita novos alunos.' }, { status: 403 });
+    }
 
     const existing = await base44.asServiceRole.entities.ClassMembership.filter({ class_id: classroom.id, student_id: user.id });
     if (existing.length) return Response.json({ error: 'Você já solicitou entrada nesta turma.' }, { status: 409 });

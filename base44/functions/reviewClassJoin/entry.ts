@@ -6,7 +6,7 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Não autorizado' }, { status: 401 });
     const { membershipId, decision } = await req.json();
-    if (!membershipId || !['approved', 'rejected'].includes(decision)) {
+    if (!membershipId || !['approved', 'rejected', 'removed'].includes(decision)) {
       return Response.json({ error: 'Solicitação inválida.' }, { status: 400 });
     }
 
