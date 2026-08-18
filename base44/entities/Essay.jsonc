@@ -176,6 +176,18 @@
           "data.teacher_ids": "{{user.id}}"
         },
         {
+          "$and": [
+            {
+              "user_condition": {
+                "account_type": "director"
+              }
+            },
+            {
+              "data.school_ids": "{{user.data.school_id}}"
+            }
+          ]
+        },
+        {
           "user_condition": {
             "role": "admin"
           }
