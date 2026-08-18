@@ -87,7 +87,7 @@ export default function ResetPassword() {
               required
             />
           </div>
-          <p className="text-xs text-muted-foreground">Mínimo de 8 caracteres, com ao menos uma letra e um número.</p>
+          <p className="text-xs text-muted-foreground">Mínimo de 10 caracteres, com letra maiúscula, minúscula, número e caractere especial.</p>
         </div>
         <div className="space-y-2">
           <Label htmlFor="confirm">Confirmar senha</Label>
