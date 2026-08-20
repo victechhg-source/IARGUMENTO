@@ -59,6 +59,11 @@ export default function TeacherDashboard() {
     }
   };
   useEffect(() => { load(); }, []);
+  useEffect(() => {
+    const timer = setInterval(() => { reloadClass(); }, 45000);
+    return () => clearInterval(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   const reloadClass = async () => {
     try {
@@ -99,7 +104,7 @@ export default function TeacherDashboard() {
   const renameClass = async (newName) => {
     if (!selected || !newName?.trim()) return;
     setBusy(true);
-    try { await base44.entities.Classroom.update(selected, { name: newName.trim() }); await reloadClass(); } finally { setBusy(false); }
+    try { await base44.functions.invoke('updateClassroom', { classId: selected, name: newName.trim() }); await reloadClass(); } finally { setBusy(false); }
   };
 
   const regenerateCode = async () => {
@@ -111,7 +116,7 @@ export default function TeacherDashboard() {
     const cc = classes.find((c) => c.id === selected);
     if (!cc) return;
     setBusy(true);
-    try { await base44.entities.Classroom.update(selected, { archived: !cc.archived }); await reloadClass(); } finally { setBusy(false); }
+    try { await base44.functions.invoke('updateClassroom', { classId: selected, archived: !cc.archived }); await reloadClass(); } finally { setBusy(false); }
   };
 
   const currentClass = classes.find((c) => c.id === selected);
@@ -200,6 +205,14 @@ export default function TeacherDashboard() {
             <Button disabled={busy}><Plus className="w-4 h-4 mr-2" />Criar turma</Button>
           </form>
         </Card>
+        {members.filter((m) => m.status === 'pending').length > 0 && (
+          <Card className="p-4 border-primary/40 bg-accent/40">
+            <p className="text-sm font-medium">
+              {members.filter((m) => m.status === 'pending').length} solicitação(ões) de entrada aguardando sua aprovação.
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">Selecione a turma correspondente para aprovar ou recusar.</p>
+          </Card>
+        )}
         {classes.length ? (
           <>
             <div className="flex gap-2 overflow-x-auto pb-1">
@@ -220,7 +233,10 @@ export default function TeacherDashboard() {
             <ApprovedStudents students={sorted} onRemove={(id) => review(id, 'removed')} />
           </>
         ) : (
-          <Card className="p-8 text-center"><p className="text-muted-foreground">Crie sua primeira turma para começar.</p></Card>
+          <Card className="p-8 text-center space-y-2">
+            <p className="font-medium">Crie sua primeira turma</p>
+            <p className="text-sm text-muted-foreground">Gere um código, envie aos alunos e aprove as solicitações por aqui.</p>
+          </Card>
         )}
       </main>
     </div>

@@ -71,6 +71,12 @@ export default function Historico() {
 
       <HistoryOverview essays={essays} />
 
+      {!essays.length && (
+        <p className="text-sm text-muted-foreground mb-4">
+          Você ainda não enviou redações. Comece pelo botão Nova redação — a correção pode levar alguns minutos e você pode retomar pelo histórico.
+        </p>
+      )}
+
       <div className="flex flex-wrap gap-2 border-b border-border pb-3 mb-4">
         {BANCAS.map((b) => {
           const isActive = b.id === activeBanca;

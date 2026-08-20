@@ -15,6 +15,7 @@ export default function Account() {
   const [name, setName] = useState('');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const { toast } = useToast();
 
@@ -38,11 +39,27 @@ export default function Account() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const deleteAccount = async () => {
+    if (!window.confirm('Encerrar sua conta? Suas redações e vínculos com turmas serão apagados. Esta ação não pode ser desfeita.')) return;
+    setDeleting(true);
+    try {
+      await base44.functions.invoke('deleteMyAccount', {});
+      await base44.auth.logout();
+      window.location.href = '/';
+    } catch {
+      toast({
+        title: 'Não foi possível encerrar a conta. Professores e diretores devem pedir à administração.',
+        variant: 'destructive',
+      });
+      setDeleting(false);
+    }
+  };
+
   const saveName = async (e) => {
     e.preventDefault();
     setSaving(true);
     try {
-      await base44.auth.updateMe({ display_name: name.trim() });
+      await base44.functions.invoke('updateMyProfile', { display_name: name.trim() });
       const updated = await base44.auth.me();
       setMe(updated);
       setSaved(true);
@@ -128,6 +145,18 @@ export default function Account() {
             ))}
             {!memberships.length && <p className="text-sm text-muted-foreground">Você ainda não entrou em nenhuma turma.</p>}
           </div>
+        </Card>
+      )}
+
+      {(me.account_type || 'student') === 'student' && (
+        <Card className="p-5 space-y-3 border-destructive/30">
+          <h2 className="font-semibold text-sm">Encerrar conta</h2>
+          <p className="text-xs text-muted-foreground">
+            Apaga suas redações e sai das turmas. O e-mail deixa de ter acesso ao app.
+          </p>
+          <Button variant="destructive" onClick={deleteAccount} disabled={deleting}>
+            {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Encerrar minha conta'}
+          </Button>
         </Card>
       )}
     </div>

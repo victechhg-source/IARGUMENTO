@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { BANCAS, buildCorrectionPrompt } from '@/data/bancas';
+import { BANCAS } from '@/data/bancas';
 import ChatMessage from '@/components/essay/ChatMessage';
 import UploadArea from '@/components/essay/UploadArea';
 import TranscriptionReview from '@/components/essay/TranscriptionReview';
@@ -10,31 +10,6 @@ import CorrectionResults from '@/components/essay/CorrectionResults';
 import { Button } from '@/components/ui/button';
 import { Check, Plus, Info } from 'lucide-react';
 import CorrectorAvatar from '@/components/essay/CorrectorAvatar';
-
-const RESPONSE_SCHEMA = {
-  type: 'object',
-  properties: {
-    annotated_text: { type: 'string' },
-    memorable_strengths: { type: 'array', items: { type: 'string' } },
-    stages: { type: 'array', items: { type: 'object', properties: {
-      stage: { type: 'string' },
-      score: { type: 'number' },
-      max_score: { type: 'number' },
-      findings: { type: 'array', items: { type: 'object', properties: {
-        id: { type: 'string' },
-        type: { type: 'string' },
-        excerpt: { type: 'string' },
-        explanation: { type: 'string' },
-        suggestion: { type: 'string' },
-        video_suggestion: { type: 'string' }
-      } } }
-    } } },
-    final_grade: { type: 'number' },
-    max_grade: { type: 'number' },
-    writing_suggestions: { type: 'array', items: { type: 'string' } },
-    study_suggestions: { type: 'array', items: { type: 'string' } }
-  }
-};
 
 export default function Correction() {
   const [params] = useSearchParams();
@@ -70,25 +45,17 @@ export default function Correction() {
 
   // Executa o corretor com o payload padrão e persiste o resultado no servidor.
   // Usado na confirmação da transcrição e na retomada de correção interrompida.
-  async function runCorrection(id, text) {
+  async function runCorrection(id) {
     if (correctionStarted.current) return;
     correctionStarted.current = true;
     setPhase('correcting');
     try {
       const response = await base44.functions.invoke('runCorrectionAgent', {
-        banca: banca.id,
         essayId: id,
-        stages: banca.stages,
-        prompt: buildCorrectionPrompt(banca, text),
-        responseJsonSchema: RESPONSE_SCHEMA,
       });
-      const result = response.data.result;
+      const payload = response?.data ?? response;
+      const result = payload.result;
       setCorrection(result);
-      // A persistência do resultado é feita pelo servidor (status, nota etc.).
-      await base44.functions.invoke('saveCorrectionResult', {
-        essayId: id,
-        result: { ...result, max_grade: result.max_grade || banca.max_grade },
-      });
       addBotMessage('Correção concluída. Confira o resultado completo abaixo:');
       setPhase('results');
     } catch (error) {
@@ -147,7 +114,7 @@ export default function Correction() {
               setPhase('results');
             } else {
               addBotMessage('Encontramos uma correção interrompida. Retomando a análise pelos critérios da banca...');
-              await runCorrection(loaded.id, loaded.transcription || '');
+              await runCorrection(loaded.id);
             }
             return;
           }
@@ -242,10 +209,10 @@ export default function Correction() {
         `Transcrição confirmada. A correção pelos critérios da banca **${banca.name}** foi iniciada.\n\n` +
         `Cada etapa será avaliada separadamente:\n\n` +
         banca.stages.map((s) => `- ${s.name}`).join('\n') +
-        `\n\nA análise pode levar alguns instantes.`
+        `\n\nIsso pode levar alguns minutos. Você pode fechar esta página — a correção continua e você retoma pelo histórico.`
       );
 
-      await runCorrection(essayId, editedText);
+      await runCorrection(essayId);
     } catch (error) {
       addBotMessage('Não foi possível confirmar a transcrição. Revise o texto e tente novamente.');
       setPhase('review');

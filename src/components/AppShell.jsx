@@ -5,6 +5,7 @@ import { homePathFor } from '@/lib/roles';
 import AuthNav from '@/components/account/AuthNav';
 import { Image } from '@/components/ui/image';
 import { GraduationCap, Users, Building2, Shield, History, Plus, User } from 'lucide-react';
+import PendingJoinBadge from '@/components/teacher/PendingJoinBadge';
 
 // Shell autenticado: header global em TODAS as páginas protegidas.
 // Logo → home do papel; links por papel; AuthNav à direita.
@@ -29,7 +30,10 @@ export default function AppShell() {
               </>
             )}
             {role === 'teacher' && (
-              <Link to="/professor" className="kinetic-link"><Users className="w-4 h-4" />Turmas</Link>
+              <>
+                <Link to="/professor" className="kinetic-link"><Users className="w-4 h-4" />Turmas</Link>
+                <PendingJoinBadge />
+              </>
             )}
             {role === 'director' && (
               <Link to="/diretor" className="kinetic-link"><Building2 className="w-4 h-4" />Escola</Link>

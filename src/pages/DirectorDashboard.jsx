@@ -5,12 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import SchoolMetricCards from '@/components/director/SchoolMetricCards';
 import SchoolBancaChart from '@/components/director/SchoolBancaChart';
+import { directorVisibleSchool } from '@/lib/directorCodes';
 import { Loader2, Copy, Check, Download, KeyRound, ArrowRight } from 'lucide-react';
 
 const CODE_FIELDS = [
   { label: 'Aluno', field: 'student_code' },
-  { label: 'Professor', field: 'teacher_code' },
-  { label: 'Diretor', field: 'director_code' },
 ];
 
 export default function DirectorDashboard() {
@@ -24,7 +23,11 @@ export default function DirectorDashboard() {
     (async () => {
       try {
         const res = await base44.functions.invoke('getSchoolOverview', {});
-        setData(res?.data ?? res);
+        const payload = res?.data ?? res;
+        if (payload?.school) {
+          payload.school = { ...payload.school, ...directorVisibleSchool(payload.school) };
+        }
+        setData(payload);
       } catch (err) {
         setError(err?.data?.error || err?.message || 'Não foi possível carregar o painel.');
       } finally {
@@ -114,7 +117,7 @@ export default function DirectorDashboard() {
             </div>
           ))}
         </div>
-        <p className="text-xs text-muted-foreground">Código institucional (ESC): <code className="font-bold">{data?.school?.code}</code></p>
+        <p className="text-xs text-muted-foreground">Códigos de professor e diretor ficam com a administração da plataforma.</p>
       </Card>
 
       {/* Turmas clicáveis */}

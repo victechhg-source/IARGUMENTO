@@ -19,7 +19,10 @@ export default function CorrectionProgress({ stages }) {
 
   return (
     <div className="space-y-2">
-      <p className="text-sm font-medium mb-3">Corrigindo sua redação...</p>
+      <p className="text-sm font-medium mb-1">Corrigindo sua redação...</p>
+      <p className="text-xs text-muted-foreground mb-3">
+        Pode fechar esta página. A análise continua; retome pelo histórico com &quot;Retomar&quot;.
+      </p>
       {stages.map((stage, i) => {
         const status = i < current ? 'done' : i === current ? 'active' : 'pending';
         return (
