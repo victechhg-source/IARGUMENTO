@@ -54,8 +54,12 @@ export default function Correction() {
   const [correction, setCorrection] = useState(null);
   const [essayId, setEssayId] = useState(null);
   const [hasApprovedClass, setHasApprovedClass] = useState(true);
+  const [confirming, setConfirming] = useState(false);
 
   const scrollRef = useRef(null);
+  // Trava anti-duplo-disparo: impede correções concorrentes (retomada
+  // 'correcting' sem resultado + clique em confirmar, remount, duplo clique).
+  const correctionStarted = useRef(false);
 
   function addBotMessage(content) {
     setMessages((prev) => [...prev, { role: 'bot', content }]);
@@ -64,9 +68,11 @@ export default function Correction() {
     setMessages((prev) => [...prev, { role: 'user', content }]);
   }
 
-  // Executa o corretor com o payload padrão e persiste o resultado.
+  // Executa o corretor com o payload padrão e persiste o resultado no servidor.
   // Usado na confirmação da transcrição e na retomada de correção interrompida.
   async function runCorrection(id, text) {
+    if (correctionStarted.current) return;
+    correctionStarted.current = true;
     setPhase('correcting');
     try {
       const response = await base44.functions.invoke('runCorrectionAgent', {
@@ -78,19 +84,15 @@ export default function Correction() {
       });
       const result = response.data.result;
       setCorrection(result);
-      await base44.entities.Essay.update(id, {
-        status: 'completed',
-        annotated_text: result.annotated_text,
-        memorable_strengths: result.memorable_strengths,
-        corrections: result.stages,
-        final_grade: result.final_grade,
-        max_grade: result.max_grade || banca.max_grade,
-        writing_suggestions: result.writing_suggestions,
-        study_suggestions: result.study_suggestions,
+      // A persistência do resultado é feita pelo servidor (status, nota etc.).
+      await base44.functions.invoke('saveCorrectionResult', {
+        essayId: id,
+        result: { ...result, max_grade: result.max_grade || banca.max_grade },
       });
       addBotMessage('Correção concluída. Confira o resultado completo abaixo:');
       setPhase('results');
     } catch (error) {
+      correctionStarted.current = false;
       addBotMessage('Ops, tive um problema durante a correção. Tente novamente em instantes.');
       setPhase('review');
     }
@@ -184,23 +186,18 @@ export default function Correction() {
 
       const uploadRes = await base44.integrations.Core.UploadFile({ file });
       let id = essayId;
-      if (id) {
-        // Retomar transcrição: reaproveita o Essay existente.
-        await base44.entities.Essay.update(id, { original_image_url: uploadRes.file_url, status: 'transcribing' });
-      } else {
+      if (!id) {
         const user = await base44.auth.me();
         const memberships = await base44.entities.ClassMembership.filter({ student_id: user.id, status: 'approved' });
         setHasApprovedClass(memberships.length > 0);
-        const essay = await base44.entities.Essay.create({
-          banca: banca.id,
-          teacher_ids: [...new Set(memberships.map((m) => m.teacher_id))],
-          school_ids: [...new Set(memberships.map((m) => m.school_id).filter(Boolean))],
-          status: 'transcribing',
-          original_image_url: uploadRes.file_url,
-        });
-        id = essay.id;
+        // O servidor popula teacher_ids/school_ids — o cliente só informa a banca.
+        const createRes = await base44.functions.invoke('createEssay', { banca: banca.id });
+        const createPayload = createRes?.data ?? createRes;
+        id = createPayload.essay.id;
         setEssayId(id);
       }
+      // Anexa (ou reanexa) o arquivo e volta o fluxo para 'transcribing'.
+      await base44.functions.invoke('updateEssayFlow', { essayId: id, action: 'set_file', file_url: uploadRes.file_url });
 
       const response = await base44.functions.invoke('processEssayScan', { essayId: id });
       const result = response.data;
@@ -230,21 +227,31 @@ export default function Correction() {
   }
 
   async function handleConfirmTranscription(editedText) {
+    // Não permite segundo submit enquanto a confirmação/correção roda.
+    if (confirming || correctionStarted.current) return;
+    setConfirming(true);
     setTranscription(editedText);
     addUserMessage('Transcrição revisada e confirmada.');
 
-    if (essayId) {
-      await base44.entities.Essay.update(essayId, { transcription: editedText, status: 'correcting' });
+    try {
+      if (essayId) {
+        await base44.functions.invoke('updateEssayFlow', { essayId, action: 'confirm_transcription', transcription: editedText });
+      }
+
+      addBotMessage(
+        `Transcrição confirmada. A correção pelos critérios da banca **${banca.name}** foi iniciada.\n\n` +
+        `Cada etapa será avaliada separadamente:\n\n` +
+        banca.stages.map((s) => `- ${s.name}`).join('\n') +
+        `\n\nA análise pode levar alguns instantes.`
+      );
+
+      await runCorrection(essayId, editedText);
+    } catch (error) {
+      addBotMessage('Não foi possível confirmar a transcrição. Revise o texto e tente novamente.');
+      setPhase('review');
+    } finally {
+      setConfirming(false);
     }
-
-    addBotMessage(
-      `Transcrição confirmada. A correção pelos critérios da banca **${banca.name}** foi iniciada.\n\n` +
-      `Cada etapa será avaliada separadamente:\n\n` +
-      banca.stages.map((s) => `- ${s.name}`).join('\n') +
-      `\n\nA análise pode levar alguns instantes.`
-    );
-
-    await runCorrection(essayId, editedText);
   }
 
   if (!banca) return null;
@@ -309,6 +316,7 @@ export default function Correction() {
                   confidence={confidence}
                   flaggedSegments={flaggedSegments}
                   onConfirm={handleConfirmTranscription}
+                  loading={confirming}
                 />
               </div>
             </div>

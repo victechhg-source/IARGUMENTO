@@ -71,7 +71,16 @@ export default function AdminDashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab, user, schools]);
 
-  const reload = () => setCache({});
+  // Recarrega a lista de escolas do servidor (não só limpa o cache das abas).
+  const reload = async () => {
+    setCache({});
+    try {
+      const s = await base44.entities.School.list('-created_date');
+      setSchools(s);
+    } catch {
+      // mantém a lista atual; as abas recarregam no próximo acesso
+    }
+  };
 
   if (!user || schools === null) {
     return <div className="flex items-center justify-center py-24"><Loader2 className="w-8 h-8 animate-spin" /></div>;

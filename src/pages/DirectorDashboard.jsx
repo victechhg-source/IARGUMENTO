@@ -24,7 +24,7 @@ export default function DirectorDashboard() {
     (async () => {
       try {
         const res = await base44.functions.invoke('getSchoolOverview', {});
-        setData(res);
+        setData(res?.data ?? res);
       } catch (err) {
         setError(err?.data?.error || err?.message || 'Não foi possível carregar o painel.');
       } finally {
@@ -47,7 +47,8 @@ export default function DirectorDashboard() {
     setExporting(true);
     try {
       const res = await base44.functions.invoke('exportSchoolSummary', {});
-      const rows = res?.rows || [];
+      const payload = res?.data ?? res;
+      const rows = payload?.rows || [];
       const headers = ['turma', 'professor', 'aluno', 'email', 'banca', 'nota', 'nota_max', 'data'];
       const esc = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
       const csv = [headers.join(','), ...rows.map((r) => headers.map((h) => esc(r[h])).join(','))].join('\n');
@@ -124,7 +125,12 @@ export default function DirectorDashboard() {
             <Link key={c.id} to={`/diretor/turma/${c.id}`} className="block">
               <Card className="p-4 flex flex-wrap items-center justify-between gap-3 hover:shadow-md transition-shadow">
                 <div>
-                  <p className="font-medium">{c.name}</p>
+                  <p className="font-medium flex items-center gap-2">
+                    {c.name}
+                    {c.archived === true && (
+                      <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600">Arquivada</span>
+                    )}
+                  </p>
                   <p className="text-sm text-muted-foreground">Professor: {c.teacher_name || '—'}</p>
                 </div>
                 <div className="flex items-center gap-3">

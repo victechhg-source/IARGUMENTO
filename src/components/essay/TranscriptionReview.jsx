@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { AlertCircle, Check, ShieldCheck, ShieldAlert, Highlighter } from 'lucide-react';
+import { AlertCircle, Check, ShieldCheck, ShieldAlert, Highlighter, Loader2 } from 'lucide-react';
 import HighlightTextarea from './HighlightTextarea';
 
-export default function TranscriptionReview({ transcription, unrecognized, confidence, flaggedSegments, onConfirm }) {
+export default function TranscriptionReview({ transcription, unrecognized, confidence, flaggedSegments, onConfirm, loading = false }) {
   const [text, setText] = useState(transcription);
 
   const confidencePct = Math.round((confidence || 0) * 100);
@@ -60,9 +60,9 @@ export default function TranscriptionReview({ transcription, unrecognized, confi
         </p>
       </div>
 
-      <Button className="w-full" onClick={() => onConfirm(text)}>
-        <Check className="w-4 h-4 mr-2" />
-        Confirmar texto validado e iniciar correção
+      <Button className="w-full" onClick={() => onConfirm(text)} disabled={loading}>
+        {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Check className="w-4 h-4 mr-2" />}
+        {loading ? 'Iniciando correção...' : 'Confirmar texto validado e iniciar correção'}
       </Button>
     </div>
   );

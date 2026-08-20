@@ -96,6 +96,9 @@ export const AuthProvider = ({ children }) => {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
       setIsAuthenticated(true);
+      // Sessão válida limpa qualquer erro anterior (ex.: falha transitória
+      // nas public-settings) para não mandar usuário logado ao /login.
+      setAuthError(null);
       setIsLoadingAuth(false);
       setAuthChecked(true);
     } catch (error) {

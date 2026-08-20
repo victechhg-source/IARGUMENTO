@@ -11,7 +11,8 @@ export default function EssayListItem({ essay, onDelete, href, showDelete = true
   const navigate = useNavigate();
   const banca = BANCAS.find((b) => b.id === essay.banca);
   const maxGrade = essay.max_grade || banca?.max_grade || 100;
-  const percentage = essay.final_grade ? Math.round(essay.final_grade / maxGrade * 100) : 0;
+  // != null: nota 0 é válida e não pode virar falsy.
+  const percentage = essay.final_grade != null ? Math.round(essay.final_grade / maxGrade * 100) : 0;
   const date = new Date(essay.created_date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
 
   const inProgress = essay.status !== 'completed';

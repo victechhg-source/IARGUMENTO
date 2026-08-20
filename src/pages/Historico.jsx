@@ -15,7 +15,12 @@ export default function Historico() {
   const { toast } = useToast();
 
   useEffect(() => {
-    base44.entities.Essay.list('-created_date', 100).then(setEssays);
+    base44.entities.Essay.list('-created_date', 100)
+      .then(setEssays)
+      .catch(() => {
+        setEssays([]);
+        toast({ title: 'Não foi possível carregar seu histórico. Tente novamente mais tarde.', variant: 'destructive' });
+      });
     (async () => {
       try {
         const me = await base44.auth.me();

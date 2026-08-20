@@ -13,7 +13,9 @@ export default function UserActionsDialog({ user, schools = [], onClose, onDone 
   const [busy, setBusy] = useState('');
   const [err, setErr] = useState('');
 
-  const isSelfAdmin = user.role === 'admin';
+  // Contas admin não podem ser suspensas nem ter papel/escola alterados
+  // por aqui (o servidor também recusa).
+  const isAdminTarget = user.role === 'admin';
   const run = async (action, payload = {}) => {
     setErr('');
     setBusy(action);
@@ -58,16 +60,16 @@ export default function UserActionsDialog({ user, schools = [], onClose, onDone 
           <div className="space-y-2">
             <Label className="flex items-center gap-1.5"><Building2 className="w-3.5 h-3.5" /> Escola vinculada</Label>
             <div className="flex gap-2">
-              <Select value={schoolId} onValueChange={setSchoolId} disabled={isSelfAdmin}>
+              <Select value={schoolId} onValueChange={setSchoolId} disabled={isAdminTarget}>
                 <SelectTrigger className="h-9"><SelectValue placeholder="Selecionar escola" /></SelectTrigger>
                 <SelectContent>
                   {schools.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
                 </SelectContent>
               </Select>
-              <Button variant="outline" size="sm" onClick={attach} disabled={!!busy || isSelfAdmin || !schoolId}>
+              <Button variant="outline" size="sm" onClick={attach} disabled={!!busy || isAdminTarget || !schoolId}>
                 {busy === 'attach_school' ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Vincular'}
               </Button>
-              <Button variant="ghost" size="sm" onClick={detach} disabled={!!busy || isSelfAdmin || !user.school_id}>Desvincular</Button>
+              <Button variant="ghost" size="sm" onClick={detach} disabled={!!busy || isAdminTarget || !user.school_id}>Desvincular</Button>
             </div>
           </div>
 
@@ -75,7 +77,7 @@ export default function UserActionsDialog({ user, schools = [], onClose, onDone 
           <div className="space-y-2">
             <Label className="flex items-center gap-1.5"><UserCog className="w-3.5 h-3.5" /> Papel</Label>
             <div className="flex gap-2">
-              <Select value={accountType} onValueChange={setAccountType} disabled={isSelfAdmin}>
+              <Select value={accountType} onValueChange={setAccountType} disabled={isAdminTarget}>
                 <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="student">Aluno</SelectItem>
@@ -83,15 +85,17 @@ export default function UserActionsDialog({ user, schools = [], onClose, onDone 
                   <SelectItem value="director">Diretor</SelectItem>
                 </SelectContent>
               </Select>
-              <Button variant="outline" size="sm" onClick={setType} disabled={!!busy || isSelfAdmin}>Definir</Button>
+              <Button variant="outline" size="sm" onClick={setType} disabled={!!busy || isAdminTarget}>Definir</Button>
             </div>
-            {isSelfAdmin && <p className="text-xs text-muted-foreground">Não é possível alterar o papel ou escola de um administrador.</p>}
+            {isAdminTarget && <p className="text-xs text-muted-foreground">Não é possível alterar o papel ou escola de um administrador.</p>}
           </div>
 
           {/* Suspensão */}
           <div className="space-y-2 border-t border-border pt-3">
             <Label className="flex items-center gap-1.5"><ShieldBan className="w-3.5 h-3.5" /> Situação da conta</Label>
-            {user.suspended ? (
+            {isAdminTarget ? (
+              <p className="text-xs text-muted-foreground">Contas de administrador não podem ser suspensas.</p>
+            ) : user.suspended ? (
               <Button variant="outline" size="sm" onClick={unsuspend} disabled={!!busy}>
                 {busy === 'unsuspend' ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4" />}
                 Reativar conta

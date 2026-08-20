@@ -11,7 +11,8 @@ import ClassFilters from '@/components/teacher/ClassFilters';
 import NoEssayStudents from '@/components/teacher/NoEssayStudents';
 import PendingRequests from '@/components/teacher/PendingRequests';
 import ApprovedStudents from '@/components/teacher/ApprovedStudents';
-import { Plus, Loader2 } from 'lucide-react';
+import { Plus, Loader2, AlertCircle } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
 
 const DAY = 86400000;
 
@@ -34,41 +35,60 @@ export default function TeacherDashboard() {
   const [period, setPeriod] = useState('all');
   const [status, setStatus] = useState('completed');
   const [sort, setSort] = useState('avg');
+  const [loadError, setLoadError] = useState(false);
+  const { toast } = useToast();
 
   const load = async () => {
-    const me = await base44.auth.me();
-    setUser(me);
-    const [c, m, e] = await Promise.all([
-      base44.entities.Classroom.filter({ teacher_id: me.id }, '-created_date'),
-      base44.entities.ClassMembership.filter({ teacher_id: me.id }, '-created_date'),
-      base44.entities.Essay.filter({ teacher_ids: me.id }, '-created_date', 500),
-    ]);
-    setClasses(c);
-    setMembers(m);
-    setEssays(e);
-    setSelected((s) => s || c.find((cl) => !cl.archived)?.id || c[0]?.id || '');
-    setLoading(false);
+    setLoadError(false);
+    try {
+      const me = await base44.auth.me();
+      setUser(me);
+      const [c, m, e] = await Promise.all([
+        base44.entities.Classroom.filter({ teacher_id: me.id }, '-created_date'),
+        base44.entities.ClassMembership.filter({ teacher_id: me.id }, '-created_date'),
+        base44.entities.Essay.filter({ teacher_ids: me.id }, '-created_date', 500),
+      ]);
+      setClasses(c);
+      setMembers(m);
+      setEssays(e);
+      setSelected((s) => s || c.find((cl) => !cl.archived)?.id || c[0]?.id || '');
+    } catch {
+      setLoadError(true);
+    } finally {
+      setLoading(false);
+    }
   };
   useEffect(() => { load(); }, []);
 
   const reloadClass = async () => {
-    const me = user || (await base44.auth.me());
-    const [c, m, e] = await Promise.all([
-      base44.entities.Classroom.filter({ teacher_id: me.id }, '-created_date'),
-      base44.entities.ClassMembership.filter({ teacher_id: me.id }, '-created_date'),
-      base44.entities.Essay.filter({ teacher_ids: me.id }, '-created_date', 500),
-    ]);
-    setClasses(c);
-    setMembers(m);
-    setEssays(e);
+    try {
+      const me = user || (await base44.auth.me());
+      const [c, m, e] = await Promise.all([
+        base44.entities.Classroom.filter({ teacher_id: me.id }, '-created_date'),
+        base44.entities.ClassMembership.filter({ teacher_id: me.id }, '-created_date'),
+        base44.entities.Essay.filter({ teacher_ids: me.id }, '-created_date', 500),
+      ]);
+      setClasses(c);
+      setMembers(m);
+      setEssays(e);
+    } catch {
+      toast({ title: 'Não foi possível atualizar os dados da turma.', variant: 'destructive' });
+    }
   };
 
   const createClass = async (e) => {
     e.preventDefault();
-    const code = Math.random().toString(36).slice(2, 8).toUpperCase();
-    await base44.entities.Classroom.create({ name, code, teacher_id: user.id, teacher_name: user.full_name || user.email, school_id: user.school_id || '' });
-    setName('');
-    await load();
+    setBusy(true);
+    try {
+      // O código da turma é gerado no servidor.
+      await base44.functions.invoke('createClassroom', { name });
+      setName('');
+      await load();
+    } catch {
+      toast({ title: 'Não foi possível criar a turma. Tente novamente.', variant: 'destructive' });
+    } finally {
+      setBusy(false);
+    }
   };
 
   const review = async (id, decision) => {
@@ -110,7 +130,8 @@ export default function TeacherDashboard() {
 
   const studentsWithData = useMemo(() => approved.map((m) => {
     const sEssays = slice.filter((e) => e.created_by_id === m.student_id);
-    const graded = sEssays.filter((e) => typeof e.final_grade === 'number' && e.max_grade);
+    // Média apenas de redações concluídas com nota numérica — mesma base da ordenação.
+    const graded = sEssays.filter((e) => e.status === 'completed' && typeof e.final_grade === 'number' && e.max_grade);
     const avg = graded.length ? Math.round(graded.reduce((s, e) => s + (e.final_grade / e.max_grade) * 100, 0) / graded.length) : 0;
     const last = [...sEssays].sort((a, b) => new Date(b.created_date) - new Date(a.created_date))[0];
     return { membership: m, essays: sEssays, avg, last, count: sEssays.length };
@@ -152,6 +173,17 @@ export default function TeacherDashboard() {
   };
 
   if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin" /></div>;
+  if (loadError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Card className="p-6 text-center space-y-3">
+          <AlertCircle className="w-8 h-8 text-destructive mx-auto" />
+          <p className="text-sm text-muted-foreground">Não foi possível carregar o painel do professor.</p>
+          <Button variant="outline" onClick={() => { setLoading(true); load(); }}>Tentar novamente</Button>
+        </Card>
+      </div>
+    );
+  }
   if (user?.account_type !== 'teacher') return <div className="min-h-screen flex items-center justify-center"><Card className="p-6 text-center"><p className="mb-4">Este painel é exclusivo para professores.</p><Link to="/professor"><Button>Voltar</Button></Link></Card></div>;
   if (!user?.school_id) return <div className="min-h-screen flex items-center justify-center"><Card className="p-6 text-center"><p className="mb-2 font-semibold">Vínculo institucional necessário</p><p className="text-sm text-muted-foreground mb-4">Cadastre-se com o código fornecido pela escola para criar turmas.</p><Link to="/professor"><Button>Voltar</Button></Link></Card></div>;
 
@@ -165,7 +197,7 @@ export default function TeacherDashboard() {
         <Card className="p-4">
           <form onSubmit={createClass} className="flex gap-2">
             <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nome da nova turma" aria-label="Nome da nova turma" required />
-            <Button><Plus className="w-4 h-4 mr-2" />Criar turma</Button>
+            <Button disabled={busy}><Plus className="w-4 h-4 mr-2" />Criar turma</Button>
           </form>
         </Card>
         {classes.length ? (

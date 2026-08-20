@@ -18,9 +18,13 @@ export default function StudentClasses() {
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [loadError, setLoadError] = useState('');
 
   const load = () =>
-    base44.auth.me().then((u) => base44.entities.ClassMembership.filter({ student_id: u.id }, '-created_date')).then(setItems);
+    base44.auth.me()
+      .then((u) => base44.entities.ClassMembership.filter({ student_id: u.id }, '-created_date'))
+      .then((m) => { setItems(m); setLoadError(''); })
+      .catch(() => setLoadError('Não foi possível carregar suas turmas. Tente novamente mais tarde.'));
   useEffect(() => { load(); }, []);
 
   const join = async (e) => {
@@ -47,6 +51,13 @@ export default function StudentClasses() {
         <h1 className="font-semibold">Minhas turmas</h1>
       </div>
       <main className="max-w-2xl mx-auto p-4 py-8 space-y-6">
+        {loadError && (
+          <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm">
+            <AlertCircle className="w-4 h-4 text-destructive mt-0.5 shrink-0" />
+            <p className="text-destructive flex-1">{loadError}</p>
+            <Button size="sm" variant="outline" onClick={load}>Tentar novamente</Button>
+          </div>
+        )}
         {rejected.length > 0 && (
           <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm">
             <AlertCircle className="w-4 h-4 text-destructive mt-0.5 shrink-0" />

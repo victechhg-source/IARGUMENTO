@@ -1,7 +1,7 @@
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate, useLocation } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import ScrollToTop from './components/ScrollToTop';
@@ -34,6 +34,12 @@ import AppShell from '@/components/AppShell';
 import Account from '@/pages/Account';
 import EscolherBanca from '@/pages/EscolherBanca';
 import { homePathFor } from '@/lib/roles';
+
+// Aliases legados: redireciona preservando a query string (ex.: ?banca=&essay=).
+const RedirectWithSearch = ({ to }) => {
+  const location = useLocation();
+  return <Navigate to={`${to}${location.search}`} replace />;
+};
 
 const HomeOrRedirect = () => {
   const { isAuthenticated, user, isLoadingPublicSettings } = useAuth();
@@ -116,12 +122,12 @@ const AuthenticatedApp = () => {
         </Route>
 
         {/* Aliases legados */}
-        <Route path="/StudentClasses" element={<Navigate to="/minhas-turmas" replace />} />
-        <Route path="/Correction" element={<Navigate to="/correcao" replace />} />
-        <Route path="/Historico" element={<Navigate to="/historico" replace />} />
-        <Route path="/TeacherDashboard" element={<Navigate to="/professor" replace />} />
-        <Route path="/AdminDashboard" element={<Navigate to="/admin" replace />} />
-        <Route path="/StudentPerformance" element={<Navigate to="/historico" replace />} />
+        <Route path="/StudentClasses" element={<RedirectWithSearch to="/minhas-turmas" />} />
+        <Route path="/Correction" element={<RedirectWithSearch to="/correcao" />} />
+        <Route path="/Historico" element={<RedirectWithSearch to="/historico" />} />
+        <Route path="/TeacherDashboard" element={<RedirectWithSearch to="/professor" />} />
+        <Route path="/AdminDashboard" element={<RedirectWithSearch to="/admin" />} />
+        <Route path="/StudentPerformance" element={<RedirectWithSearch to="/historico" />} />
 
         <Route path="*" element={<PageNotFound />} />
       </Routes>

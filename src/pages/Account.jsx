@@ -4,7 +4,8 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import { Loader2, Save, Check } from 'lucide-react';
+import { Loader2, Save, Check, AlertCircle } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
 
 const ROLE_LABEL = { student: 'Aluno', teacher: 'Professor', director: 'Diretor', admin: 'Administrador' };
 
@@ -14,9 +15,12 @@ export default function Account() {
   const [name, setName] = useState('');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [loadError, setLoadError] = useState(false);
+  const { toast } = useToast();
 
-  useEffect(() => {
-    (async () => {
+  const load = async () => {
+    setLoadError(false);
+    try {
       const user = await base44.auth.me();
       setMe(user);
       setName(user.display_name || user.full_name || '');
@@ -24,7 +28,14 @@ export default function Account() {
         const m = await base44.entities.ClassMembership.filter({ student_id: user.id }, '-created_date');
         setMemberships(m);
       }
-    })();
+    } catch {
+      setLoadError(true);
+    }
+  };
+
+  useEffect(() => {
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const saveName = async (e) => {
@@ -36,10 +47,22 @@ export default function Account() {
       setMe(updated);
       setSaved(true);
       setTimeout(() => setSaved(false), 1500);
+    } catch {
+      toast({ title: 'Não foi possível salvar o nome. Tente novamente.', variant: 'destructive' });
     } finally {
       setSaving(false);
     }
   };
+
+  if (loadError) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-4 py-24 text-center px-4">
+        <AlertCircle className="w-8 h-8 text-destructive" />
+        <p className="text-sm text-muted-foreground">Não foi possível carregar os dados da sua conta.</p>
+        <Button variant="outline" onClick={load}>Tentar novamente</Button>
+      </div>
+    );
+  }
 
   if (!me) {
     return <div className="flex items-center justify-center py-24"><Loader2 className="w-8 h-8 animate-spin" /></div>;
