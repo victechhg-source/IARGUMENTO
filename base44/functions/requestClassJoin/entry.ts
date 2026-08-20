@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
 import { normalizeCode } from '../../shared/signupCodes.ts';
+import { requireAccountGrant } from '../../shared/accountGrant.ts';
 
 export default async function (req) {
   try {
@@ -7,9 +8,12 @@ export default async function (req) {
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Não autorizado' }, { status: 401 });
     if (user.suspended === true) return Response.json({ error: 'Conta suspensa.' }, { status: 403 });
-    if (!user.school_id) return Response.json({ error: 'Conclua seu cadastro antes de entrar em uma turma.' }, { status: 403 });
-    if ((user.account_type || 'student') !== 'student') {
-      return Response.json({ error: 'Apenas contas de aluno podem solicitar entrada em turmas.' }, { status: 403 });
+    const access = await requireAccountGrant(base44, user, ['student']);
+    if (!access.ok) {
+      return Response.json({ error: access.error }, { status: access.status });
+    }
+    if (!access.school_id) {
+      return Response.json({ error: 'Conclua seu cadastro antes de entrar em uma turma.' }, { status: 403 });
     }
 
     const { code } = await req.json();
@@ -21,7 +25,7 @@ export default async function (req) {
     if (!classroom) return Response.json({ error: 'Turma não encontrada. Confira o código.' }, { status: 404 });
 
     // Aluno só entra em turma da própria escola.
-    if (classroom.school_id && classroom.school_id !== user.school_id) {
+    if (classroom.school_id && classroom.school_id !== access.school_id) {
       return Response.json({ error: 'Esta turma não pertence à sua escola.' }, { status: 403 });
     }
     if (classroom.archived) {
@@ -37,7 +41,7 @@ export default async function (req) {
       class_code: classroom.code,
       teacher_id: classroom.teacher_id,
       teacher_name: classroom.teacher_name,
-      school_id: classroom.school_id || user.school_id,
+      school_id: classroom.school_id || access.school_id,
       student_id: user.id,
       student_name: user.display_name || user.full_name || user.email,
       student_email: user.email,

@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
 import { generateUniqueClassCode } from '../../shared/signupCodes.ts';
+import { requireAccountGrant } from '../../shared/accountGrant.ts';
 
 // Regenera o código de uma turma (6 chars, alfabeto restrito, unicidade).
 // Somente o professor dono da turma pode regenerar.
@@ -9,6 +10,10 @@ Deno.serve(async (req) => {
     const me = await base44.auth.me();
     if (!me) return Response.json({ error: 'Não autorizado' }, { status: 401 });
     if (me.suspended === true) return Response.json({ error: 'Conta suspensa.' }, { status: 403 });
+    const access = await requireAccountGrant(base44, me, ['teacher']);
+    if (!access.ok) {
+      return Response.json({ error: access.error }, { status: access.status });
+    }
 
     const { classId } = await req.json();
     if (!classId) return Response.json({ error: 'classId é obrigatório.' }, { status: 400 });

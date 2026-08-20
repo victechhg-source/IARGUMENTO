@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
+import { requireAccountGrant } from '../../shared/accountGrant.ts';
 
 // Retorna as métricas da escola do diretor autenticado (escopo restrito à
 // própria school_id). Usa service role porque a RLS das entidades não
@@ -13,21 +14,21 @@ Deno.serve(async (req) => {
     if (me.suspended === true) {
       return Response.json({ error: 'Conta suspensa.' }, { status: 403 });
     }
-    const isDirector = me.account_type === 'director' || me.role === 'admin';
-    if (!isDirector) return Response.json({ error: 'Acesso restrito a diretores.' }, { status: 403 });
-    if (!me.school_id) return Response.json({ error: 'Nenhuma escola vinculada à sua conta.' }, { status: 400 });
+    const access = await requireAccountGrant(base44, me, ['director']);
+    if (!access.ok) return Response.json({ error: access.error }, { status: access.status });
+    if (!access.school_id) return Response.json({ error: 'Nenhuma escola vinculada à sua conta.' }, { status: 400 });
 
     const svc = base44.asServiceRole.entities;
     const [schools, classes, memberships, users] = await Promise.all([
-      svc.School.filter({ id: me.school_id }),
-      svc.Classroom.filter({ school_id: me.school_id }, '-created_date', 500),
-      svc.ClassMembership.filter({ school_id: me.school_id }, '-created_date', 2000),
-      svc.User.filter({ school_id: me.school_id }, '-created_date', 2000),
+      svc.School.filter({ id: access.school_id }),
+      svc.Classroom.filter({ school_id: access.school_id }, '-created_date', 500),
+      svc.ClassMembership.filter({ school_id: access.school_id }, '-created_date', 2000),
+      svc.User.filter({ school_id: access.school_id }, '-created_date', 2000),
     ]);
 
     const approved = memberships.filter((m) => m.status === 'approved');
     const studentIds = [...new Set(approved.map((m) => m.student_id))];
-    const essays = await svc.Essay.filter({ school_ids: me.school_id, status: 'completed' }, '-created_date', 1000);
+    const essays = await svc.Essay.filter({ school_ids: access.school_id, status: 'completed' }, '-created_date', 1000);
 
     const graded = essays.filter((e) => typeof e.final_grade === 'number' && e.max_grade);
     const avgPercent = graded.length
@@ -42,7 +43,7 @@ Deno.serve(async (req) => {
     }
 
     return Response.json({
-      school: schools[0] ? { id: schools[0].id, name: schools[0].name, code: schools[0].institutional_code, student_code: schools[0].student_code, teacher_code: schools[0].teacher_code, director_code: schools[0].director_code } : null,
+      school: schools[0] ? { id: schools[0].id, name: schools[0].name, code: schools[0].institutional_code, student_code: schools[0].student_code } : null,
       metrics: {
         students: studentIds.length,
         teachers: users.filter((u) => u.account_type === 'teacher').length,

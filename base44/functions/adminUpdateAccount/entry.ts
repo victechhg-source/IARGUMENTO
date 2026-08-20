@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
 import { logAdminAction } from '../../shared/auditLog.ts';
+import { upsertAccountGrant } from '../../shared/accountGrant.ts';
 
 // Ações administrativas sobre contas e escolas. Somente admin.
 // O cliente NUNCA faz update direto de account_type/suspended/school — passa aqui.
@@ -72,6 +73,15 @@ export default async function (req) {
     }
 
     await base44.asServiceRole.entities.User.update(userId, updates);
+    if (action === 'attach_school' || action === 'set_account_type' || action === 'detach_school') {
+      const nextType = updates.account_type || target.account_type || 'student';
+      await upsertAccountGrant(base44, {
+        user_id: userId,
+        account_type: nextType,
+        school_id: updates.school_id === undefined ? target.school_id : updates.school_id,
+        school_name: updates.school_name === undefined ? target.school_name : updates.school_name,
+      });
+    }
     await logAdminAction(base44, {
       actor_id: user.id, actor_email: user.email, action,
       target_type: 'user', target_id: userId, school_id: auditSchoolId, detail,

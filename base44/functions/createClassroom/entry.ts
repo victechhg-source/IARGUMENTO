@@ -1,9 +1,8 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
 import { generateUniqueClassCode } from '../../shared/signupCodes.ts';
+import { requireAccountGrant } from '../../shared/accountGrant.ts';
 
 // Cria uma turma para o professor autenticado. Body: { name }.
-// O código da turma nasce no servidor (Classroom.create no cliente é
-// admin-only). Responde { classroom }.
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -12,10 +11,11 @@ Deno.serve(async (req) => {
     if (user.suspended === true) {
       return Response.json({ error: 'Conta suspensa.' }, { status: 403 });
     }
-    if (user.account_type !== 'teacher' && user.role !== 'admin') {
-      return Response.json({ error: 'Apenas professores podem criar turmas.' }, { status: 403 });
+    const access = await requireAccountGrant(base44, user, ['teacher']);
+    if (!access.ok) {
+      return Response.json({ error: access.error }, { status: access.status });
     }
-    if (!user.school_id) {
+    if (!access.school_id) {
       return Response.json({ error: 'Conclua seu cadastro antes de criar turmas.' }, { status: 403 });
     }
 
@@ -29,7 +29,7 @@ Deno.serve(async (req) => {
       code,
       teacher_id: user.id,
       teacher_name: user.display_name || user.full_name || user.email,
-      school_id: user.school_id,
+      school_id: access.school_id,
     });
     return Response.json({ classroom });
   } catch (error) {

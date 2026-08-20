@@ -1,3 +1,5 @@
+// Create/update admin-only: criação em createClassroom, rename/archive em
+// updateClassroom (service role). FLS impede forjar code/teacher_id/school_id.
 {
   "name": "Classroom",
   "type": "object",
@@ -6,16 +8,40 @@
       "type": "string"
     },
     "code": {
-      "type": "string"
+      "type": "string",
+      "rls": {
+        "read": true,
+        "write": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "teacher_id": {
-      "type": "string"
+      "type": "string",
+      "rls": {
+        "read": true,
+        "write": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "teacher_name": {
       "type": "string"
     },
     "school_id": {
-      "type": "string"
+      "type": "string",
+      "rls": {
+        "read": true,
+        "write": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "archived": {
       "type": "boolean",
@@ -29,7 +55,9 @@
   ],
   "rls": {
     "create": {
-      "data.teacher_id": "{{user.id}}"
+      "user_condition": {
+        "role": "admin"
+      }
     },
     "read": {
       "$or": [
@@ -59,19 +87,9 @@
       ]
     },
     "update": {
-      "$or": [
-        {
-          "created_by_id": "{{user.id}}"
-        },
-        {
-          "data.teacher_id": "{{user.id}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
+      "user_condition": {
+        "role": "admin"
+      }
     },
     "delete": {
       "$or": [

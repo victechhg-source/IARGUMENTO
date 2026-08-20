@@ -1,11 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
 
 // Cria a redação do aluno. Body: { banca }. Responde { essay }.
-// teacher_ids/school_ids são populados AQUI, a partir das memberships
-// aprovadas do aluno (service role) — o cliente não manda mais vínculos
-// arbitrários (esses campos têm FLS write admin-only na entidade).
-// O create em si roda no contexto do usuário para garantir
-// created_by_id = aluno (o read/delete do dono dependem disso).
+// Create na entidade é admin-only; aqui usamos service role com created_by_id.
 const BANCAS = ['ENEM', 'FUVEST', 'UNICAMP', 'UNIFESP', 'UFG'];
 
 Deno.serve(async (req) => {
@@ -30,7 +26,11 @@ Deno.serve(async (req) => {
     const teacherIds = [...new Set(memberships.map((m) => m.teacher_id).filter(Boolean))];
     const schoolIds = [...new Set(memberships.map((m) => m.school_id).filter(Boolean))];
 
-    const essay = await base44.entities.Essay.create({ banca, status: 'transcribing' });
+    const essay = await base44.asServiceRole.entities.Essay.create({
+      banca,
+      status: 'transcribing',
+      created_by_id: user.id,
+    });
 
     // Vínculos gravados via service role: FLS write admin-only nesses campos.
     const updated = (teacherIds.length || schoolIds.length)

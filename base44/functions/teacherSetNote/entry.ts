@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
+import { requireAccountGrant } from '../../shared/accountGrant.ts';
 
 // Salva apenas o campo teacher_note de uma redação. O cliente do professor
 // NÃO usa entities.Essay.update genérico — este function isola a escrita ao
@@ -9,6 +10,10 @@ Deno.serve(async (req) => {
     const me = await base44.auth.me();
     if (!me) return Response.json({ error: 'Não autorizado' }, { status: 401 });
     if (me.suspended === true) return Response.json({ error: 'Conta suspensa.' }, { status: 403 });
+    const access = await requireAccountGrant(base44, me, ['teacher']);
+    if (!access.ok) {
+      return Response.json({ error: access.error }, { status: access.status });
+    }
 
     const { essayId, note } = await req.json();
     if (!essayId) return Response.json({ error: 'essayId é obrigatório.' }, { status: 400 });

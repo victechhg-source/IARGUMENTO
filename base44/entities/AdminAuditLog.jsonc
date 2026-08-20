@@ -39,7 +39,7 @@
     },
     "create": {
       "user_condition": {
-        "role": "__disabled__"
+        "role": "admin"
       }
     },
     "update": {

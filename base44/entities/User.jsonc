@@ -1,16 +1,5 @@
-// LIMITAÇÃO CONHECIDA (documentada na Onda 1 do plano QA):
-// A doc do Base44 (backend/resources/entities/user-schema.md) não oferece
-// mecanismo para restringir CAMPOS aceitos por auth.updateMe — qualquer campo
-// custom (account_type, school_id, suspended...) pode ser enviado pelo
-// cliente logado. Aplicar FLS write admin-only nesses campos quebraria o
-// completeSignup, que usa auth.updateMe no contexto do próprio usuário para
-// gravar papel/escola. Mitigação adotada: TODAS as functions sensíveis
-// revalidam papel/vínculo no servidor (via service role) e recusam
-// user.suspended === true logo no início — um auto-promovido não ganha
-// acesso a dados de terceiros por nenhuma function.
-// O RLS abaixo fecha a superfície da ENTIDADE: leitura só do próprio
-// registro ou admin; update/delete de entidade só admin (o cliente nunca usa
-// entities.User.update — mutações passam por adminUpdateAccount etc.).
+// Papel e escola: FLS write admin-only + entidade AccountGrant.
+// completeSignup/adminUpdateAccount gravam via service role, não via updateMe.
 {
   "name": "User",
   "type": "object",
@@ -31,34 +20,66 @@
         "director"
       ],
       "default": "student",
-      "description": "Tipo de perfil no Reda\u00e7\u00e3oPro \u2014 definido pelo servidor a partir do c\u00f3digo de acesso"
+      "description": "Tipo de perfil \u2014 gravado s\u00f3 pelo servidor",
+      "rls": {
+        "read": true,
+        "write": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "school_id": {
-      "type": "string"
+      "type": "string",
+      "rls": {
+        "read": true,
+        "write": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "school_name": {
-      "type": "string"
+      "type": "string",
+      "rls": {
+        "read": true,
+        "write": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "display_name": {
       "type": "string",
       "description": "Nome completo do usu\u00e1rio (full_name \u00e9 read-only no sistema)"
     },
-    "date_of_birth": {
-      "type": "string",
-      "format": "date"
-    },
-    "cpf": {
-      "type": "string",
-      "description": "CPF somente d\u00edgitos"
-    },
     "registered_id": {
       "type": "string",
-      "description": "ID p\u00fablico \u00fanico da conta (ADM-/DIR-/PRO-/ALU-XXXXXX), gerado no servidor no cadastro"
+      "description": "ID p\u00fablico \u00fanico da conta (ADM-/DIR-/PRO-/ALU-XXXXXX), gerado no servidor no cadastro",
+      "rls": {
+        "read": true,
+        "write": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "suspended": {
       "type": "boolean",
       "default": false,
-      "description": "Conta suspensa pelo admin \u2014 bloqueia o acesso ao app"
+      "description": "Conta suspensa pelo admin \u2014 bloqueia o acesso ao app",
+      "rls": {
+        "read": true,
+        "write": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     }
   },
   "required": [

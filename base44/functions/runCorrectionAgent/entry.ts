@@ -2,6 +2,15 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
 import { ENEM_PROMPT_C1, ENEM_PROMPT_C23, ENEM_PROMPT_C45 } from './enemSystemPrompts.ts';
 import { UFG_PROMPT_MOD, UFG_PROMPT_TEMA, UFG_PROMPT_GENERO_COESAO } from './ufgSystemPrompts.ts';
 import { FUVEST_PROMPT_NP, FUVEST_PROMPT_GEN_COE, FUVEST_PROMPT_TEMA } from './fuvestSystemPrompts.ts';
+import {
+  persistFieldsFromResult,
+  resultFromEssay,
+  RESPONSE_SCHEMA,
+} from '../../shared/persistCorrection.ts';
+import {
+  findGenericBanca,
+  buildGenericCorrectionPrompt,
+} from '../../shared/genericBancaPrompt.ts';
 
 // Anotação DETERMINÍSTICA: injeta marcadores por competência diretamente na
 // transcrição original (preservando paragrafação e texto exatos) com base nos
@@ -61,25 +70,53 @@ export default async function(req) {
     if (!user) return Response.json({ error: 'Não autorizado' }, { status: 401 });
     if (user.suspended === true) return Response.json({ error: 'Conta suspensa.' }, { status: 403 });
 
-    const { banca, essayId, prompt, responseJsonSchema, stages = [], debug = false } = await req.json();
+    const body = await req.json().catch(() => ({}));
+    const { essayId } = body;
+    // prompt / responseJsonSchema / stages / banca do cliente são IGNORADOS.
+    const debug = body.debug === true && user.role === 'admin';
+    if (!essayId) return Response.json({ error: 'essayId é obrigatório.' }, { status: 400 });
+
     const essay = await base44.asServiceRole.entities.Essay.get(essayId);
     if (!essay || essay.created_by_id !== user.id) return Response.json({ error: 'Redação não encontrada.' }, { status: 404 });
+
+    if (essay.status === 'completed' && Array.isArray(essay.corrections) && essay.corrections.length) {
+      return Response.json({ result: resultFromEssay(essay) });
+    }
+    if (!['correcting', 'reviewing'].includes(essay.status)) {
+      return Response.json({ error: 'Esta redação não está em correção.' }, { status: 409 });
+    }
+    if (!essay.transcription) {
+      return Response.json({ error: 'Confirme a transcrição antes de corrigir.' }, { status: 409 });
+    }
+
+    const banca = essay.banca;
+    const persistResult = async (result) => {
+      await base44.asServiceRole.entities.Essay.update(
+        essayId,
+        persistFieldsFromResult(result),
+      );
+    };
 
     const agents = await base44.asServiceRole.entities.CorrectionAgent.filter({ banca, active: true, status: 'ready' });
     const agent = agents[0] || null;
     const resources = agent ? await base44.asServiceRole.entities.AgentTrainingResource.filter({ agent_id: agent.id }) : [];
     const context = resources.filter((resource) => resource.content).map((resource) => `### ${resource.title}\n${resource.content}`).join('\n\n');
-    const basePrompt = `${agent?.system_prompt || ''}\n\n${context}\n\n${prompt}`.trim();
+    const genericBanca = findGenericBanca(banca);
+    const serverPrompt = genericBanca
+      ? buildGenericCorrectionPrompt(genericBanca, essay.transcription)
+      : `REDAÇÃO DO ALUNO:\n"""\n${essay.transcription}\n"""`;
+    const basePrompt = `${agent?.system_prompt || ''}\n\n${context}\n\n${serverPrompt}`.trim();
     const fileUrls = resources.filter((resource) => resource.file_url).map((resource) => resource.file_url);
     const model = agent?.model || 'automatic';
 
     if (banca !== 'ENEM' && banca !== 'UFG' && banca !== 'FUVEST') {
       const result = await base44.asServiceRole.integrations.Core.InvokeLLM({
         prompt: basePrompt,
-        response_json_schema: responseJsonSchema,
+        response_json_schema: RESPONSE_SCHEMA,
         model,
         ...(fileUrls.length ? { file_urls: fileUrls } : {})
       });
+      await persistResult(result);
       const inputTokens = Math.ceil(basePrompt.length / 4);
       const outputTokens = Math.ceil(JSON.stringify(result).length / 4);
       await base44.asServiceRole.entities.AgentUsage.create({ agent_id: agent?.id || '', agent_name: agent?.name || `Padrão ${banca}`, model, banca, essay_id: essayId, student_id: user.id, school_ids: essay.school_ids || [], input_tokens: inputTokens, output_tokens: outputTokens, total_tokens: inputTokens + outputTokens });
@@ -250,6 +287,7 @@ Retorne apenas o JSON.`;
 
       const fuvestInputTokens = Math.ceil((npText.length + genCoeText.length + temaText.length + fuvestSynthesisPrompt.length + basePrompt.length) / 4);
       const fuvestOutputTokens = Math.ceil(JSON.stringify(fuvestResult).length / 4);
+      await persistResult(fuvestResult);
       await base44.asServiceRole.entities.AgentUsage.create({ agent_id: agent?.id || '', agent_name: agent?.name || 'Padrão FUVEST', model, banca, essay_id: essayId, student_id: user.id, school_ids: essay.school_ids || [], input_tokens: fuvestInputTokens, output_tokens: fuvestOutputTokens, total_tokens: fuvestInputTokens + fuvestOutputTokens });
       return Response.json({ result: fuvestResult, usage: { input_tokens: fuvestInputTokens, output_tokens: fuvestOutputTokens, total_tokens: fuvestInputTokens + fuvestOutputTokens }, ...(debug ? { _debug: { specialists: { np: npText, genCoe: genCoeText, tema: temaText }, extractedNotes: { notaNP, notaGEN, notaCOE, notaTEMA, total: fuvestTotal }, synthesis: fuvestSynth } } : {}) });
     }
@@ -389,6 +427,7 @@ Retorne apenas o JSON.`;
 
       const ufgInputTokens = Math.ceil((modText.length + temaText.length + generoCoesaoText.length + ufgSynthesisPrompt.length + basePrompt.length) / 4);
       const ufgOutputTokens = Math.ceil(JSON.stringify(ufgResult).length / 4);
+      await persistResult(ufgResult);
       await base44.asServiceRole.entities.AgentUsage.create({ agent_id: agent?.id || '', agent_name: agent?.name || 'Padrão UFG', model, banca, essay_id: essayId, student_id: user.id, school_ids: essay.school_ids || [], input_tokens: ufgInputTokens, output_tokens: ufgOutputTokens, total_tokens: ufgInputTokens + ufgOutputTokens });
       return Response.json({ result: ufgResult, usage: { input_tokens: ufgInputTokens, output_tokens: ufgOutputTokens, total_tokens: ufgInputTokens + ufgOutputTokens }, ...(debug ? { _debug: { specialists: ufgSpecialists, extractedNotes: { notaME, notaTEMA, notaGENERO, notaCOESAO, total: ufgTotal, eliminado }, synthesis: ufgSynth } } : {}) });
     }
@@ -544,6 +583,7 @@ Retorne apenas o JSON.`;
 
     const inputTokens = Math.ceil((c1Text.length + c23Text.length + c45Text.length + synthesisPrompt.length + basePrompt.length) / 4);
     const outputTokens = Math.ceil(JSON.stringify(result).length / 4);
+    await persistResult(result);
     await base44.asServiceRole.entities.AgentUsage.create({ agent_id: agent?.id || '', agent_name: agent?.name || 'Padrão ENEM', model, banca, essay_id: essayId, student_id: user.id, school_ids: essay.school_ids || [], input_tokens: inputTokens, output_tokens: outputTokens, total_tokens: inputTokens + outputTokens });
     return Response.json({ result, usage: { input_tokens: inputTokens, output_tokens: outputTokens, total_tokens: inputTokens + outputTokens }, ...(debug ? { _debug: { specialists: { c1: c1Text, c23: c23Text, c45: c45Text }, extractedNotes: { c1: notaC1, c2: notaC2, c3: notaC3, c4: notaC4, c5: notaC5, total }, synthesis: synth } } : {}) });
   } catch (error) {

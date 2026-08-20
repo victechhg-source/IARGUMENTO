@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
+import { requireAccountGrant } from '../../shared/accountGrant.ts';
 
 // Exporta um resumo CSV da escola do diretor: turma, professor, aluno, email,
 // banca, nota, nota_max, data. Sem transcription, sem imagem, sem CPF.
@@ -12,16 +13,15 @@ Deno.serve(async (req) => {
     if (me.suspended === true) {
       return Response.json({ error: 'Conta suspensa.' }, { status: 403 });
     }
-    if (me.account_type !== 'director' && me.role !== 'admin') {
-      return Response.json({ error: 'Acesso restrito a diretores.' }, { status: 403 });
-    }
-    if (!me.school_id) return Response.json({ error: 'Nenhuma escola vinculada à sua conta.' }, { status: 400 });
+    const access = await requireAccountGrant(base44, me, ['director']);
+    if (!access.ok) return Response.json({ error: access.error }, { status: access.status });
+    if (!access.school_id) return Response.json({ error: 'Nenhuma escola vinculada à sua conta.' }, { status: 400 });
 
     const svc = base44.asServiceRole.entities;
     const [classes, memberships, essays] = await Promise.all([
-      svc.Classroom.filter({ school_id: me.school_id }, '-created_date', 500),
-      svc.ClassMembership.filter({ school_id: me.school_id, status: 'approved' }, '-created_date', 2000),
-      svc.Essay.filter({ school_ids: me.school_id, status: 'completed' }, '-created_date', 1000),
+      svc.Classroom.filter({ school_id: access.school_id }, '-created_date', 500),
+      svc.ClassMembership.filter({ school_id: access.school_id, status: 'approved' }, '-created_date', 2000),
+      svc.Essay.filter({ school_ids: access.school_id, status: 'completed' }, '-created_date', 1000),
     ]);
 
     const classById = new Map(classes.map((c) => [c.id, c]));

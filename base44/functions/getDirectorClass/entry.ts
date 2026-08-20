@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
+import { requireAccountGrant } from '../../shared/accountGrant.ts';
 
 // Detalhe de uma turma para o diretor (somente leitura).
 // Recusa se a turma não pertencer à escola do diretor.
@@ -12,10 +13,9 @@ Deno.serve(async (req) => {
     if (me.suspended === true) {
       return Response.json({ error: 'Conta suspensa.' }, { status: 403 });
     }
-    if (me.account_type !== 'director' && me.role !== 'admin') {
-      return Response.json({ error: 'Acesso restrito a diretores.' }, { status: 403 });
-    }
-    if (!me.school_id) return Response.json({ error: 'Nenhuma escola vinculada à sua conta.' }, { status: 400 });
+    const access = await requireAccountGrant(base44, me, ['director']);
+    if (!access.ok) return Response.json({ error: access.error }, { status: access.status });
+    if (!access.school_id) return Response.json({ error: 'Nenhuma escola vinculada à sua conta.' }, { status: 400 });
 
     const body = await req.json().catch(() => ({}));
     const classId = body?.classId;
@@ -24,7 +24,7 @@ Deno.serve(async (req) => {
     const svc = base44.asServiceRole.entities;
     const classroom = (await svc.Classroom.filter({ id: classId }))[0];
     if (!classroom) return Response.json({ error: 'Turma não encontrada.' }, { status: 404 });
-    if (classroom.school_id !== me.school_id) {
+    if (classroom.school_id !== access.school_id) {
       return Response.json({ error: 'Esta turma não pertence à sua escola.' }, { status: 403 });
     }
 
@@ -33,7 +33,7 @@ Deno.serve(async (req) => {
     const pending = memberships.filter((m) => m.status === 'pending');
     const studentIds = approved.map((m) => m.student_id);
 
-    const essays = await svc.Essay.filter({ school_ids: me.school_id, status: 'completed' }, '-created_date', 1000);
+    const essays = await svc.Essay.filter({ school_ids: access.school_id, status: 'completed' }, '-created_date', 1000);
     const classEssays = essays.filter((e) => studentIds.includes(e.created_by_id));
     const graded = classEssays.filter((e) => typeof e.final_grade === 'number' && e.max_grade);
     const avgPercent = graded.length

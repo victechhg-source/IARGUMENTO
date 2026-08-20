@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
+import { upsertAccountGrant } from '../../shared/accountGrant.ts';
 import { generateRegisteredId } from '../../shared/signupCodes.ts';
 import { logAdminAction } from '../../shared/auditLog.ts';
 
@@ -40,6 +41,12 @@ export default async function (req) {
     }
 
     await base44.asServiceRole.entities.User.update(userId, updates);
+    await upsertAccountGrant(base44, {
+      user_id: userId,
+      account_type: accountType,
+      school_id: school.id,
+      school_name: school.name,
+    });
     await logAdminAction(base44, {
       actor_id: user.id, actor_email: user.email, action: 'invite',
       target_type: 'user', target_id: userId, school_id: school.id,
