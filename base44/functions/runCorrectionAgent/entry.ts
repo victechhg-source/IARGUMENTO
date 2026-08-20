@@ -59,6 +59,7 @@ export default async function(req) {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Não autorizado' }, { status: 401 });
+    if (user.suspended === true) return Response.json({ error: 'Conta suspensa.' }, { status: 403 });
 
     const { banca, essayId, prompt, responseJsonSchema, stages = [], debug = false } = await req.json();
     const essay = await base44.asServiceRole.entities.Essay.get(essayId);

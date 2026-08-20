@@ -10,6 +10,7 @@ export default async function (req) {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Não autenticado.' }, { status: 401 });
+    if (user.suspended === true) return Response.json({ error: 'Conta suspensa.' }, { status: 403 });
     if (user.role !== 'admin') return Response.json({ error: 'Acesso restrito a administradores.' }, { status: 403 });
 
     const body = await req.json().catch(() => ({}));
@@ -32,6 +33,12 @@ export default async function (req) {
     const targets = await base44.asServiceRole.entities.User.filter({ id: userId });
     const target = targets[0];
     if (!target) return Response.json({ error: 'Usuário não encontrado.' }, { status: 404 });
+
+    // Contas admin não podem ser alteradas por esta via (suspend/unsuspend/
+    // set_account_type/attach_school/detach_school).
+    if (target.role === 'admin') {
+      return Response.json({ error: 'Não é possível alterar a conta de um administrador.' }, { status: 403 });
+    }
 
     let updates = {};
     let detail = '';
@@ -72,6 +79,7 @@ export default async function (req) {
 
     return Response.json({ ok: true });
   } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error(error);
+    return Response.json({ error: 'Erro interno.' }, { status: 500 });
   }
 }

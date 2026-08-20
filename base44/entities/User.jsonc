@@ -1,3 +1,16 @@
+// LIMITAÇÃO CONHECIDA (documentada na Onda 1 do plano QA):
+// A doc do Base44 (backend/resources/entities/user-schema.md) não oferece
+// mecanismo para restringir CAMPOS aceitos por auth.updateMe — qualquer campo
+// custom (account_type, school_id, suspended...) pode ser enviado pelo
+// cliente logado. Aplicar FLS write admin-only nesses campos quebraria o
+// completeSignup, que usa auth.updateMe no contexto do próprio usuário para
+// gravar papel/escola. Mitigação adotada: TODAS as functions sensíveis
+// revalidam papel/vínculo no servidor (via service role) e recusam
+// user.suspended === true logo no início — um auto-promovido não ganha
+// acesso a dados de terceiros por nenhuma function.
+// O RLS abaixo fecha a superfície da ENTIDADE: leitura só do próprio
+// registro ou admin; update/delete de entidade só admin (o cliente nunca usa
+// entities.User.update — mutações passam por adminUpdateAccount etc.).
 {
   "name": "User",
   "type": "object",
@@ -50,5 +63,29 @@
   },
   "required": [
     "role"
-  ]
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
 }

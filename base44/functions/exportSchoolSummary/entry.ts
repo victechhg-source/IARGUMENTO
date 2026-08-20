@@ -9,6 +9,9 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Não autenticado.' }, { status: 401 });
     }
     const me = await base44.auth.me();
+    if (me.suspended === true) {
+      return Response.json({ error: 'Conta suspensa.' }, { status: 403 });
+    }
     if (me.account_type !== 'director' && me.role !== 'admin') {
       return Response.json({ error: 'Acesso restrito a diretores.' }, { status: 403 });
     }
@@ -22,12 +25,21 @@ Deno.serve(async (req) => {
     ]);
 
     const classById = new Map(classes.map((c) => [c.id, c]));
-    const memberByStudent = new Map(memberships.map((m) => [m.student_id, m]));
+    // Aluno pode ter mais de uma turma aprovada: agrupamos as memberships por
+    // student_id e emitimos UMA linha da redação por membership (turma correta
+    // em cada linha). Escolhido em vez de "membership mais recente" porque a
+    // redação de fato pertence ao contexto de cada turma/professor — um Map
+    // simples atribuía todas as redações a uma turma arbitrária.
+    const membersByStudent = new Map();
+    for (const m of memberships) {
+      const list = membersByStudent.get(m.student_id) || [];
+      list.push(m);
+      membersByStudent.set(m.student_id, list);
+    }
 
     const rows = essays
-      .filter((e) => typeof e.final_grade === 'number' && e.max_grade && memberByStudent.has(e.created_by_id))
-      .map((e) => {
-        const m = memberByStudent.get(e.created_by_id);
+      .filter((e) => typeof e.final_grade === 'number' && e.max_grade && membersByStudent.has(e.created_by_id))
+      .flatMap((e) => membersByStudent.get(e.created_by_id).map((m) => {
         const c = classById.get(m.class_id);
         return {
           turma: c?.name || '',
@@ -39,10 +51,11 @@ Deno.serve(async (req) => {
           nota_max: e.max_grade,
           data: e.created_date ? new Date(e.created_date).toISOString().slice(0, 10) : '',
         };
-      });
+      }));
 
     return Response.json({ rows });
   } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error(error);
+    return Response.json({ error: 'Erro interno.' }, { status: 500 });
   }
 });

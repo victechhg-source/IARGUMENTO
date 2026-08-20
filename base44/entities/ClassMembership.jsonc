@@ -1,3 +1,8 @@
+// SEGURANÇA: create é admin-only (não "__disabled__" como no AdminAuditLog)
+// porque a criação legítima acontece via requestClassJoin/completeSignup com
+// asServiceRole — e, pela doc do Base44, service role assume role "admin"
+// mas NÃO bypassa RLS; "__disabled__" bloquearia as próprias functions.
+// Cliente comum (role "user") não consegue mais forjar membership.
 {
   "name": "ClassMembership",
   "type": "object",
@@ -75,7 +80,9 @@
       ]
     },
     "create": {
-      "data.student_id": "{{user.id}}"
+      "user_condition": {
+        "role": "admin"
+      }
     },
     "update": {
       "$or": [

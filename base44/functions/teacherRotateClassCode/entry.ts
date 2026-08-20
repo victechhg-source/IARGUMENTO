@@ -8,6 +8,7 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const me = await base44.auth.me();
     if (!me) return Response.json({ error: 'Não autorizado' }, { status: 401 });
+    if (me.suspended === true) return Response.json({ error: 'Conta suspensa.' }, { status: 403 });
 
     const { classId } = await req.json();
     if (!classId) return Response.json({ error: 'classId é obrigatório.' }, { status: 400 });
@@ -23,6 +24,7 @@ Deno.serve(async (req) => {
     const updated = await svc.Classroom.update(classId, { code });
     return Response.json({ classroom: updated, code });
   } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error(error);
+    return Response.json({ error: 'Erro interno.' }, { status: 500 });
   }
 });

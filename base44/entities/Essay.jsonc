@@ -1,3 +1,14 @@
+// SEGURANÇA (Onda 1 do plano QA):
+// - update (RLS) é admin-only: o fluxo do dono passou para as functions
+//   updateEssayFlow / saveCorrectionResult (service role = admin).
+// - create do dono foi MANTIDO em vez de "__disabled__": pela doc do Base44,
+//   asServiceRole assume role "admin" mas NÃO bypassa RLS, e um create via
+//   service role não garantiria created_by_id = aluno (o read/delete do dono
+//   dependem disso). Em compensação, os campos sensíveis (notas, correções,
+//   vínculos teacher_ids/school_ids, teacher_note) têm FLS write admin-only:
+//   o cliente só consegue criar { banca, status } — todo o resto é escrito
+//   pelas functions (createEssay, processEssayScan, updateEssayFlow,
+//   saveCorrectionResult, teacherSetNote, reviewClassJoin).
 {
   "name": "Essay",
   "type": "object",
@@ -73,24 +84,56 @@
       "type": "boolean"
     },
     "annotated_text": {
-      "type": "string"
+      "type": "string",
+      "rls": {
+        "read": true,
+        "write": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "memorable_strengths": {
       "type": "array",
       "items": {
         "type": "string"
+      },
+      "rls": {
+        "read": true,
+        "write": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
       }
     },
     "teacher_ids": {
       "type": "array",
       "items": {
         "type": "string"
+      },
+      "rls": {
+        "read": true,
+        "write": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
       }
     },
     "school_ids": {
       "type": "array",
       "items": {
         "type": "string"
+      },
+      "rls": {
+        "read": true,
+        "write": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
       }
     },
     "corrections": {
@@ -139,29 +182,77 @@
             }
           }
         }
+      },
+      "rls": {
+        "read": true,
+        "write": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
       }
     },
     "final_grade": {
-      "type": "number"
+      "type": "number",
+      "rls": {
+        "read": true,
+        "write": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "max_grade": {
-      "type": "number"
+      "type": "number",
+      "rls": {
+        "read": true,
+        "write": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "writing_suggestions": {
       "type": "array",
       "items": {
         "type": "string"
+      },
+      "rls": {
+        "read": true,
+        "write": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
       }
     },
     "study_suggestions": {
       "type": "array",
       "items": {
         "type": "string"
+      },
+      "rls": {
+        "read": true,
+        "write": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
       }
     },
     "teacher_note": {
       "type": "string",
-      "description": "Coment\u00e1rio do professor sobre a reda\u00e7\u00e3o (escrito via teacherSetNote)"
+      "description": "Coment\u00e1rio do professor sobre a reda\u00e7\u00e3o (escrito via teacherSetNote)",
+      "rls": {
+        "read": true,
+        "write": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     }
   },
   "required": [
@@ -199,16 +290,9 @@
       ]
     },
     "update": {
-      "$or": [
-        {
-          "created_by_id": "{{user.id}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
+      "user_condition": {
+        "role": "admin"
+      }
     },
     "delete": {
       "$or": [

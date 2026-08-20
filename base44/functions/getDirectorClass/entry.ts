@@ -9,6 +9,9 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Não autenticado.' }, { status: 401 });
     }
     const me = await base44.auth.me();
+    if (me.suspended === true) {
+      return Response.json({ error: 'Conta suspensa.' }, { status: 403 });
+    }
     if (me.account_type !== 'director' && me.role !== 'admin') {
       return Response.json({ error: 'Acesso restrito a diretores.' }, { status: 403 });
     }
@@ -51,6 +54,7 @@ Deno.serve(async (req) => {
       avgPercent,
     });
   } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error(error);
+    return Response.json({ error: 'Erro interno.' }, { status: 500 });
   }
 });

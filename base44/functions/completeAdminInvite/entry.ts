@@ -10,6 +10,7 @@ export default async function (req) {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Não autenticado.' }, { status: 401 });
+    if (user.suspended === true) return Response.json({ error: 'Conta suspensa.' }, { status: 403 });
     if (user.role !== 'admin') return Response.json({ error: 'Acesso restrito a administradores.' }, { status: 403 });
 
     const body = await req.json().catch(() => ({}));
@@ -27,6 +28,11 @@ export default async function (req) {
     const target = targets[0];
     if (!target) return Response.json({ error: 'Usuário não encontrado.' }, { status: 404 });
 
+    // Contas admin não podem ter papel/escola alterados por esta via.
+    if (target.role === 'admin') {
+      return Response.json({ error: 'Não é possível alterar a conta de um administrador.' }, { status: 403 });
+    }
+
     let registeredId = target.registered_id || null;
     if (!registeredId) {
       registeredId = await generateRegisteredId(base44, target.role, accountType);
@@ -42,6 +48,7 @@ export default async function (req) {
 
     return Response.json({ ok: true, registered_id: registeredId });
   } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error(error);
+    return Response.json({ error: 'Erro interno.' }, { status: 500 });
   }
 }

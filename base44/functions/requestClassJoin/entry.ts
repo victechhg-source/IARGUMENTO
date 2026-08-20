@@ -6,6 +6,7 @@ export default async function (req) {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Não autorizado' }, { status: 401 });
+    if (user.suspended === true) return Response.json({ error: 'Conta suspensa.' }, { status: 403 });
     if (!user.school_id) return Response.json({ error: 'Conclua seu cadastro antes de entrar em uma turma.' }, { status: 403 });
     if ((user.account_type || 'student') !== 'student') {
       return Response.json({ error: 'Apenas contas de aluno podem solicitar entrada em turmas.' }, { status: 403 });
@@ -44,6 +45,7 @@ export default async function (req) {
     });
     return Response.json({ membership });
   } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error(error);
+    return Response.json({ error: 'Erro interno.' }, { status: 500 });
   }
 }

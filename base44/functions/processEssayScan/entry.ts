@@ -6,6 +6,7 @@ export default async function(req: Request): Promise<Response> {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Não autorizado' }, { status: 401 });
+    if (user.suspended === true) return Response.json({ error: 'Conta suspensa.' }, { status: 403 });
 
     const { essayId } = await req.json();
     if (!essayId) return Response.json({ error: 'essayId é obrigatório' }, { status: 400 });
@@ -70,7 +71,8 @@ export default async function(req: Request): Promise<Response> {
       ]
     });
   } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error(error);
+    return Response.json({ error: 'Erro interno.' }, { status: 500 });
   }
 }
 

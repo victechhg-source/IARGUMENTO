@@ -10,6 +10,9 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Não autenticado.' }, { status: 401 });
     }
     const me = await base44.auth.me();
+    if (me.suspended === true) {
+      return Response.json({ error: 'Conta suspensa.' }, { status: 403 });
+    }
     const isDirector = me.account_type === 'director' || me.role === 'admin';
     if (!isDirector) return Response.json({ error: 'Acesso restrito a diretores.' }, { status: 403 });
     if (!me.school_id) return Response.json({ error: 'Nenhuma escola vinculada à sua conta.' }, { status: 400 });
@@ -54,6 +57,7 @@ Deno.serve(async (req) => {
         name: c.name,
         code: c.code,
         teacher_name: c.teacher_name || '',
+        archived: !!c.archived,
         students: approved.filter((m) => m.class_id === c.id).length,
       })),
       teachers: users
@@ -61,6 +65,7 @@ Deno.serve(async (req) => {
         .map((u) => ({ id: u.id, name: u.full_name || u.display_name || u.email, email: u.email })),
     });
   } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error(error);
+    return Response.json({ error: 'Erro interno.' }, { status: 500 });
   }
 });
