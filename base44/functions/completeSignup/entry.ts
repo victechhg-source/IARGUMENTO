@@ -1,6 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
 import { resolveAccessCode, resolveClassroom, generateRegisteredId } from '../../shared/signupCodes.ts';
 import { upsertAccountGrant } from '../../shared/accountGrant.ts';
+import { consumeRateLimit } from '../../shared/rateLimit.ts';
 
 // Única via autoritativa de conclusão de cadastro.
 // O cliente envia apenas códigos; o servidor decide papel, escola e ID público.
@@ -9,6 +10,9 @@ export default async function (req) {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Não autorizado' }, { status: 401 });
+    if (!consumeRateLimit(`signup-complete:${user.id}`, 5, 60_000)) {
+      return Response.json({ error: 'Muitas tentativas. Aguarde um minuto.' }, { status: 429 });
+    }
 
     const body = await req.json().catch(() => ({}));
     const { access_code, class_code, full_name } = body;

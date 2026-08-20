@@ -8,8 +8,12 @@ import { UserPlus, User, Loader2 } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
 import AccessCodeFields from "@/components/auth/AccessCodeFields";
-import useAccessCodeValidation from "@/hooks/useAccessCodeValidation";
 import { savePendingSignup } from "@/lib/roles";
+import {
+  accountTypeFromAccessCode,
+  isAccessCodeFormat,
+  isClassCodeFormat,
+} from "@/lib/accessCodeFormat";
 
 export default function Register() {
   const [fullName, setFullName] = useState("");
@@ -18,8 +22,18 @@ export default function Register() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const validation = useAccessCodeValidation(accessCode, classCode);
-  const ready = !!fullName.trim() && validation.status === "valid";
+  const accountType = accountTypeFromAccessCode(accessCode);
+  const formatOk = isAccessCodeFormat(accessCode) &&
+    (accountType !== "student" || isClassCodeFormat(classCode));
+  const validation = {
+    status: !accessCode.trim() ? "idle" : (formatOk ? "idle" : "invalid"),
+    accountType,
+    schoolName: "",
+    message: !accessCode.trim() || formatOk
+      ? ""
+      : "Confira o formato (ALU-/PRO-/DIR-XXXXXX). A escola é confirmada depois do login.",
+  };
+  const ready = !!fullName.trim() && formatOk;
 
   const handleGoogle = async () => {
     setError("");
@@ -89,7 +103,7 @@ export default function Register() {
           Continuar com Google
         </Button>
         <p className="text-center text-xs text-muted-foreground">
-          Você confirma os dados na próxima etapa antes de concluir o cadastro.
+          Você confirma a escola e o perfil na próxima etapa, já com sua conta Google.
         </p>
       </div>
     </AuthLayout>
