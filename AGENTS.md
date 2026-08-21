@@ -32,3 +32,9 @@ npx skills add base44/skills
 - Prefer the existing Base44 CLI workflow over adding new npm scripts for Base44-specific tasks.
 - Reuse the existing SDK client and Vite plugin patterns before adding new Base44 integration paths.
 - Run the relevant checks from `package.json` before finishing code changes.
+
+## Agent ownership
+
+Correction agents, RAG/OTC training, prompts and banca criteria are owned by **Daniel Paiva** ([danielpaivajl](https://github.com/danielpaivajl)). Do not change `base44/functions/runCorrectionAgent/**`, `src/data/bancas.js` or `src/components/admin/AgentManager.jsx` unless he requested the change.
+
+Application platform work (auth, schools, classes, RLS, student/teacher/director UX) is owned by **Victor Hugo** ([victechhg-source](https://github.com/victechhg-source)).

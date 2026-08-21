@@ -75,3 +75,12 @@ Documentation: [https://docs.base44.com/Integrations/Using-GitHub](https://docs.
 Base44 CLI command reference: [https://docs.base44.com/developers/references/cli/commands/introduction](https://docs.base44.com/developers/references/cli/commands/introduction)
 
 Support: [https://app.base44.com/support](https://app.base44.com/support)
+
+## Equipe
+
+O IArgumento é desenvolvido em duas frentes:
+
+- **Victor Hugo** ([victechhg-source](https://github.com/victechhg-source)) — produto, plataforma, governança e engenharia da aplicação (frontend, backend Base44, papéis, turmas e segurança).
+- **Daniel Paiva** ([danielpaivajl](https://github.com/danielpaivajl)) — co-autor; responsável pela configuração e treinamento dos modelos de RAG e OTC, pelos agentes de correção e por toda a engenharia de agentes.
+
+A lógica de correção (prompts, critérios, materiais de treino e configuração dos agentes) é de responsabilidade do Daniel e não deve ser alterada sem alinhamento com ele.
