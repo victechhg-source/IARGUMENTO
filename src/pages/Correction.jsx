@@ -10,6 +10,7 @@ import CorrectionResults from '@/components/essay/CorrectionResults';
 import { Button } from '@/components/ui/button';
 import { Check, Plus, Info } from 'lucide-react';
 import CorrectorAvatar from '@/components/essay/CorrectorAvatar';
+import { fileUrlFromUpload, scanResultFromInvoke, unwrapSdkPayload } from '@/lib/sdkPayload';
 
 export default function Correction() {
   const [params] = useSearchParams();
@@ -54,7 +55,10 @@ export default function Correction() {
         essayId: id,
       });
       const payload = response?.data ?? response;
-      const result = payload.result;
+      const result = payload?.result;
+      if (!result) {
+        throw new Error(payload?.error || 'Correção não retornada.');
+      }
       setCorrection(result);
       addBotMessage('Correção concluída. Confira o resultado completo abaixo:');
       setPhase('results');
@@ -74,7 +78,9 @@ export default function Correction() {
       // Retomar redação existente — nunca cria um segundo Essay.
       (async () => {
         try {
-          const [loaded, me] = await Promise.all([base44.entities.Essay.get(essayParam), base44.auth.me()]);
+          const [loadedRaw, meRaw] = await Promise.all([base44.entities.Essay.get(essayParam), base44.auth.me()]);
+          const loaded = unwrapSdkPayload(loadedRaw);
+          const me = unwrapSdkPayload(meRaw);
           if (loaded.created_by_id !== me.id || loaded.banca !== banca.id) {
             navigate('/historico', { replace: true });
             return;
@@ -152,22 +158,31 @@ export default function Correction() {
       addBotMessage('Iniciando pipeline de digitalização. Vou executar cinco etapas: ingestão, reconhecimento duplo, validação determinística, cálculo de confiança e roteamento.');
 
       const uploadRes = await base44.integrations.Core.UploadFile({ file });
+      const fileUrl = fileUrlFromUpload(uploadRes);
+      if (!fileUrl) {
+        throw new Error('Falha no envio do arquivo.');
+      }
       let id = essayId;
       if (!id) {
-        const user = await base44.auth.me();
+        const user = unwrapSdkPayload(await base44.auth.me());
         const memberships = await base44.entities.ClassMembership.filter({ student_id: user.id, status: 'approved' });
         setHasApprovedClass(memberships.length > 0);
-        // O servidor popula teacher_ids/school_ids — o cliente só informa a banca.
         const createRes = await base44.functions.invoke('createEssay', { banca: banca.id });
-        const createPayload = createRes?.data ?? createRes;
-        id = createPayload.essay.id;
+        const createPayload = unwrapSdkPayload(createRes);
+        id = createPayload?.essay?.id;
+        if (!id) {
+          throw new Error(createPayload?.error || 'Não foi possível criar a redação.');
+        }
         setEssayId(id);
       }
-      // Anexa (ou reanexa) o arquivo e volta o fluxo para 'transcribing'.
-      await base44.functions.invoke('updateEssayFlow', { essayId: id, action: 'set_file', file_url: uploadRes.file_url });
+      await base44.functions.invoke('updateEssayFlow', {
+        essayId: id,
+        action: 'set_file',
+        file_url: fileUrl,
+      });
 
       const response = await base44.functions.invoke('processEssayScan', { essayId: id });
-      const result = response.data;
+      const result = scanResultFromInvoke(response);
 
       setTranscription(result.transcription);
       setUnrecognized(result.unrecognizedWords || []);

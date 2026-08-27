@@ -1,14 +1,23 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
 import { validateTranscription, validateStructure } from '../../shared/ocrValidation.ts';
 
-export default async function(req: Request): Promise<Response> {
+function transcriptionFromLlm(result: unknown): string {
+  if (result == null || typeof result !== 'object') return '';
+  const row = result as { transcription?: unknown; data?: { transcription?: unknown } };
+  if (typeof row.transcription === 'string') return row.transcription;
+  if (typeof row.data?.transcription === 'string') return row.data.transcription;
+  return '';
+}
+
+Deno.serve(async (req: Request): Promise<Response> => {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Não autorizado' }, { status: 401 });
     if (user.suspended === true) return Response.json({ error: 'Conta suspensa.' }, { status: 403 });
 
-    const { essayId } = await req.json();
+    const body = await req.json().catch(() => ({}));
+    const { essayId } = body;
     if (!essayId) return Response.json({ error: 'essayId é obrigatório' }, { status: 400 });
 
     const essay = await base44.asServiceRole.entities.Essay.get(essayId);
@@ -20,29 +29,27 @@ export default async function(req: Request): Promise<Response> {
       return Response.json({ error: 'Arquivo da redação não encontrado' }, { status: 400 });
     }
 
-    // Atualiza status para processamento
     await base44.asServiceRole.entities.Essay.update(essayId, { status: 'transcribing' });
 
-    // ─── ETAPA 2: Reconhecimento duplo independente ───
     const [primaryResult, secondaryResult] = await Promise.all([
       runRecognizer(base44, essay.original_image_url, 'primary'),
-      runRecognizer(base44, essay.original_image_url, 'secondary')
+      runRecognizer(base44, essay.original_image_url, 'secondary'),
     ]);
 
-    // ─── ETAPA 3: Validação determinística ───
     const validation = validateTranscription(primaryResult.transcription, secondaryResult.transcription);
     const structure = validateStructure(primaryResult.transcription);
 
-    // ─── ETAPA 4: Cálculo de confiança ───
     const recognizerAgreement = primaryResult.transcription === secondaryResult.transcription ? 1 : 0.6;
     const overallConfidence = Math.round(
-      ((validation.overallConfidence + recognizerAgreement) / 2) * 100
+      ((validation.overallConfidence + recognizerAgreement) / 2) * 100,
     ) / 100;
 
-    // ─── ETAPA 5: Roteamento — sempre exige confirmação do aluno ───
-    const mergedTranscription = pickBestTranscription(primaryResult.transcription, secondaryResult.transcription, validation);
+    const mergedTranscription = pickBestTranscription(
+      primaryResult.transcription,
+      secondaryResult.transcription,
+      validation,
+    );
 
-    // Guarda os dados do pipeline para active learning e auditoria
     await base44.asServiceRole.entities.Essay.update(essayId, {
       status: 'reviewing',
       transcription: mergedTranscription,
@@ -52,14 +59,14 @@ export default async function(req: Request): Promise<Response> {
       ocr_primary: primaryResult.transcription,
       ocr_secondary: secondaryResult.transcription,
       ocr_structure_warnings: structure.warnings,
-      ocr_needs_review: true
+      ocr_needs_review: true,
     });
 
     return Response.json({
       transcription: mergedTranscription,
       confidence: overallConfidence,
       needsReview: true,
-      flaggedSegments: validation.segments.filter(s => s.confidence < 0.6),
+      flaggedSegments: validation.segments.filter((s) => s.confidence < 0.6),
       unrecognizedWords: validation.unrecognizedWords,
       structureWarnings: structure.warnings,
       stages: [
@@ -67,14 +74,14 @@ export default async function(req: Request): Promise<Response> {
         { stage: 'Reconhecimento duplo', status: 'done', detail: `${validation.segments.length} segmentos analisados` },
         { stage: 'Validação determinística', status: 'done', detail: `${validation.flaggedCount} segmento(s) sinalizado(s)` },
         { stage: 'Cálculo de confiança', status: 'done', detail: `${Math.round(overallConfidence * 100)}% de confiança` },
-        { stage: 'Roteamento', status: 'done', detail: 'Aguardando confirmação do aluno' }
-      ]
+        { stage: 'Roteamento', status: 'done', detail: 'Aguardando confirmação do aluno' },
+      ],
     });
   } catch (error) {
     console.error(error);
     return Response.json({ error: 'Erro interno.' }, { status: 500 });
   }
-}
+});
 
 async function runRecognizer(base44: any, fileUrl: string, type: 'primary' | 'secondary') {
   const prompt = type === 'primary'
@@ -87,16 +94,15 @@ async function runRecognizer(base44: any, fileUrl: string, type: 'primary' | 'se
     response_json_schema: {
       type: 'object',
       properties: {
-        transcription: { type: 'string' }
+        transcription: { type: 'string' },
       },
-      required: ['transcription']
-    }
+      required: ['transcription'],
+    },
   });
 
-  return { transcription: result.transcription || '' };
+  return { transcription: transcriptionFromLlm(result) };
 }
 
-function pickBestTranscription(primary: string, secondary: string, validation: any): string {
-  // Usa a primária como base, que já passou pela validação
+function pickBestTranscription(primary: string, secondary: string, _validation: unknown): string {
   return primary || secondary;
 }
