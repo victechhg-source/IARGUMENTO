@@ -2,14 +2,26 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
 import { validateTranscription, validateStructure } from '../../shared/ocrValidation.ts';
 
 function transcriptionFromLlm(result: unknown): string {
-  if (result == null || typeof result !== 'object') return '';
+  if (result == null) return '';
+  if (typeof result === 'string') {
+    const trimmed = result.trim();
+    if (trimmed.startsWith('{')) {
+      try {
+        return transcriptionFromLlm(JSON.parse(trimmed));
+      } catch {
+        return trimmed;
+      }
+    }
+    return trimmed;
+  }
+  if (typeof result !== 'object') return '';
   const row = result as { transcription?: unknown; data?: { transcription?: unknown } };
   if (typeof row.transcription === 'string') return row.transcription;
   if (typeof row.data?.transcription === 'string') return row.data.transcription;
   return '';
 }
 
-Deno.serve(async (req: Request): Promise<Response> => {
+async function processEssayScan(req: Request): Promise<Response> {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
@@ -31,24 +43,34 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
     await base44.asServiceRole.entities.Essay.update(essayId, { status: 'transcribing' });
 
-    const [primaryResult, secondaryResult] = await Promise.all([
+    const settled = await Promise.allSettled([
       runRecognizer(base44, essay.original_image_url, 'primary'),
       runRecognizer(base44, essay.original_image_url, 'secondary'),
     ]);
 
-    const validation = validateTranscription(primaryResult.transcription, secondaryResult.transcription);
-    const structure = validateStructure(primaryResult.transcription);
+    const primaryText = settled[0].status === 'fulfilled' ? settled[0].value.transcription : '';
+    const secondaryText = settled[1].status === 'fulfilled' ? settled[1].value.transcription : '';
 
-    const recognizerAgreement = primaryResult.transcription === secondaryResult.transcription ? 1 : 0.6;
+    if (!primaryText && !secondaryText) {
+      const firstReject = settled.find((item) => item.status === 'rejected') as PromiseRejectedResult | undefined;
+      const reason = firstReject?.reason;
+      const detail = typeof reason?.message === 'string' ? reason.message.slice(0, 280) : '';
+      console.error('[processEssayScan] ambos reconhecedores falharam', reason);
+      return Response.json(
+        { error: detail || 'O reconhecimento da imagem falhou. Tente outra foto ou PDF.' },
+        { status: 502 },
+      );
+    }
+
+    const validation = validateTranscription(primaryText, secondaryText);
+    const structure = validateStructure(primaryText || secondaryText);
+
+    const recognizerAgreement = primaryText === secondaryText ? 1 : 0.6;
     const overallConfidence = Math.round(
       ((validation.overallConfidence + recognizerAgreement) / 2) * 100,
     ) / 100;
 
-    const mergedTranscription = pickBestTranscription(
-      primaryResult.transcription,
-      secondaryResult.transcription,
-      validation,
-    );
+    const mergedTranscription = primaryText || secondaryText;
 
     await base44.asServiceRole.entities.Essay.update(essayId, {
       status: 'reviewing',
@@ -56,8 +78,8 @@ Deno.serve(async (req: Request): Promise<Response> => {
       unrecognized_words: validation.unrecognizedWords,
       ocr_confidence: overallConfidence,
       ocr_segments: validation.segments,
-      ocr_primary: primaryResult.transcription,
-      ocr_secondary: secondaryResult.transcription,
+      ocr_primary: primaryText,
+      ocr_secondary: secondaryText,
       ocr_structure_warnings: structure.warnings,
       ocr_needs_review: true,
     });
@@ -79,9 +101,14 @@ Deno.serve(async (req: Request): Promise<Response> => {
     });
   } catch (error) {
     console.error(error);
-    return Response.json({ error: 'Erro interno.' }, { status: 500 });
+    const message = typeof error?.message === 'string' && error.message.trim()
+      ? error.message.slice(0, 280)
+      : 'Erro interno.';
+    return Response.json({ error: message }, { status: 500 });
   }
-});
+}
+
+export default processEssayScan;
 
 async function runRecognizer(base44: any, fileUrl: string, type: 'primary' | 'secondary') {
   const prompt = type === 'primary'
@@ -101,8 +128,4 @@ async function runRecognizer(base44: any, fileUrl: string, type: 'primary' | 'se
   });
 
   return { transcription: transcriptionFromLlm(result) };
-}
-
-function pickBestTranscription(primary: string, secondary: string, _validation: unknown): string {
-  return primary || secondary;
 }

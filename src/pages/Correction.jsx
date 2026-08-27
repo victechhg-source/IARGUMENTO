@@ -10,7 +10,7 @@ import CorrectionResults from '@/components/essay/CorrectionResults';
 import { Button } from '@/components/ui/button';
 import { Check, Plus, Info } from 'lucide-react';
 import CorrectorAvatar from '@/components/essay/CorrectorAvatar';
-import { fileUrlFromUpload, scanResultFromInvoke, unwrapSdkPayload } from '@/lib/sdkPayload';
+import { fileUrlFromUpload, scanResultFromInvoke, unwrapSdkPayload, messageFromCaught, listFromSdk } from '@/lib/sdkPayload';
 
 export default function Correction() {
   const [params] = useSearchParams();
@@ -86,7 +86,9 @@ export default function Correction() {
             return;
           }
           setEssayId(loaded.id);
-          const memberships = await base44.entities.ClassMembership.filter({ student_id: me.id, status: 'approved' });
+          const memberships = listFromSdk(
+            await base44.entities.ClassMembership.filter({ student_id: me.id, status: 'approved' })
+          );
           setHasApprovedClass(memberships.length > 0);
 
           if (loaded.status === 'completed') {
@@ -165,7 +167,9 @@ export default function Correction() {
       let id = essayId;
       if (!id) {
         const user = unwrapSdkPayload(await base44.auth.me());
-        const memberships = await base44.entities.ClassMembership.filter({ student_id: user.id, status: 'approved' });
+        const memberships = listFromSdk(
+          await base44.entities.ClassMembership.filter({ student_id: user.id, status: 'approved' })
+        );
         setHasApprovedClass(memberships.length > 0);
         const createRes = await base44.functions.invoke('createEssay', { banca: banca.id });
         const createPayload = unwrapSdkPayload(createRes);
@@ -201,7 +205,10 @@ export default function Correction() {
       );
       setPhase('review');
     } catch (error) {
-      addBotMessage('Ops, tive um problema ao processar sua redação. Tente enviar a foto ou PDF novamente.');
+      addBotMessage(
+        'Ops, tive um problema ao processar sua redação. Tente enviar a foto ou PDF novamente.\n\n' +
+        messageFromCaught(error)
+      );
       setPhase('upload');
     } finally {
       setLoading(false);
