@@ -49,11 +49,18 @@ function mockBase44({
             err.data = { error: `${name} failed` };
             throw err;
           }
-          if (name === 'createEssay') return create;
+          if (name === 'createEssay') {
+            assert.ok(payload.banca);
+            assert.ok(payload.file_url);
+            return create;
+          }
           if (name === 'updateEssayFlow') {
             assert.equal(payload.action, 'set_file');
             assert.ok(payload.file_url);
             assert.ok(payload.essayId);
+            if (failAt === 'set_file_not_found') {
+              return { error: 'Redação não encontrada.' };
+            }
             return setFile;
           }
           if (name === 'processEssayScan') {
@@ -67,14 +74,14 @@ function mockBase44({
   };
 }
 
-test('pipeline feliz: upload → create → set_file → scan', async () => {
+test('pipeline feliz: upload → create(file_url) → scan', async () => {
   const { client, calls } = mockBase44();
   const out = await runStudentDigitization({
     base44: client,
     file: { type: 'image/jpeg' },
     bancaId: 'ENEM',
   });
-  assert.deepEqual(calls, ['UploadFile', 'createEssay', 'updateEssayFlow', 'processEssayScan']);
+  assert.deepEqual(calls, ['UploadFile', 'createEssay', 'processEssayScan']);
   assert.equal(out.essayId, 'e1');
   assert.equal(out.created, true);
   assert.equal(out.approvedCount, 1);
@@ -106,6 +113,24 @@ test('pipeline: arquivo privado vira signed_url', async () => {
     { file_uri: 'private/u1/redacao.jpg' },
   );
   assert.equal(url, 'https://signed.example/x');
+});
+
+test('pipeline: set_file 404 cria nova redação em vez de reusar id morto', async () => {
+  const { client, calls } = mockBase44({ failAt: 'set_file_not_found' });
+  const out = await runStudentDigitization({
+    base44: client,
+    file: { type: 'image/jpeg' },
+    bancaId: 'ENEM',
+    existingEssayId: 'e-stale',
+  });
+  assert.deepEqual(calls, [
+    'UploadFile',
+    'updateEssayFlow',
+    'createEssay',
+    'processEssayScan',
+  ]);
+  assert.equal(out.essayId, 'e1');
+  assert.equal(out.created, true);
 });
 
 test('pipeline: falha no scan identifica a etapa', async () => {

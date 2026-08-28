@@ -1,4 +1,5 @@
 import {
+  essayIdFromCreate,
   fileUrlFromUpload,
   listFromSdk,
   messageFromCaught,
@@ -25,9 +26,13 @@ export async function resolveUploadedFileUrl(base44, uploadRes) {
     || (typeof signed?.signed_url === 'string' ? signed.signed_url.trim() : '');
 }
 
+function isNotFoundMessage(text) {
+  return typeof text === 'string' && /n[aã]o encontrada/i.test(text);
+}
+
 /**
- * Pipeline do aluno: upload → createEssay → set_file → processEssayScan.
- * Erros levam `step` para a UI saber em que etapa quebrou.
+ * Pipeline do aluno: upload → createEssay(file_url) → processEssayScan.
+ * Retomada usa set_file; se o id antigo 404, cria outra redação.
  */
 export async function runStudentDigitization({
   base44,
@@ -49,6 +54,34 @@ export async function runStudentDigitization({
     let created = false;
     let approvedCount = 0;
 
+    if (essayId) {
+      step = 'set_file';
+      try {
+        const setFileRes = unwrapSdkPayload(
+          await base44.functions.invoke('updateEssayFlow', {
+            essayId,
+            action: 'set_file',
+            file_url: fileUrl,
+          }),
+        );
+        if (setFileRes?.error && !setFileRes?.essay) {
+          if (!isNotFoundMessage(setFileRes.error)) {
+            const err = new Error(setFileRes.error);
+            err.step = step;
+            throw err;
+          }
+          essayId = '';
+        }
+      } catch (error) {
+        if (error.step === 'set_file' && !isNotFoundMessage(error.message)) throw error;
+        if (!isNotFoundMessage(messageFromCaught(error))) {
+          if (!error.step) error.step = step;
+          throw error;
+        }
+        essayId = '';
+      }
+    }
+
     if (!essayId) {
       step = 'createEssay';
       const user = unwrapSdkPayload(await base44.auth.me());
@@ -59,34 +92,23 @@ export async function runStudentDigitization({
         }),
       );
       approvedCount = memberships.length;
-      const createRes = await base44.functions.invoke('createEssay', { banca: bancaId });
+      const createRes = await base44.functions.invoke('createEssay', {
+        banca: bancaId,
+        file_url: fileUrl,
+      });
       const createPayload = unwrapSdkPayload(createRes);
-      if (createPayload?.error && !createPayload?.essay?.id) {
+      if (createPayload?.error && !essayIdFromCreate(createPayload)) {
         const err = new Error(createPayload.error);
         err.step = step;
         throw err;
       }
-      essayId = createPayload?.essay?.id;
+      essayId = essayIdFromCreate(createPayload) || essayIdFromCreate(createRes);
       if (!essayId) {
         const err = new Error('Não foi possível criar a redação.');
         err.step = step;
         throw err;
       }
       created = true;
-    }
-
-    step = 'set_file';
-    const setFileRes = unwrapSdkPayload(
-      await base44.functions.invoke('updateEssayFlow', {
-        essayId,
-        action: 'set_file',
-        file_url: fileUrl,
-      }),
-    );
-    if (setFileRes?.error && !setFileRes?.essay) {
-      const err = new Error(setFileRes.error);
-      err.step = step;
-      throw err;
     }
 
     step = 'processEssayScan';

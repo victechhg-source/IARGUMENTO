@@ -1,5 +1,12 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
 import { validateTranscription, validateStructure } from '../../shared/ocrValidation.ts';
+import {
+  authUserId,
+  essayFileUrl,
+  isSuspended,
+  ownsEssay,
+  unwrapEntity,
+} from '../../shared/entityAccess.ts';
 
 const TRANSCRIPTION_SCHEMA = {
   type: 'object',
@@ -100,23 +107,25 @@ async function processEssayScan(req: Request): Promise<Response> {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
-    if (!user) return Response.json({ error: 'Não autorizado' }, { status: 401 });
-    if (user.suspended === true) {
+    const userId = authUserId(user);
+    if (!userId) return Response.json({ error: 'Não autorizado' }, { status: 401 });
+    if (isSuspended(user)) {
       return Response.json({ error: 'Conta suspensa.' }, { status: 403 });
     }
 
     const body = await req.json().catch(() => ({}));
-    const { essayId } = body;
+    const essayId = typeof body.essayId === 'string' ? body.essayId.trim() : '';
     if (!essayId) {
       return Response.json({ error: 'essayId é obrigatório' }, { status: 400 });
     }
 
-    const essay = await base44.asServiceRole.entities.Essay.get(essayId);
-    if (!essay || essay.created_by_id !== user.id) {
+    const essay = unwrapEntity(await base44.asServiceRole.entities.Essay.get(essayId));
+    if (!essay || !ownsEssay(essay, userId)) {
       return Response.json({ error: 'Redação não encontrada' }, { status: 404 });
     }
 
-    if (!essay.original_image_url) {
+    const imageUrl = essayFileUrl(essay);
+    if (!imageUrl) {
       return Response.json(
         { error: 'Arquivo da redação não encontrado' },
         { status: 400 },
@@ -127,7 +136,7 @@ async function processEssayScan(req: Request): Promise<Response> {
       status: 'transcribing',
     });
 
-    const fileUrl = essay.original_image_url;
+    const fileUrl = imageUrl;
     const settled = await Promise.allSettled([
       invokeLlmTranscription(base44, fileUrl, recognizerPrompt('primary')),
       invokeLlmTranscription(base44, fileUrl, recognizerPrompt('secondary')),

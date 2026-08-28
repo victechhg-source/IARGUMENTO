@@ -63,7 +63,19 @@ export function privateFileUriFromUpload(res) {
   return typeof uri === 'string' ? uri.trim() : '';
 }
 
-/** Corpo de processEssayScan. Lança se a transcrição não veio. */
+/** Id da redação em { essay: { id } }, entidade no topo, ou envelope axios. */
+export function essayIdFromCreate(res) {
+  const payload = unwrapSdkPayload(res);
+  if (!payload || typeof payload !== 'object') return '';
+  const nested = payload.essay && typeof payload.essay === 'object'
+    ? payload.essay
+    : payload;
+  const candidates = [nested?.id, payload?.essay?.id, payload?.id, nested?.data?.id];
+  for (const candidate of candidates) {
+    if (typeof candidate === 'string' && candidate.trim()) return candidate.trim();
+  }
+  return '';
+}
 export function scanResultFromInvoke(res) {
   const payload = unwrapSdkPayload(res);
   if (payload && typeof payload.error === 'string' && typeof payload.transcription !== 'string') {

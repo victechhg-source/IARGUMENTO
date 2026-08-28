@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  essayIdFromCreate,
   unwrapSdkPayload,
   fileUrlFromUpload,
   scanResultFromInvoke,
@@ -19,7 +20,7 @@ function runStudentScanPath({ upload, me, create, scan }) {
   const user = unwrapSdkPayload(me);
   if (!user?.id) throw new Error('Usuário sem id.');
   const created = unwrapSdkPayload(create);
-  const essayId = created?.essay?.id;
+  const essayId = essayIdFromCreate(created);
   if (!essayId) throw new Error(created?.error || 'Não foi possível criar a redação.');
   const result = scanResultFromInvoke(scan);
   return { fileUrl, userId: user.id, essayId, transcription: result.transcription };
@@ -33,6 +34,12 @@ test('unwrap: payload direto do SDK atual', () => {
 test('unwrap: envelope axios { data }', () => {
   const inner = { essay: { id: 'e1' } };
   assert.deepEqual(unwrapSdkPayload({ data: inner }), inner);
+});
+
+test('essayIdFromCreate: { essay: { id } }, entidade no topo, envelope data', () => {
+  assert.equal(essayIdFromCreate({ essay: { id: 'e1' } }), 'e1');
+  assert.equal(essayIdFromCreate({ id: 'e2', banca: 'ENEM' }), 'e2');
+  assert.equal(essayIdFromCreate({ data: { essay: { id: 'e3' } } }), 'e3');
 });
 
 test('upload: file_url no topo', () => {
