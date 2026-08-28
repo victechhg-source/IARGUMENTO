@@ -171,3 +171,53 @@ export function digitizationErrorText(error) {
   const step = error?.step ? `Etapa ${error.step}: ` : '';
   return `${step}${messageFromCaught(error)}`;
 }
+
+function throwIfFunctionError(payload, step, fallback) {
+  if (payload?.error && !payload?.essay && !payload?.result) {
+    const err = new Error(payload.error);
+    err.step = step;
+    throw err;
+  }
+  if (!payload) {
+    const err = new Error(fallback);
+    err.step = step;
+    throw err;
+  }
+}
+
+export async function confirmStudentTranscription(base44, essayId, transcription) {
+  const step = 'confirm_transcription';
+  if (!essayId) {
+    const err = new Error('Redação não encontrada.');
+    err.step = step;
+    throw err;
+  }
+  const payload = unwrapSdkPayload(
+    await base44.functions.invoke('updateEssayFlow', {
+      essayId,
+      action: 'confirm_transcription',
+      transcription,
+    }),
+  );
+  throwIfFunctionError(payload, step, 'Não foi possível confirmar a transcrição.');
+  return payload;
+}
+
+export async function invokeCorrectionAgent(base44, essayId) {
+  const step = 'runCorrectionAgent';
+  if (!essayId) {
+    const err = new Error('Redação não encontrada.');
+    err.step = step;
+    throw err;
+  }
+  const payload = unwrapSdkPayload(
+    await base44.functions.invoke('runCorrectionAgent', { essayId }),
+  );
+  throwIfFunctionError(payload, step, 'Correção não retornada.');
+  if (!payload.result) {
+    const err = new Error(payload.error || 'Correção não retornada.');
+    err.step = step;
+    throw err;
+  }
+  return payload.result;
+}

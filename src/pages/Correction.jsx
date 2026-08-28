@@ -11,10 +11,13 @@ import { Button } from '@/components/ui/button';
 import { Check, Plus, Info } from 'lucide-react';
 import CorrectorAvatar from '@/components/essay/CorrectorAvatar';
 import { unwrapSdkPayload, listFromSdk } from '@/lib/sdkPayload';
+import { ownsEssay, unwrapEntity, authUserId } from '@/lib/entityAccess';
 import {
   digitizationErrorText,
   recoverDigitizationIfDone,
   runStudentDigitization,
+  confirmStudentTranscription,
+  invokeCorrectionAgent,
 } from '@/lib/essayPipeline';
 
 export default function Correction() {
@@ -56,14 +59,7 @@ export default function Correction() {
     correctionStarted.current = true;
     setPhase('correcting');
     try {
-      const response = await base44.functions.invoke('runCorrectionAgent', {
-        essayId: id,
-      });
-      const payload = unwrapSdkPayload(response);
-      const result = payload?.result;
-      if (!result) {
-        throw new Error(payload?.error || 'Correção não retornada.');
-      }
+      const result = await invokeCorrectionAgent(base44, id);
       setCorrection(result);
       addBotMessage('Correção concluída. Confira o resultado completo abaixo:');
       setPhase('results');
@@ -87,15 +83,16 @@ export default function Correction() {
       (async () => {
         try {
           const [loadedRaw, meRaw] = await Promise.all([base44.entities.Essay.get(essayParam), base44.auth.me()]);
-          const loaded = unwrapSdkPayload(loadedRaw);
+          const loaded = unwrapEntity(unwrapSdkPayload(loadedRaw));
           const me = unwrapSdkPayload(meRaw);
-          if (loaded.created_by_id !== me.id || loaded.banca !== banca.id) {
+          const meId = authUserId(me);
+          if (!ownsEssay(loaded, meId) || loaded.banca !== banca.id) {
             navigate('/historico', { replace: true });
             return;
           }
           setEssayId(loaded.id);
           const memberships = listFromSdk(
-            await base44.entities.ClassMembership.filter({ student_id: me.id, status: 'approved' })
+            await base44.entities.ClassMembership.filter({ student_id: meId, status: 'approved' })
           );
           setHasApprovedClass(memberships.length > 0);
 
@@ -222,9 +219,7 @@ export default function Correction() {
     addUserMessage('Transcrição revisada e confirmada.');
 
     try {
-      if (essayId) {
-        await base44.functions.invoke('updateEssayFlow', { essayId, action: 'confirm_transcription', transcription: editedText });
-      }
+      await confirmStudentTranscription(base44, essayId, editedText);
 
       addBotMessage(
         `Transcrição confirmada. A correção pelos critérios da banca **${banca.name}** foi iniciada.\n\n` +
@@ -235,7 +230,10 @@ export default function Correction() {
 
       await runCorrection(essayId);
     } catch (error) {
-      addBotMessage('Não foi possível confirmar a transcrição. Revise o texto e tente novamente.');
+      addBotMessage(
+        'Não foi possível confirmar a transcrição. Revise o texto e tente novamente.\n\n' +
+        digitizationErrorText(error)
+      );
       setPhase('review');
     } finally {
       setConfirming(false);

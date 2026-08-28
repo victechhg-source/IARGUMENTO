@@ -5,6 +5,8 @@ import {
   resolveUploadedFileUrl,
   digitizationErrorText,
   recoverDigitizationIfDone,
+  confirmStudentTranscription,
+  invokeCorrectionAgent,
 } from './essayPipeline.js';
 
 function mockBase44({
@@ -44,7 +46,7 @@ function mockBase44({
       functions: {
         invoke: async (name, payload) => {
           calls.push(name);
-          if (failAt === name) {
+          if (failAt === name && name !== 'runCorrectionAgent') {
             const err = new Error(`${name} failed`);
             err.data = { error: `${name} failed` };
             throw err;
@@ -55,6 +57,13 @@ function mockBase44({
             return create;
           }
           if (name === 'updateEssayFlow') {
+            if (payload.action === 'confirm_transcription') {
+              assert.ok(payload.transcription);
+              if (failAt === 'confirm_transcription') {
+                return { error: 'Redação não encontrada.' };
+              }
+              return { essay: { id: payload.essayId, status: 'correcting' } };
+            }
             assert.equal(payload.action, 'set_file');
             assert.ok(payload.file_url);
             assert.ok(payload.essayId);
@@ -62,6 +71,13 @@ function mockBase44({
               return { error: 'Redação não encontrada.' };
             }
             return setFile;
+          }
+          if (name === 'runCorrectionAgent') {
+            assert.ok(payload.essayId);
+            if (failAt === 'runCorrectionAgent') {
+              return { error: 'Redação não encontrada.' };
+            }
+            return { result: { final_grade: 800, max_grade: 1000, stages: [] } };
           }
           if (name === 'processEssayScan') {
             assert.ok(payload.essayId);
@@ -201,4 +217,28 @@ test('recover: ignora transcribing sem texto', async () => {
     { retries: 0, delayMs: 0 },
   );
   assert.equal(recovered, null);
+});
+
+test('correção: confirmar transcrição e obter result do agente', async () => {
+  const { client, calls } = mockBase44();
+  const result = await (async () => {
+    await confirmStudentTranscription(client, 'e1', 'Texto revisado.');
+    return invokeCorrectionAgent(client, 'e1');
+  })();
+  assert.ok(calls.includes('updateEssayFlow'));
+  assert.ok(calls.includes('runCorrectionAgent'));
+  assert.equal(result.final_grade, 800);
+});
+
+test('caso do print: corretor 404 depois da transcrição confirmada', async () => {
+  const { client } = mockBase44({ failAt: 'runCorrectionAgent' });
+  await confirmStudentTranscription(client, 'e1', 'Texto revisado.');
+  await assert.rejects(
+    () => invokeCorrectionAgent(client, 'e1'),
+    (err) => {
+      assert.equal(err.step, 'runCorrectionAgent');
+      assert.match(err.message, /Redação não encontrada/);
+      return true;
+    },
+  );
 });
