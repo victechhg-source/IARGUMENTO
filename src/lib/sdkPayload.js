@@ -33,16 +33,34 @@ export function listFromSdk(res) {
   return [];
 }
 
-/** URL devolvida por Core.UploadFile, nos dois envelopes. */
-export function fileUrlFromUpload(res) {
-  const payload = unwrapSdkPayload(res);
-  if (typeof payload?.file_url === 'string' && payload.file_url.trim()) {
-    return payload.file_url.trim();
-  }
-  if (typeof res?.file_url === 'string' && res.file_url.trim()) {
-    return res.file_url.trim();
+function firstHttpUrl(...candidates) {
+  for (const value of candidates) {
+    if (typeof value === 'string' && /^https?:\/\//i.test(value.trim())) {
+      return value.trim();
+    }
   }
   return '';
+}
+
+/** URL pública de UploadFile / signed URL, nos envelopes do SDK. */
+export function fileUrlFromUpload(res) {
+  const payload = unwrapSdkPayload(res) || {};
+  return firstHttpUrl(
+    payload.file_url,
+    payload.fileUrl,
+    payload.signed_url,
+    payload.url,
+    res?.file_url,
+    res?.fileUrl,
+    res?.signed_url,
+    res?.url,
+  );
+}
+
+export function privateFileUriFromUpload(res) {
+  const payload = unwrapSdkPayload(res) || {};
+  const uri = payload.file_uri || payload.fileUri || res?.file_uri;
+  return typeof uri === 'string' ? uri.trim() : '';
 }
 
 /** Corpo de processEssayScan. Lança se a transcrição não veio. */
@@ -58,20 +76,41 @@ export function scanResultFromInvoke(res) {
 }
 
 export function messageFromCaught(error) {
-  const nested = error?.data ?? error?.response?.data ?? error;
+  if (!error) return 'Não foi possível transcrever a redação.';
+  const nested = error.data ?? error.response?.data ?? error;
   const payload = unwrapSdkPayload(nested);
-  if (typeof payload?.error === 'string' && payload.error.trim()) return payload.error;
-  if (typeof nested?.error === 'string' && nested.error.trim()) return nested.error;
-  if (typeof error?.message === 'string' && error.message.trim()) return error.message;
+  const candidates = [
+    payload?.error,
+    nested?.error,
+    payload?.detail,
+    nested?.detail,
+    payload?.message,
+    error.message,
+  ];
+  for (const candidate of candidates) {
+    if (typeof candidate === 'string' && candidate.trim() && candidate !== '[object Object]') {
+      const text = candidate.trim();
+      if (/timeout of \d+ms/i.test(text)) {
+        return 'A transcrição ultrapassou o tempo de espera. Se a redação aparecer no histórico, abra e confirme; senão, envie de novo.';
+      }
+      return text.slice(0, 280);
+    }
+  }
   return 'Não foi possível transcrever a redação.';
 }
 
-/** Campo transcription de InvokeLLM, nos dois envelopes. */
+function stripFence(text) {
+  const trimmed = text.trim();
+  const fenced = trimmed.match(/^```(?:json)?\s*([\s\S]*?)```$/i);
+  return fenced ? fenced[1].trim() : trimmed;
+}
+
+/** Campo transcription de InvokeLLM / ExtractData, nos envelopes do SDK. */
 export function transcriptionFromLlm(result) {
   if (result == null) return '';
   if (typeof result === 'string') {
-    const trimmed = result.trim();
-    if (trimmed.startsWith('{')) {
+    const trimmed = stripFence(result);
+    if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
       try {
         return transcriptionFromLlm(JSON.parse(trimmed));
       } catch {
@@ -82,6 +121,15 @@ export function transcriptionFromLlm(result) {
   }
   if (typeof result !== 'object') return '';
   if (typeof result.transcription === 'string') return result.transcription;
-  if (typeof result.data?.transcription === 'string') return result.data.transcription;
+  if (typeof result.output?.transcription === 'string') return result.output.transcription;
+  if (typeof result.result?.transcription === 'string') return result.result.transcription;
+  if (typeof result.extracted_data?.transcription === 'string') {
+    return result.extracted_data.transcription;
+  }
+  if (result.data && result.data !== result) {
+    const nested = transcriptionFromLlm(result.data);
+    if (nested) return nested;
+  }
+  if (typeof result.status === 'string' && result.status === 'error') return '';
   return '';
 }

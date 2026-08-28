@@ -10,7 +10,12 @@ import CorrectionResults from '@/components/essay/CorrectionResults';
 import { Button } from '@/components/ui/button';
 import { Check, Plus, Info } from 'lucide-react';
 import CorrectorAvatar from '@/components/essay/CorrectorAvatar';
-import { fileUrlFromUpload, scanResultFromInvoke, unwrapSdkPayload, messageFromCaught, listFromSdk } from '@/lib/sdkPayload';
+import { unwrapSdkPayload, listFromSdk } from '@/lib/sdkPayload';
+import {
+  digitizationErrorText,
+  recoverDigitizationIfDone,
+  runStudentDigitization,
+} from '@/lib/essayPipeline';
 
 export default function Correction() {
   const [params] = useSearchParams();
@@ -54,7 +59,7 @@ export default function Correction() {
       const response = await base44.functions.invoke('runCorrectionAgent', {
         essayId: id,
       });
-      const payload = response?.data ?? response;
+      const payload = unwrapSdkPayload(response);
       const result = payload?.result;
       if (!result) {
         throw new Error(payload?.error || 'Correção não retornada.');
@@ -64,7 +69,10 @@ export default function Correction() {
       setPhase('results');
     } catch (error) {
       correctionStarted.current = false;
-      addBotMessage('Ops, tive um problema durante a correção. Tente novamente em instantes.');
+      addBotMessage(
+        'Ops, tive um problema durante a correção. Tente novamente em instantes.\n\n' +
+        digitizationErrorText(error)
+      );
       setPhase('review');
     }
   }
@@ -151,6 +159,26 @@ export default function Correction() {
     }
   }, [messages, phase, loading]);
 
+  function applyScanResult({ id, scan, created, approvedCount }) {
+    setEssayId(id);
+    if (created) setHasApprovedClass(approvedCount > 0);
+    setTranscription(scan.transcription);
+    setUnrecognized(scan.unrecognizedWords || []);
+    setConfidence(scan.confidence || 0);
+    setFlaggedSegments(scan.flaggedSegments || []);
+    setOcrStages(scan.stages || []);
+
+    const stageList = (scan.stages || []).map((s) => `- **${s.stage}** — ${s.detail}`).join('\n');
+    addBotMessage(
+      `Pipeline de digitalização concluído.\n\n${stageList}\n\n` +
+      (scan.flaggedSegments?.length > 0
+        ? `Identifiquei **${scan.flaggedSegments.length} segmento(s)** com baixa confiança — eles estão destacados abaixo.`
+        : `O reconhecimento atingiu **${Math.round((scan.confidence || 0) * 100)}% de confiança**.`) +
+      `\n\nRevise a transcrição abaixo e confirme antes de iniciarmos a correção.`
+    );
+    setPhase('review');
+  }
+
   async function handleUpload(file) {
     addUserMessage(`${file.type === 'application/pdf' ? 'PDF' : 'Foto'} da redação enviado.`);
     setLoading(true);
@@ -159,55 +187,26 @@ export default function Correction() {
     try {
       addBotMessage('Iniciando pipeline de digitalização. Vou executar cinco etapas: ingestão, reconhecimento duplo, validação determinística, cálculo de confiança e roteamento.');
 
-      const uploadRes = await base44.integrations.Core.UploadFile({ file });
-      const fileUrl = fileUrlFromUpload(uploadRes);
-      if (!fileUrl) {
-        throw new Error('Falha no envio do arquivo.');
-      }
-      let id = essayId;
-      if (!id) {
-        const user = unwrapSdkPayload(await base44.auth.me());
-        const memberships = listFromSdk(
-          await base44.entities.ClassMembership.filter({ student_id: user.id, status: 'approved' })
-        );
-        setHasApprovedClass(memberships.length > 0);
-        const createRes = await base44.functions.invoke('createEssay', { banca: banca.id });
-        const createPayload = unwrapSdkPayload(createRes);
-        id = createPayload?.essay?.id;
-        if (!id) {
-          throw new Error(createPayload?.error || 'Não foi possível criar a redação.');
-        }
-        setEssayId(id);
-      }
-      await base44.functions.invoke('updateEssayFlow', {
-        essayId: id,
-        action: 'set_file',
-        file_url: fileUrl,
+      const { essayId: id, scan, created, approvedCount } = await runStudentDigitization({
+        base44,
+        file,
+        bancaId: banca.id,
+        existingEssayId: essayId,
       });
-
-      const response = await base44.functions.invoke('processEssayScan', { essayId: id });
-      const result = scanResultFromInvoke(response);
-
-      setTranscription(result.transcription);
-      setUnrecognized(result.unrecognizedWords || []);
-      setConfidence(result.confidence || 0);
-      setFlaggedSegments(result.flaggedSegments || []);
-      setOcrStages(result.stages || []);
-
-      const stageList = (result.stages || []).map((s) => `- **${s.stage}** — ${s.detail}`).join('\n');
-
-      addBotMessage(
-        `Pipeline de digitalização concluído.\n\n${stageList}\n\n` +
-        (result.flaggedSegments?.length > 0
-          ? `Identifiquei **${result.flaggedSegments.length} segmento(s)** com baixa confiança — eles estão destacados abaixo.`
-          : `O reconhecimento atingiu **${Math.round((result.confidence || 0) * 100)}% de confiança**.`) +
-        `\n\nRevise a transcrição abaixo e confirme antes de iniciarmos a correção.`
-      );
-      setPhase('review');
+      applyScanResult({ id, scan, created, approvedCount });
     } catch (error) {
+      if (error?.essayId) setEssayId(error.essayId);
+      const recovered = await recoverDigitizationIfDone(base44, error?.essayId || essayId, {
+        retries: 2,
+        delayMs: 4000,
+      });
+      if (recovered) {
+        applyScanResult({ id: recovered.essayId, scan: recovered.scan });
+        return;
+      }
       addBotMessage(
         'Ops, tive um problema ao processar sua redação. Tente enviar a foto ou PDF novamente.\n\n' +
-        messageFromCaught(error)
+        digitizationErrorText(error)
       );
       setPhase('upload');
     } finally {

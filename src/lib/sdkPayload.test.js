@@ -49,6 +49,11 @@ test('upload: file_url dentro de data', () => {
   );
 });
 
+test('upload: file_url camelCase e signed_url', () => {
+  assert.equal(fileUrlFromUpload({ fileUrl: 'https://cdn.example/c.jpg' }), 'https://cdn.example/c.jpg');
+  assert.equal(fileUrlFromUpload({ signed_url: 'https://cdn.example/s.jpg' }), 'https://cdn.example/s.jpg');
+});
+
 test('upload: sem url devolve vazio (não lança)', () => {
   assert.equal(fileUrlFromUpload({}), '');
   assert.equal(fileUrlFromUpload(null), '');
@@ -86,6 +91,15 @@ test('llm: transcription direta ou envelopada', () => {
   assert.equal(transcriptionFromLlm({}), '');
 });
 
+test('llm: output/result do ExtractData e fence markdown', () => {
+  assert.equal(transcriptionFromLlm({ output: { transcription: 'c' } }), 'c');
+  assert.equal(transcriptionFromLlm({ result: { transcription: 'd' } }), 'd');
+  assert.equal(
+    transcriptionFromLlm('```json\n{"transcription":"e"}\n```'),
+    'e',
+  );
+});
+
 test('unwrap: NÃO destrói User com campo data (custom fields Base44)', () => {
   const me = { id: 'u1', email: 'a@b.c', data: { account_type: 'student' } };
   assert.equal(unwrapSdkPayload(me), me);
@@ -101,6 +115,13 @@ test('messageFromCaught lê error do invoke', () => {
   assert.equal(
     messageFromCaught({ data: { error: 'Arquivo da redação não encontrado' } }),
     'Arquivo da redação não encontrado',
+  );
+});
+
+test('messageFromCaught traduz timeout do cliente', () => {
+  assert.match(
+    messageFromCaught(new Error('timeout of 30000ms exceeded')),
+    /tempo de espera/,
   );
 });
 
