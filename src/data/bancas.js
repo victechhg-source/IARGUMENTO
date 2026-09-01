@@ -161,6 +161,43 @@ Assinatura (José/Josefa) em Texto de Opinião e Cartas — NUNCA nome real.`,
     ]
   },
   {
+    id: "UNIRV",
+    name: "UniRV",
+    full_name: "Universidade de Rio Verde",
+    description: "Redação dissertativo-argumentativa, 20–25 linhas obrigatórias. Grade de 8,0 pts × 1,5 = 12,0 pts. Penalidade exclusiva: -1,0 por citar autores/filósofos/filmes.",
+    max_grade: 12,
+    color: "#16a34a",
+    logo_url: "https://media.base44.com/images/public/6a6602cb58785bab45511cab/deb82ec2a_image.png",
+    theme: "Dissertativo-argumentativa",
+    official_criteria: `A redação da UniRV (Vestibular de Medicina e demais cursos) vale de 0 a 12,0 pontos (nota bruta × 1,5). A grade oficial avalia 4 seções:
+1. Apresentação do Texto (0 a 1,0 pt): adequação ao tema (0–0,3), letra legível (0–0,3), margens (0–0,2), ausência de rasuras (0–0,2).
+2. Aspectos Gramaticais (0 a 3,0 pts): escala por quantidade de erros: 0–3 erros = 3,0; 4–7 erros = 2,0; 8–10 erros = 1,0; ≥11 erros = 0,0. Erros: pontuação, acentuação, ortografia, concordância, regência, colocação pronominal.
+3. Aspectos Estruturais (0 a 4,0 pts): título (0–0,4), coesão/conectivos (0–0,8), domínio da norma culta e vocabulário (0–0,8), coerência na exposição das ideias (0–1,0), consistência argumentativa autoral (0–1,0).
+4. Penalidade Especial UniRV (0 ou -1,0): desconto de 1,0 ponto por citação explícita de autores, pensadores, filósofos, teorias/obras, fragmentos da coletânea, filmes, séries ou programas de TV. A banca quer argumentação AUTORAL.
+Nota zero absoluta: fuga ao tema, menos de 20 linhas (sem contar o título), plágio ou proposta não indicada.
+Extensão: mínimo 20 linhas, máximo 25 linhas (sem contar o título na linha 01).
+Título obrigatório na linha 01 sem linha em branco entre ele e o primeiro parágrafo.`,
+    school_criteria: `Critérios complementares da escola de redações (peso menor):
+- O texto dissertativo-argumentativo deve ter: introdução (tese + dois eixos), dois desenvolvimentos argumentativos e conclusão com perspectiva de superação.
+- Argumentação 100% autoral: sem citações de filósofos, autores, filmes, séries ou mídias (penalidade -1,0).
+- Dados estatísticos e fatos históricos sem autoria são permitidos (IBGE, Constituição, leis, eventos históricos).
+- Conectivos variados e transições fluidas entre parágrafos.
+- Vocabulário formal, preciso e elegante, compatível com o gênero dissertativo.`,
+    agent_guidance: `GRADE ESPECÍFICA UNIRV — aplique como referência prioritária (nota bruta 8,0 × 1,5 = nota final 12,0):
+- Apresentação (0–1,0): adequação ao tema (0–0,3) + legibilidade (0–0,3) + margens (0–0,2) + rasuras (0–0,2).
+- Aspectos Gramaticais (0–3,0): escala de erros: 0–3=3,0; 4–7=2,0; 8–10=1,0; ≥11=0,0.
+- Aspectos Estruturais (0–4,0): título (0–0,4) + coesão (0–0,8) + norma culta/vocabulário (0–0,8) + coerência (0–1,0) + consistência argumentativa autoral (0–1,0).
+- Penalidade (-1,0 ou 0): citação explícita de autores/filósofos/obras/filmes/séries/mídias → -1,0. Dados estatísticos sem autoria, fatos históricos, leis → sem penalidade.
+- ELIMINAÇÃO (nota zero total): fuga ao tema, < 20 linhas de texto (sem o título), plágio, proposta não indicada.
+- Nota final = (Apresentação + Gramaticais + Estruturais + Penalidade) × 1,5. Máximo: 12,0.`,
+    stages: [
+      { name: "Apresentação do Texto", max_score: 1, description: "Adequação ao tema, legibilidade, margens e ausência de rasuras" },
+      { name: "Aspectos Gramaticais", max_score: 3, description: "Pontuação, acentuação, ortografia, concordância, regência, colocação pronominal (escala por erros)" },
+      { name: "Aspectos Estruturais", max_score: 4, description: "Título, coesão/conectivos, vocabulário, coerência e consistência argumentativa autoral" },
+      { name: "Penalidade", max_score: 0, description: "Desconto de -1,0 por citação de autores, filósofos, filmes, séries ou fragmentos da coletânea" }
+    ]
+  },
+  {
     id: "UFG",
     name: "UFG",
     full_name: "Universidade Federal de Goiás",

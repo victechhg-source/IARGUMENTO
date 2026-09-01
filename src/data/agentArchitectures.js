@@ -21,7 +21,7 @@ export const MODELS = [
   'claude-sonnet-5',
 ];
 
-export const BANCA_OPTIONS = ['ENEM', 'FUVEST', 'UNICAMP', 'PUC', 'UFU', 'UFG'];
+export const BANCA_OPTIONS = ['ENEM', 'FUVEST', 'UNICAMP', 'PUC', 'UFU', 'UNIRV', 'UFG'];
 
 export const OCR_RECOGNIZER_PROMPTS = {
   primary:
@@ -87,6 +87,17 @@ export const BANCA_ARCHITECTURES = {
     architecture:
       'Chamada única com prompt genérico da banca + instruções adicionais do agente + base de RAG. O prompt editado aqui é aplicado ao vivo.',
     specialists: [],
+  },
+  UNIRV: {
+    fixed: true,
+    maxGrade: 12,
+    architecture:
+      '3 especialistas em paralelo + extração determinística de notas (NOTA_FINAL_GRAMATICA, NOTA_FINAL_APRESENTACAO, NOTA_FINAL_ESTRUTURA, NOTA_FINAL_PENALIDADE, ELIMINADO flag) + 1 chamada de síntese. Nota final = nota_bruta × 1,5 (máx 12,0). Nota zero se ELIMINADO=SIM. Penalidade -1,0 por citação de autores/filósofos/filmes/séries.',
+    specialists: [
+      { name: 'C1 — Aspectos Gramaticais', role: 'Norma culta: pontuação, acentuação, ortografia, concordância, regência, colocação pronominal (0–3,0). ÚNICO que reproduz a transcrição com erros em negrito. Escala: 0–3 erros=3,0; 4–7=2,0; 8–10=1,0; ≥11=0,0.' },
+      { name: 'C2 — Apresentação + Estruturais', role: 'Apresentação do Texto (0–1,0): tema, legibilidade, margens, rasuras. Aspectos Estruturais (0–4,0): título, coesão, vocabulário, coerência, consistência argumentativa autoral.' },
+      { name: 'C3 — Anulação + Penalidade', role: 'Decide ELIMINADO=SIM/NAO (fuga ao tema, < 20 linhas, plágio, proposta). Aplica penalidade -1,0 por citação de autores/filósofos/obras/filmes/séries/mídias.' },
+    ],
   },
   UFU: {
     fixed: true,

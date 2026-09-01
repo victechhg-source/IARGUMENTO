@@ -4,6 +4,7 @@ import { UFG_PROMPT_MOD, UFG_PROMPT_TEMA, UFG_PROMPT_GENERO_COESAO } from './ufg
 import { FUVEST_PROMPT_NP, FUVEST_PROMPT_GEN_COE, FUVEST_PROMPT_TEMA } from './fuvestSystemPrompts.ts';
 import { PUC_PROMPT_C1, PUC_PROMPT_C2, PUC_PROMPT_C3 } from './pucSystemPrompts.ts';
 import { UFU_PROMPT_C1, UFU_PROMPT_C2, UFU_PROMPT_C3 } from './ufuSystemPrompts.ts';
+import { UNIRV_PROMPT_C1, UNIRV_PROMPT_C2, UNIRV_PROMPT_C3 } from './unirvSystemPrompts.ts';
 import {
   persistFieldsFromResult,
   resultFromEssay,
@@ -119,7 +120,7 @@ export default async function(req) {
     const fileUrls = resources.filter((resource) => resource.file_url).map((resource) => resource.file_url);
     const model = agent?.model || 'automatic';
 
-    if (banca !== 'ENEM' && banca !== 'UFG' && banca !== 'FUVEST' && banca !== 'PUC' && banca !== 'UFU') {
+    if (banca !== 'ENEM' && banca !== 'UFG' && banca !== 'FUVEST' && banca !== 'PUC' && banca !== 'UFU' && banca !== 'UNIRV') {
       const result = await base44.asServiceRole.integrations.Core.InvokeLLM({
         prompt: basePrompt,
         response_json_schema: RESPONSE_SCHEMA,
@@ -131,6 +132,166 @@ export default async function(req) {
       const outputTokens = Math.ceil(JSON.stringify(result).length / 4);
       await base44.asServiceRole.entities.AgentUsage.create({ agent_id: agent?.id || '', agent_name: agent?.name || `Padrão ${banca}`, model, banca, essay_id: essayId, student_id: userId, school_ids: essay.school_ids || [], input_tokens: inputTokens, output_tokens: outputTokens, total_tokens: inputTokens + outputTokens });
       return Response.json({ result, usage: { input_tokens: inputTokens, output_tokens: outputTokens, total_tokens: inputTokens + outputTokens } });
+    }
+
+    // ─── Arquitetura UNIRV (Universidade de Rio Verde) ───
+    // Três especialistas rodam em paralelo:
+    //   C1 — Aspectos Gramaticais (0–3,0) — único que reproduz a transcrição
+    //   C2 — Apresentação do Texto (0–1,0) + Aspectos Estruturais (0–4,0)
+    //   C3 — Anulação (ELIMINADO) + Penalidade especial (-1,0 ou 0)
+    // Nota bruta = C1 + C2_apres + C2_estru + C3_penal → nota final = bruta × 1,5 (máx 12,0)
+    // Nota zero se ELIMINADO=SIM.
+    if (banca === 'UNIRV') {
+      const unirvTranscription = essay.transcription || '';
+      const unirvContextBlock = context ? `### Base de referência (Guia de Correção Oficial UniRV e Manual de Redação UniRV 2026)\n${context}\n\n` : '';
+
+      const runUnirvSpecialist = async (sysPrompt: string) => {
+        const fullPrompt = `${sysPrompt}\n\n${unirvContextBlock}REDAÇÃO DO ALUNO:\n"""\n${unirvTranscription}\n"""`;
+        const output = await base44.asServiceRole.integrations.Core.InvokeLLM({
+          prompt: fullPrompt,
+          model,
+          ...(fileUrls.length ? { file_urls: fileUrls } : {})
+        });
+        return String(output || '');
+      };
+
+      const [unirvC1Text, unirvC2Text, unirvC3Text] = await Promise.all(
+        [UNIRV_PROMPT_C1, UNIRV_PROMPT_C2, UNIRV_PROMPT_C3].map(runUnirvSpecialist)
+      );
+      console.log('[runCorrectionAgent][UNIRV] C1 (Gramaticais):', unirvC1Text.slice(0, 300));
+      console.log('[runCorrectionAgent][UNIRV] C2 (Apresentação+Estrutural):', unirvC2Text.slice(0, 300));
+      console.log('[runCorrectionAgent][UNIRV] C3 (Anulação+Penalidade):', unirvC3Text.slice(0, 300));
+
+      const unirvExtractNum = (text: string, key: string, min: number, max: number): number => {
+        const m = text.match(new RegExp(`${key}\\s*=\\s*(-?[\\d]+(?:[.,]\\d+)?)`, 'i'));
+        if (!m) return 0;
+        const v = parseFloat(m[1].replace(',', '.'));
+        return Math.max(min, Math.min(max, isNaN(v) ? 0 : Math.round(v * 10) / 10));
+      };
+      const unirvExtractInt = (text: string, key: string): number => {
+        const m = text.match(new RegExp(`${key}\\s*=\\s*(\\d+)`, 'i'));
+        return m ? parseInt(m[1], 10) : 0;
+      };
+      const unirvExtractFlag = (text: string, key: string): boolean => {
+        const m = text.match(new RegExp(`${key}\\s*=\\s*(SIM|NAO|NÃO)`, 'i'));
+        return m ? /^SIM$/i.test(m[1]) : false;
+      };
+
+      const notaGRAM = unirvExtractNum(unirvC1Text, 'NOTA_FINAL_GRAMATICA', 0, 3);
+      const totalErros = unirvExtractInt(unirvC1Text, 'TOTAL_ERROS_GRAMATICA');
+      const notaAPRES = unirvExtractNum(unirvC2Text, 'NOTA_FINAL_APRESENTACAO', 0, 1);
+      const notaESTRU = unirvExtractNum(unirvC2Text, 'NOTA_FINAL_ESTRUTURA', 0, 4);
+      const eliminado = unirvExtractFlag(unirvC3Text, 'ELIMINADO');
+      const motivoElim = (unirvC3Text.match(/MOTIVO_ELIMINACAO\s*=\s*(.+)/i)?.[1] ?? 'Não aplicável').trim();
+      const linhasContadas = unirvExtractInt(unirvC3Text, 'LINHAS_CONTADAS');
+      const notaPENAL = unirvExtractNum(unirvC3Text, 'NOTA_FINAL_PENALIDADE', -1, 0);
+
+      const notaBruta = Math.max(0, Math.min(8, Math.round((notaAPRES + notaGRAM + notaESTRU + notaPENAL) * 10) / 10));
+      const notaFinal = eliminado ? 0 : Math.min(12, Math.round(notaBruta * 1.5 * 100) / 100);
+
+      console.log('[runCorrectionAgent][UNIRV] Notas:', { notaGRAM, totalErros, notaAPRES, notaESTRU, notaPENAL, notaBruta, notaFinal, eliminado, motivoElim, linhasContadas });
+
+      const unirvStageNames = ['Apresentação do Texto', 'Aspectos Gramaticais', 'Aspectos Estruturais', 'Penalidade'];
+      const unirvMaxScores = [1, 3, 4, 0];
+      const unirvNotes = [notaAPRES, notaGRAM, notaESTRU, notaPENAL];
+
+      const unirvSynthesisSchema = {
+        type: 'object',
+        properties: {
+          annotated_text: { type: 'string' },
+          memorable_strengths: { type: 'array', items: { type: 'string' } },
+          stages: { type: 'array', items: { type: 'object', properties: {
+            stage: { type: 'string' }, score: { type: 'number' }, max_score: { type: 'number' }, summary: { type: 'string' },
+            findings: { type: 'array', items: { type: 'object', properties: {
+              id: { type: 'string' }, type: { type: 'string' }, excerpt: { type: 'string' },
+              explanation: { type: 'string' }, suggestion: { type: 'string' }, video_suggestion: { type: 'string' }
+            } } }
+          }, required: ['stage', 'summary', 'findings'] } },
+          writing_suggestions: { type: 'array', items: { type: 'string' } },
+          study_suggestions: { type: 'array', items: { type: 'string' } }
+        },
+        required: ['annotated_text', 'memorable_strengths', 'stages', 'writing_suggestions', 'study_suggestions']
+      };
+
+      const unirvAvisos: string[] = [];
+      if (eliminado) unirvAvisos.push(`REDAÇÃO ANULADA (nota zero). Motivo: ${motivoElim}. Linhas contadas: ${linhasContadas}.`);
+      if (notaPENAL < 0 && !eliminado) unirvAvisos.push('PENALIDADE -1,0 aplicada por citação proibida (autores/filósofos/filmes/séries/mídias).');
+      if (!eliminado && linhasContadas > 0 && linhasContadas < 20) unirvAvisos.push(`ATENÇÃO: ${linhasContadas} linha(s) — abaixo do mínimo de 20 exigido.`);
+
+      const unirvSynthesisPrompt = `Você é o ORQUESTRADOR da devolutiva final da redação do Vestibular UniRV. Três corretores avaliaram em paralelo:
+- C1 — Aspectos Gramaticais (único que reproduz a transcrição com erros em negrito)
+- C2 — Apresentação do Texto + Aspectos Estruturais
+- C3 — Anulação e Penalidade Especial
+
+${unirvAvisos.length ? 'AVISOS CRÍTICOS: ' + unirvAvisos.join(' | ') : ''}
+
+RELATÓRIOS DOS CORRETORES:
+--- C1 (Gramaticais) ---
+${unirvC1Text}
+--- C2 (Apresentação + Estruturais) ---
+${unirvC2Text}
+--- C3 (Anulação + Penalidade) ---
+${unirvC3Text}
+---
+
+REDAÇÃO DO ALUNO:
+"""
+${unirvTranscription}
+"""
+
+NOTAS EXTRAÍDAS:
+- Apresentação do Texto = ${notaAPRES.toFixed(1)}/1,0
+- Aspectos Gramaticais = ${notaGRAM.toFixed(1)}/3,0 (${totalErros} erro(s) identificado(s))
+- Aspectos Estruturais = ${notaESTRU.toFixed(1)}/4,0
+- Penalidade = ${notaPENAL.toFixed(1)}
+- NOTA BRUTA = ${notaBruta.toFixed(1)}/8,0
+- NOTA FINAL = ${notaFinal.toFixed(2)}/12,0 (bruta × 1,5)
+${eliminado ? '⚠️ REDAÇÃO ANULADA — nota final = 0.' : ''}
+Preencha "score" e "max_score" de cada stage com os valores acima. Não recalcule.
+
+Monte a devolutiva final no formato JSON. Seja MINUCIOSO: enumere TODOS os erros e acertos por critério.
+
+1. "annotated_text": string VAZIA (""). A marcação será gerada automaticamente. Garanta que CADA finding.excerpt seja cópia EXATA (verbatim) de um trecho real da redação.
+2. "stages": 4 entradas nesta ordem: "Apresentação do Texto", "Aspectos Gramaticais", "Aspectos Estruturais", "Penalidade".
+   - Apresentação: score=${notaAPRES.toFixed(1)}, max_score=1. Baseie-se no C2.
+   - Aspectos Gramaticais: score=${notaGRAM.toFixed(1)}, max_score=3. Baseie-se no C1. Liste TODOS os erros como findings "error" com excerpt verbatim.
+   - Aspectos Estruturais: score=${notaESTRU.toFixed(1)}, max_score=4. Baseie-se no C2.
+   - Penalidade: score=${notaPENAL.toFixed(1)}, max_score=0. Baseie-se no C3. Se houve penalidade, liste o(s) trecho(s) como findings "error".
+3. "memorable_strengths": até 3 acertos memoráveis.
+4. "writing_suggestions": 3 a 5 sugestões práticas.
+5. "study_suggestions": 3 a 5 sugestões de estudo.${unirvAvisos.length ? ' Inclua em study_suggestions: ' + unirvAvisos.join('; ') + '.' : ''}
+Retorne apenas o JSON.`;
+
+      const unirvSynth = await base44.asServiceRole.integrations.Core.InvokeLLM({
+        prompt: unirvSynthesisPrompt,
+        response_json_schema: unirvSynthesisSchema,
+        model,
+        ...(fileUrls.length ? { file_urls: fileUrls } : {})
+      });
+
+      const unirvFinalStages = unirvStageNames.map((name, i) => {
+        const ss = Array.isArray(unirvSynth?.stages) ? unirvSynth.stages[i] : null;
+        const synthScore = typeof ss?.score === 'number' ? ss.score : null;
+        const score = synthScore !== null ? Math.max(i === 3 ? -1 : 0, Math.min(unirvMaxScores[i], synthScore)) : unirvNotes[i];
+        const findings = (ss?.findings || []).map((f, fi) => ({ ...f, id: f?.id || `c${i + 1}-${fi + 1}` }));
+        return { stage: ss?.stage || name, score, max_score: unirvMaxScores[i], summary: ss?.summary || '', findings };
+      });
+
+      const unirvResult = {
+        annotated_text: buildAnnotatedText(unirvTranscription, unirvFinalStages) || unirvSynth?.annotated_text || '',
+        memorable_strengths: unirvSynth?.memorable_strengths || [],
+        stages: unirvFinalStages,
+        writing_suggestions: unirvSynth?.writing_suggestions || [],
+        study_suggestions: unirvSynth?.study_suggestions || [],
+        final_grade: notaFinal,
+        max_grade: 12
+      };
+
+      const unirvInputTokens = Math.ceil((unirvC1Text.length + unirvC2Text.length + unirvC3Text.length + unirvSynthesisPrompt.length + basePrompt.length) / 4);
+      const unirvOutputTokens = Math.ceil(JSON.stringify(unirvResult).length / 4);
+      await persistResult(unirvResult);
+      await base44.asServiceRole.entities.AgentUsage.create({ agent_id: agent?.id || '', agent_name: agent?.name || 'Padrão UniRV', model, banca, essay_id: essayId, student_id: userId, school_ids: essay.school_ids || [], input_tokens: unirvInputTokens, output_tokens: unirvOutputTokens, total_tokens: unirvInputTokens + unirvOutputTokens });
+      return Response.json({ result: unirvResult, usage: { input_tokens: unirvInputTokens, output_tokens: unirvOutputTokens, total_tokens: unirvInputTokens + unirvOutputTokens }, ...(debug ? { _debug: { specialists: { c1: unirvC1Text, c2: unirvC2Text, c3: unirvC3Text }, extractedNotes: { notaGRAM, totalErros, notaAPRES, notaESTRU, notaPENAL, notaBruta, notaFinal, eliminado, motivoElim, linhasContadas }, synthesis: unirvSynth } } : {}) });
     }
 
     // ─── Arquitetura UFU (Universidade Federal de Uberlândia) ───
