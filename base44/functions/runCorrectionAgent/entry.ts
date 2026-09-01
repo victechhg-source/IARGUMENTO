@@ -2,6 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
 import { ENEM_PROMPT_C1, ENEM_PROMPT_C23, ENEM_PROMPT_C45 } from './enemSystemPrompts.ts';
 import { UFG_PROMPT_MOD, UFG_PROMPT_TEMA, UFG_PROMPT_GENERO_COESAO } from './ufgSystemPrompts.ts';
 import { FUVEST_PROMPT_NP, FUVEST_PROMPT_GEN_COE, FUVEST_PROMPT_TEMA } from './fuvestSystemPrompts.ts';
+import { PUC_PROMPT_C1, PUC_PROMPT_C2, PUC_PROMPT_C3 } from './pucSystemPrompts.ts';
 import {
   persistFieldsFromResult,
   resultFromEssay,
@@ -117,7 +118,7 @@ export default async function(req) {
     const fileUrls = resources.filter((resource) => resource.file_url).map((resource) => resource.file_url);
     const model = agent?.model || 'automatic';
 
-    if (banca !== 'ENEM' && banca !== 'UFG' && banca !== 'FUVEST') {
+    if (banca !== 'ENEM' && banca !== 'UFG' && banca !== 'FUVEST' && banca !== 'PUC') {
       const result = await base44.asServiceRole.integrations.Core.InvokeLLM({
         prompt: basePrompt,
         response_json_schema: RESPONSE_SCHEMA,
@@ -129,6 +130,158 @@ export default async function(req) {
       const outputTokens = Math.ceil(JSON.stringify(result).length / 4);
       await base44.asServiceRole.entities.AgentUsage.create({ agent_id: agent?.id || '', agent_name: agent?.name || `Padrão ${banca}`, model, banca, essay_id: essayId, student_id: userId, school_ids: essay.school_ids || [], input_tokens: inputTokens, output_tokens: outputTokens, total_tokens: inputTokens + outputTokens });
       return Response.json({ result, usage: { input_tokens: inputTokens, output_tokens: outputTokens, total_tokens: inputTokens + outputTokens } });
+    }
+
+    // ─── Arquitetura PUC-GO ───
+    // Três especialistas rodam em paralelo:
+    //   C1 — Gênero/Condição Enunciativa (0–2.5) + Tema/Projeto de Texto (0–2.5)
+    //   C2 — Argumentação e Uso da Coletânea/Repertório (0–2.5)
+    //   C3 — Coesão, Estilo e Norma Culta (0–2.5) — único que reproduz a transcrição
+    // Total máximo: 10.0. Teto de 4,0 se extensão < 15 linhas.
+    if (banca === 'PUC') {
+      const pucTranscription = essay.transcription || '';
+      const pucSpecialistPrompts = [PUC_PROMPT_C1, PUC_PROMPT_C2, PUC_PROMPT_C3];
+      const pucContextBlock = context ? `### Base de referência (Diretrizes e Critérios de Correção PUC-GO)\n${context}\n\n` : '';
+
+      const runPucSpecialist = async (sysPrompt: string) => {
+        const fullPrompt = `${sysPrompt}\n\n${pucContextBlock}REDAÇÃO DO ALUNO:\n"""\n${pucTranscription}\n"""`;
+        const output = await base44.asServiceRole.integrations.Core.InvokeLLM({
+          prompt: fullPrompt,
+          model,
+          ...(fileUrls.length ? { file_urls: fileUrls } : {})
+        });
+        return String(output || '');
+      };
+
+      const [pucC1Text, pucC2Text, pucC3Text] = await Promise.all(pucSpecialistPrompts.map(runPucSpecialist));
+      console.log('[runCorrectionAgent][PUC] C1:', pucC1Text.slice(0, 300));
+      console.log('[runCorrectionAgent][PUC] C2:', pucC2Text.slice(0, 300));
+      console.log('[runCorrectionAgent][PUC] C3:', pucC3Text.slice(0, 300));
+
+      const pucExtractDecimal = (text: string, key: string): number => {
+        const m = text.match(new RegExp(`${key}\\s*=\\s*([\\d]+(?:[.,]\\d+)?)`, 'i'));
+        if (!m) return 0;
+        const v = parseFloat(m[1].replace(',', '.'));
+        return Math.max(0, Math.min(2.5, isNaN(v) ? 0 : Math.round(v * 10) / 10));
+      };
+      const pucExtractFlag = (text: string, key: string): boolean => {
+        const m = text.match(new RegExp(`${key}\\s*=\\s*(SIM|NAO|NÃO)`, 'i'));
+        return m ? /^SIM$/i.test(m[1]) : false;
+      };
+
+      const notaGENERO = pucExtractDecimal(pucC1Text, 'NOTA_FINAL_GENERO');
+      const notaTEMA = pucExtractDecimal(pucC1Text, 'NOTA_FINAL_TEMA');
+      const notaARGUMENTACAO = pucExtractDecimal(pucC2Text, 'NOTA_FINAL_ARGUMENTACAO');
+      const notaCOESAO = pucExtractDecimal(pucC3Text, 'NOTA_FINAL_COESAO');
+      const extensaoInsuficiente = pucExtractFlag(pucC1Text, 'EXTENSAO_INSUFICIENTE');
+      const assinaturaDetectada = pucExtractFlag(pucC1Text, 'ASSINATURA_DETECTADA');
+
+      let pucTotal = Math.round((notaGENERO + notaTEMA + notaARGUMENTACAO + notaCOESAO) * 10) / 10;
+      let tetoAplicado = false;
+      if (extensaoInsuficiente && pucTotal > 4.0) { pucTotal = 4.0; tetoAplicado = true; }
+      console.log('[runCorrectionAgent][PUC] Notas:', { notaGENERO, notaTEMA, notaARGUMENTACAO, notaCOESAO, pucTotal, extensaoInsuficiente, assinaturaDetectada, tetoAplicado });
+
+      const pucStageNames = ['Gênero e Condição Enunciativa', 'Tema e Projeto de Texto', 'Argumentação e Coletânea', 'Coesão, Estilo e Norma Culta'];
+      const pucMaxScores = [2.5, 2.5, 2.5, 2.5];
+      const pucNotes = [notaGENERO, notaTEMA, notaARGUMENTACAO, notaCOESAO];
+
+      const pucSynthesisSchema = {
+        type: 'object',
+        properties: {
+          annotated_text: { type: 'string' },
+          memorable_strengths: { type: 'array', items: { type: 'string' } },
+          stages: { type: 'array', items: { type: 'object', properties: {
+            stage: { type: 'string' },
+            score: { type: 'number' },
+            max_score: { type: 'number' },
+            summary: { type: 'string' },
+            findings: { type: 'array', items: { type: 'object', properties: {
+              id: { type: 'string' }, type: { type: 'string' }, excerpt: { type: 'string' },
+              explanation: { type: 'string' }, suggestion: { type: 'string' }, video_suggestion: { type: 'string' }
+            } } }
+          }, required: ['stage', 'summary', 'findings'] } },
+          writing_suggestions: { type: 'array', items: { type: 'string' } },
+          study_suggestions: { type: 'array', items: { type: 'string' } }
+        },
+        required: ['annotated_text', 'memorable_strengths', 'stages', 'writing_suggestions', 'study_suggestions']
+      };
+
+      const pucElimAviso = (notaTEMA === 0 || notaGENERO === 0) ? ' O texto incorreu em hipótese de nota zero (fuga ao tema ou gênero incorreto). Inclua aviso claro em study_suggestions.' : '';
+      const pucTetoAviso = tetoAplicado ? ` ATENÇÃO: o texto tem menos de 15 linhas — nota total limitada a 4,0/10,0 (teto oficial PUC-GO). Nota bruta seria ${(notaGENERO + notaTEMA + notaARGUMENTACAO + notaCOESAO).toFixed(1)}/10,0.` : '';
+      const pucAssinaturaAviso = assinaturaDetectada ? ' ATENÇÃO: assinatura nominal detectada em Carta — infração grave, desconto já aplicado pelo C1 na nota de Gênero.' : '';
+
+      const pucSynthesisPrompt = `Você é o ORQUESTRADOR da devolutiva final da redação do Vestibular PUC-GO. Três corretores avaliaram a redação em paralelo:
+- Corretor C1 — Gênero/Condição Enunciativa + Tema/Projeto de Texto
+- Corretor C2 — Argumentação e Uso da Coletânea/Repertório
+- Corretor C3 — Coesão, Estilo e Norma Culta (produziu a transcrição integral com desvios em negrito)
+
+RELATÓRIOS DOS CORRETORES:
+--- C1 (Gênero + Tema) ---
+${pucC1Text}
+--- C2 (Argumentação) ---
+${pucC2Text}
+--- C3 (Coesão + Norma) ---
+${pucC3Text}
+---
+
+REDAÇÃO DO ALUNO:
+"""
+${pucTranscription}
+"""
+
+NOTAS POR EIXO (extraídas deterministicamente dos marcadores NOTA_FINAL_* de cada corretor):
+- Gênero e Condição Enunciativa = ${notaGENERO}/2.5
+- Tema e Projeto de Texto = ${notaTEMA}/2.5
+- Argumentação e Coletânea = ${notaARGUMENTACAO}/2.5
+- Coesão, Estilo e Norma Culta = ${notaCOESAO}/2.5
+- NOTA TOTAL = ${pucTotal}/10.0${pucTetoAviso}${pucAssinaturaAviso}
+Preencha "score" e "max_score" de cada stage EXATAMENTE com esses valores; não recalcule.
+
+Monte a devolutiva final no formato JSON. A correção deve ser MINUCIOSA: enumere TODOS os pontos relevantes de cada eixo (erros e acertos), com atenção especial aos ERROS — um finding por erro/acerto.
+
+1. "annotated_text": deixe como string VAZIA (""). A marcação será gerada automaticamente. Garanta que CADA finding.excerpt seja cópia EXATA (verbatim) de um trecho real da redação — mesma grafia, pontuação, acentos e erros; jamais corrija ou parafraseie.
+2. "stages": 4 entradas nesta ordem: "Gênero e Condição Enunciativa", "Tema e Projeto de Texto", "Argumentação e Coletânea", "Coesão, Estilo e Norma Culta". Para cada uma, preencha "score" (valor acima), "max_score" (2.5 cada), "summary" = síntese didática do corretor correspondente, "findings" = lista minuciosa com "id", "type" ("correct"/"warning"/"error"), "excerpt" (verbatim), "explanation" detalhada, "suggestion" concreta e "video_suggestion".
+   - Stage 1 (Gênero): baseie-se na parte Gênero/Enunciação do C1.
+   - Stage 2 (Tema): baseie-se na parte Tema/Projeto do C1.
+   - Stage 3 (Argumentação): baseie-se no relatório do C2.
+   - Stage 4 (Coesão + Norma): baseie-se no relatório do C3.
+3. "memorable_strengths": até 3 acertos memoráveis.
+4. "writing_suggestions": 3 a 5 sugestões práticas de escrita.
+5. "study_suggestions": 3 a 5 sugestões de estudo focadas nas fraquezas.${pucElimAviso}
+Retorne apenas o JSON.`;
+
+      const pucSynth = await base44.asServiceRole.integrations.Core.InvokeLLM({
+        prompt: pucSynthesisPrompt,
+        response_json_schema: pucSynthesisSchema,
+        model,
+        ...(fileUrls.length ? { file_urls: fileUrls } : {})
+      });
+
+      const pucFinalStages = pucStageNames.map((name, i) => {
+        const ss = Array.isArray(pucSynth?.stages) ? pucSynth.stages[i] : null;
+        const synthScore = typeof ss?.score === 'number' ? ss.score : null;
+        const score = synthScore !== null ? Math.max(0, Math.min(pucMaxScores[i], synthScore)) : pucNotes[i];
+        const findings = (ss?.findings || []).map((f, fi) => ({ ...f, id: f?.id || `c${i + 1}-${fi + 1}` }));
+        return { stage: ss?.stage || name, score, max_score: pucMaxScores[i], summary: ss?.summary || '', findings };
+      });
+      const pucComputedTotal = Math.min(pucTotal, pucFinalStages.reduce((s, st) => s + st.score, 0));
+      console.log('[runCorrectionAgent][PUC] Notas finais:', pucFinalStages.map((s) => s.score), 'total', pucComputedTotal);
+
+      const pucResult = {
+        annotated_text: buildAnnotatedText(pucTranscription, pucFinalStages) || pucSynth?.annotated_text || '',
+        memorable_strengths: pucSynth?.memorable_strengths || [],
+        stages: pucFinalStages,
+        writing_suggestions: pucSynth?.writing_suggestions || [],
+        study_suggestions: pucSynth?.study_suggestions || [],
+        final_grade: pucComputedTotal,
+        max_grade: 10
+      };
+
+      const pucInputTokens = Math.ceil((pucC1Text.length + pucC2Text.length + pucC3Text.length + pucSynthesisPrompt.length + basePrompt.length) / 4);
+      const pucOutputTokens = Math.ceil(JSON.stringify(pucResult).length / 4);
+      await persistResult(pucResult);
+      await base44.asServiceRole.entities.AgentUsage.create({ agent_id: agent?.id || '', agent_name: agent?.name || 'Padrão PUC', model, banca, essay_id: essayId, student_id: userId, school_ids: essay.school_ids || [], input_tokens: pucInputTokens, output_tokens: pucOutputTokens, total_tokens: pucInputTokens + pucOutputTokens });
+      return Response.json({ result: pucResult, usage: { input_tokens: pucInputTokens, output_tokens: pucOutputTokens, total_tokens: pucInputTokens + pucOutputTokens }, ...(debug ? { _debug: { specialists: { c1: pucC1Text, c2: pucC2Text, c3: pucC3Text }, extractedNotes: { notaGENERO, notaTEMA, notaARGUMENTACAO, notaCOESAO, pucTotal, extensaoInsuficiente, assinaturaDetectada, tetoAplicado }, synthesis: pucSynth } } : {}) });
     }
 
     // ─── Arquitetura FUVEST (USP) ───

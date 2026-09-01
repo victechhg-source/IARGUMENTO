@@ -5,6 +5,7 @@
 import { ENEM_PROMPT_C1, ENEM_PROMPT_C23, ENEM_PROMPT_C45 } from '../../base44/functions/runCorrectionAgent/enemSystemPrompts';
 import { FUVEST_PROMPT_NP, FUVEST_PROMPT_GEN_COE, FUVEST_PROMPT_TEMA } from '../../base44/functions/runCorrectionAgent/fuvestSystemPrompts';
 import { UFG_PROMPT_MOD, UFG_PROMPT_TEMA, UFG_PROMPT_GENERO_COESAO } from '../../base44/functions/runCorrectionAgent/ufgSystemPrompts';
+import { PUC_PROMPT_C1, PUC_PROMPT_C2, PUC_PROMPT_C3 } from '../../base44/functions/runCorrectionAgent/pucSystemPrompts';
 import { GENERIC_BANCAS, buildGenericCorrectionPrompt } from '../../base44/shared/genericBancaPrompt';
 
 // Prompts especialistas das bancas com arquitetura fixa (correção em paralelo).
@@ -23,6 +24,11 @@ export const SPECIALIST_PROMPTS = {
     { label: 'Corretor 1 — Modalidade Escrita (0–5)', prompt: UFG_PROMPT_MOD },
     { label: 'Corretor 2 — Tema (0–9)', prompt: UFG_PROMPT_TEMA },
     { label: 'Corretor 3 — Gênero Textual + Coesão/Coerência (0–5 / 0–5)', prompt: UFG_PROMPT_GENERO_COESAO },
+  ],
+  PUC: [
+    { label: 'C1 — Gênero/Condição Enunciativa + Tema/Projeto de Texto (0–2,5 cada)', prompt: PUC_PROMPT_C1 },
+    { label: 'C2 — Argumentação e Uso da Coletânea/Repertório (0–2,5)', prompt: PUC_PROMPT_C2 },
+    { label: 'C3 — Coesão, Estilo e Norma Culta (0–2,5)', prompt: PUC_PROMPT_C3 },
   ],
 };
 

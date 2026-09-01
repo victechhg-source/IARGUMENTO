@@ -21,7 +21,7 @@ export const MODELS = [
   'claude-sonnet-5',
 ];
 
-export const BANCA_OPTIONS = ['ENEM', 'FUVEST', 'UNICAMP', 'UNIFESP', 'UFG'];
+export const BANCA_OPTIONS = ['ENEM', 'FUVEST', 'UNICAMP', 'PUC', 'UFG'];
 
 export const OCR_RECOGNIZER_PROMPTS = {
   primary:
@@ -88,12 +88,16 @@ export const BANCA_ARCHITECTURES = {
       'Chamada única com prompt genérico da banca + instruções adicionais do agente + base de RAG. O prompt editado aqui é aplicado ao vivo.',
     specialists: [],
   },
-  UNIFESP: {
-    fixed: false,
-    maxGrade: 100,
+  PUC: {
+    fixed: true,
+    maxGrade: 10,
     architecture:
-      'Chamada única com prompt genérico da banca + instruções adicionais do agente + base de RAG. O prompt editado aqui é aplicado ao vivo.',
-    specialists: [],
+      '3 especialistas em paralelo + extração determinística de notas (marcadores NOTA_FINAL_*) + 1 chamada de síntese. Gêneros: Artigo de Opinião, Carta Argumentativa ou Crônica. Extensão: 15–30 linhas (teto 4,0 se < 15 linhas). Assinatura proibida em Carta.',
+    specialists: [
+      { name: 'C1 — Gênero + Tema', role: 'Gênero/Condição Enunciativa (0–2.5) + Tema/Projeto de Texto (0–2.5). Detecta gênero, mapeia as 8 perguntas enunciativas, aplica regras duras (extensão, título, assinatura).' },
+      { name: 'C2 — Argumentação', role: 'Argumentação e Uso da Coletânea/Repertório (0–2.5). Avalia diálogo crítico com a coletânea, movimentos argumentativos e repertório sociocultural.' },
+      { name: 'C3 — Coesão + Norma', role: 'Coesão, Estilo e Norma Culta (0–2.5). ÚNICO que reproduz a transcrição com desvios em negrito. Fórmula de cruzamento: (Norma_Culta + Coesao_Estilo) / 4.0 × 2.5.' },
+    ],
   },
 };
 
