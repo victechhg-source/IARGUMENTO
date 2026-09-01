@@ -11,7 +11,7 @@ import {
 // Create na entidade é admin-only; service role + created_by_id do aluno.
 // file_url opcional: grava original_image_url no mesmo request (evita
 // set_file 404 por id/dono divergente entre duas funções).
-const BANCAS = ['ENEM', 'FUVEST', 'UNICAMP', 'UNIFESP', 'UFG'];
+const BANCAS = ['ENEM', 'FUVEST', 'UNICAMP', 'PUC', 'UFU', 'UNIRV', 'UFG'];
 
 Deno.serve(async (req: Request): Promise<Response> => {
   try {
