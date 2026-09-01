@@ -122,6 +122,45 @@ Título obrigatório em Artigo e Crônica; assinatura proibida em Carta.`,
     ]
   },
   {
+    id: "UFU",
+    name: "UFU",
+    full_name: "Universidade Federal de Uberlândia",
+    description: "Redação com gênero à escolha (13 gêneros possíveis), coletânea de apoio. Grade de 20 pts × 4 = 80 pts finais.",
+    max_grade: 80,
+    color: "#312e81",
+    logo_url: "https://media.base44.com/images/public/6a6602cb58785bab45511cab/a7dd1338c_image.png",
+    theme: "Texto de Opinião, Editorial, Carta, Notícia, Resumo, Relato, Relatório, Perfil, Resenha ou Divulgação Científica",
+    official_criteria: `A redação da UFU (PAIES/Vestibular 2026) vale de 0 a 80 pontos (grade base × 4). A correção parte de 20,0 pontos com deduções progressivas por ocorrência em 4 critérios:
+1. Estrutura (8,0 pts base / 32,0 final): gênero, título, paráfrase da coletânea, repertório sociocultural, máscara enunciativa, elementos formais e extensão. Desconto: -0,5 (base) / -2,0 (final) por marcação. Tangenciamento: -4,0 base. Fuga de gênero: zera o critério.
+2. Coerência (6,0 pts base / 24,0 final): lógica argumentativa, adequação do título ao tema, manutenção da máscara. Desconto: -0,5 / -2,0 por marcação.
+3. Coesão (4,0 pts base / 16,0 final): conectivos, coesão referencial, paralelismo, progressão entre parágrafos. Desconto: -0,2 / -0,8 por marcação.
+4. Gramática (2,0 pts base / 8,0 final): ortografia, concordância, regência, pontuação, crase. Desconto: -0,2 / -0,8 por marcação.
+Nota zero absoluta: fuga total ao tema, texto com ≤12 linhas, não atendimento ao gênero.
+Desconto por extensão (sobre o total): de -0,5 (23-24 linhas) a -5,0 (13 linhas).
+Extensão ideal: 25–34 linhas. Paráfrase obrigatória. Repertório sociocultural obrigatório.
+Assinatura (José/Josefa) em Texto de Opinião e Cartas — NUNCA nome real.`,
+    school_criteria: `Critérios complementares da escola de redações (peso menor):
+- Condição enunciativa completa (8 perguntas: quem, para quem, onde, quando, por que, para que, o que, como escreve).
+- Paráfrase de qualidade: interpretação crítica da coletânea, não mera paráfrase superficial.
+- Repertório sociocultural externo legítimo e articulado à tese.
+- Máscara enunciativa consistente ao longo de todo o texto.
+- Estrutura específica por gênero conforme a tabela oficial.
+- Pronomes de tratamento corretos nas cartas (V. Ex.ª, V. Mag.ª, V. S.ª).`,
+    agent_guidance: `GRADE ESPECÍFICA UFU — aplique como referência prioritária (nota base 20 × 4 = nota final 80):
+- Estrutura (8,0/32,0): desconto -0,5/-2,0 por marcação. Tangenciamento = -4,0 base (metade do critério). Fuga de gênero = zera critério. Itens que geram marcação: ausência de título quando exigido / presença quando não exigido; ausência de paráfrase ou cópia literal; ausência de repertório sociocultural; ausência de máscara quando exigida; ausência de elemento formal de carta (cabeçalho, saudação, despedida, assinatura José/Josefa).
+- Coerência (6,0/24,0): desconto -0,5/-2,0 por marcação. Marque contradições lógicas, non sequitur, título vago/incoerente, máscara inadequada ao posicionamento.
+- Coesão (4,0/16,0): desconto -0,2/-0,8 por marcação. Marque falhas de conexão, pronome sem referente, ruptura de paralelismo, repetição lexical excessiva, conectivo com sentido incompatível.
+- Gramática (2,0/8,0): desconto -0,2/-0,8 por marcação. Cada erro gramatical conta individualmente.
+- Desconto por extensão: aplicado sobre o TOTAL — de -0,5 (23-24 linhas) a -5,0 (13 linhas). Abaixo de 13 linhas = nota zero total.
+- Nota zero: fuga total ao tema, ≤12 linhas, fuga total ao gênero (zera só Estrutura, não o texto todo).`,
+    stages: [
+      { name: "Estrutura", max_score: 32, description: "Gênero, título, paráfrase, repertório, máscara, elementos formais e extensão (base 8 × 4)" },
+      { name: "Coerência", max_score: 24, description: "Lógica argumentativa, adequação do título e manutenção da máscara (base 6 × 4)" },
+      { name: "Coesão", max_score: 16, description: "Conectivos, coesão referencial, paralelismo e progressão (base 4 × 4)" },
+      { name: "Gramática", max_score: 8, description: "Ortografia, concordância, regência, pontuação e crase (base 2 × 4)" }
+    ]
+  },
+  {
     id: "UFG",
     name: "UFG",
     full_name: "Universidade Federal de Goiás",

@@ -3,6 +3,7 @@ import { ENEM_PROMPT_C1, ENEM_PROMPT_C23, ENEM_PROMPT_C45 } from './enemSystemPr
 import { UFG_PROMPT_MOD, UFG_PROMPT_TEMA, UFG_PROMPT_GENERO_COESAO } from './ufgSystemPrompts.ts';
 import { FUVEST_PROMPT_NP, FUVEST_PROMPT_GEN_COE, FUVEST_PROMPT_TEMA } from './fuvestSystemPrompts.ts';
 import { PUC_PROMPT_C1, PUC_PROMPT_C2, PUC_PROMPT_C3 } from './pucSystemPrompts.ts';
+import { UFU_PROMPT_C1, UFU_PROMPT_C2, UFU_PROMPT_C3 } from './ufuSystemPrompts.ts';
 import {
   persistFieldsFromResult,
   resultFromEssay,
@@ -118,7 +119,7 @@ export default async function(req) {
     const fileUrls = resources.filter((resource) => resource.file_url).map((resource) => resource.file_url);
     const model = agent?.model || 'automatic';
 
-    if (banca !== 'ENEM' && banca !== 'UFG' && banca !== 'FUVEST' && banca !== 'PUC') {
+    if (banca !== 'ENEM' && banca !== 'UFG' && banca !== 'FUVEST' && banca !== 'PUC' && banca !== 'UFU') {
       const result = await base44.asServiceRole.integrations.Core.InvokeLLM({
         prompt: basePrompt,
         response_json_schema: RESPONSE_SCHEMA,

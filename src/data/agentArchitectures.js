@@ -21,7 +21,7 @@ export const MODELS = [
   'claude-sonnet-5',
 ];
 
-export const BANCA_OPTIONS = ['ENEM', 'FUVEST', 'UNICAMP', 'PUC', 'UFG'];
+export const BANCA_OPTIONS = ['ENEM', 'FUVEST', 'UNICAMP', 'PUC', 'UFU', 'UFG'];
 
 export const OCR_RECOGNIZER_PROMPTS = {
   primary:
@@ -87,6 +87,17 @@ export const BANCA_ARCHITECTURES = {
     architecture:
       'Chamada única com prompt genérico da banca + instruções adicionais do agente + base de RAG. O prompt editado aqui é aplicado ao vivo.',
     specialists: [],
+  },
+  UFU: {
+    fixed: true,
+    maxGrade: 80,
+    architecture:
+      '3 especialistas em paralelo + extração determinística de notas (marcadores NOTA_*_BASE20/BASE80) + 1 chamada de síntese. Grade base 20 × 4 = 80 pts finais. Desconto progressivo por marcação (não por faixa). Desconto por extensão aplicado sobre o total. Nota zero: fuga ao tema, ≤12 linhas ou fuga ao gênero (zera Estrutura).',
+    specialists: [
+      { name: 'C1 — Gramática', role: 'Norma culta: ortografia, concordância, regência, pontuação, crase (0–2,0 base / 0–8,0 final). ÚNICO que reproduz a transcrição com erros em negrito. Desconto: -0,2/-0,8 por marcação.' },
+      { name: 'C2 — Coerência + Coesão', role: 'Coerência (0–6,0/0–24,0): lógica, título, máscara. Desconto: -0,5/-2,0. Coesão (0–4,0/0–16,0): conectivos, referenciação, paralelismo. Desconto: -0,2/-0,8.' },
+      { name: 'C3 — Estrutura', role: 'Maior peso (0–8,0/0–32,0). Gênero (13 tipos), título, paráfrase, repertório, máscara, elementos formais, extensão. Desconto: -0,5/-2,0. Tangenciamento: -4,0 base. Fuga de gênero: zera critério.' },
+    ],
   },
   PUC: {
     fixed: true,

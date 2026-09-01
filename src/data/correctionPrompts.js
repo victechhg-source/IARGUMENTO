@@ -6,6 +6,7 @@ import { ENEM_PROMPT_C1, ENEM_PROMPT_C23, ENEM_PROMPT_C45 } from '../../base44/f
 import { FUVEST_PROMPT_NP, FUVEST_PROMPT_GEN_COE, FUVEST_PROMPT_TEMA } from '../../base44/functions/runCorrectionAgent/fuvestSystemPrompts';
 import { UFG_PROMPT_MOD, UFG_PROMPT_TEMA, UFG_PROMPT_GENERO_COESAO } from '../../base44/functions/runCorrectionAgent/ufgSystemPrompts';
 import { PUC_PROMPT_C1, PUC_PROMPT_C2, PUC_PROMPT_C3 } from '../../base44/functions/runCorrectionAgent/pucSystemPrompts';
+import { UFU_PROMPT_C1, UFU_PROMPT_C2, UFU_PROMPT_C3 } from '../../base44/functions/runCorrectionAgent/ufuSystemPrompts';
 import { GENERIC_BANCAS, buildGenericCorrectionPrompt } from '../../base44/shared/genericBancaPrompt';
 
 // Prompts especialistas das bancas com arquitetura fixa (correção em paralelo).
@@ -29,6 +30,11 @@ export const SPECIALIST_PROMPTS = {
     { label: 'C1 — Gênero/Condição Enunciativa + Tema/Projeto de Texto (0–2,5 cada)', prompt: PUC_PROMPT_C1 },
     { label: 'C2 — Argumentação e Uso da Coletânea/Repertório (0–2,5)', prompt: PUC_PROMPT_C2 },
     { label: 'C3 — Coesão, Estilo e Norma Culta (0–2,5)', prompt: PUC_PROMPT_C3 },
+  ],
+  UFU: [
+    { label: 'C1 — Gramática e Norma Culta (0–2,0 base / 0–8,0 final)', prompt: UFU_PROMPT_C1 },
+    { label: 'C2 — Coerência (0–6,0/24,0) + Coesão (0–4,0/16,0)', prompt: UFU_PROMPT_C2 },
+    { label: 'C3 — Estrutura: Gênero, Tema, Paráfrase, Repertório, Máscara (0–8,0/32,0)', prompt: UFU_PROMPT_C3 },
   ],
 };
 
