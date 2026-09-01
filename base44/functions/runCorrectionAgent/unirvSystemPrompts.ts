@@ -226,9 +226,10 @@ O candidato deve marcar qual alternativa (A, B ou C) escolheu e escrever sobre o
 - ABORDAGEM PARCIAL: o texto aborda o tema com equívocos pontuais → NÃO elimina.
 
 **B. Texto com menos de 20 linhas (sem contar a linha do título)**
-Conte as linhas de texto efetivamente escritas (excluindo o título na linha 01). Se houver menos de 20 linhas de texto → ELIMINADO=SIM.
+⚠️ A transcrição digital colapsa as quebras de linha originais da folha pautada, tornando a contagem direta de linhas imprecisa. Para estimar o número de linhas, CONTE AS PALAVRAS do texto (excluindo o título) e divida por 13 (média de palavras por linha em pauta padrão). Se o resultado for menor que 20 linhas → ELIMINADO=SIM.
+- Exemplo: 240 palavras ÷ 13 ≈ 18 linhas → menos de 20 → ELIMINADO=SIM.
 - Linhas em branco no meio do texto NÃO contam como linhas escritas.
-- Se não for possível contar com precisão, informe LINHAS_CONTADAS com o melhor estimado e registre a incerteza.
+- Informe LINHAS_CONTADAS com a estimativa calculada e PALAVRAS_CONTADAS com o total de palavras.
 
 **C. Plágio**
 Reprodução integral ou quase integral de textos motivadores ou de outros candidatos. NÃO confunda com paráfrase legítima do texto motivador.
@@ -299,4 +300,5 @@ Resumo objetivo das decisões de anulação e penalidade, com justificativa.
 ELIMINADO=<SIM ou NAO>
 MOTIVO_ELIMINACAO=<motivo objetivo ou "Não aplicável">
 LINHAS_CONTADAS=<N>
+PALAVRAS_CONTADAS=<N>
 NOTA_FINAL_PENALIDADE=<0.0 ou -1.0>`;

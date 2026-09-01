@@ -184,12 +184,24 @@ export default async function(req) {
       const eliminado = unirvExtractFlag(unirvC3Text, 'ELIMINADO');
       const motivoElim = (unirvC3Text.match(/MOTIVO_ELIMINACAO\s*=\s*(.+)/i)?.[1] ?? 'Não aplicável').trim();
       const linhasContadas = unirvExtractInt(unirvC3Text, 'LINHAS_CONTADAS');
+      // Contagem DETERMINÍSTICA de palavras → estimativa de linhas.
+      // A transcrição colapsa as quebras de linha originais, então contamos
+      // palavras e dividimos pela média de 13 palavras/linha (pauta UniRV).
+      const unirvPalavras = (unirvTranscription.match(/[\p{L}\p{N}]+/gu) || []).length;
+      const unirvLinhasDet = unirvPalavras > 0 ? Math.round(unirvPalavras / 13) : 0;
       const notaPENAL = unirvExtractNum(unirvC3Text, 'NOTA_FINAL_PENALIDADE', -1, 0);
 
+      // Força anulação se a estimativa determinística de linhas for < 20
+      let unirvEliminado = eliminado;
+      let unirvMotivoElim = motivoElim;
+      if (!unirvEliminado && unirvLinhasDet > 0 && unirvLinhasDet < 20) {
+        unirvEliminado = true;
+        unirvMotivoElim = `LINHAS_INSUFICIENTES (${unirvLinhasDet} linhas estimadas, ${unirvPalavras} palavras — mínimo de 20)`;
+      }
       const notaBruta = Math.max(0, Math.min(8, Math.round((notaAPRES + notaGRAM + notaESTRU + notaPENAL) * 10) / 10));
-      const notaFinal = eliminado ? 0 : Math.min(12, Math.round(notaBruta * 1.5 * 100) / 100);
+      const notaFinal = unirvEliminado ? 0 : Math.min(12, Math.round(notaBruta * 1.5 * 100) / 100);
 
-      console.log('[runCorrectionAgent][UNIRV] Notas:', { notaGRAM, totalErros, notaAPRES, notaESTRU, notaPENAL, notaBruta, notaFinal, eliminado, motivoElim, linhasContadas });
+      console.log('[runCorrectionAgent][UNIRV] Notas:', { notaGRAM, totalErros, notaAPRES, notaESTRU, notaPENAL, notaBruta, notaFinal, eliminado, motivoElim, linhasContadas, unirvPalavras, unirvLinhasDet, unirvEliminado, unirvMotivoElim });
 
       const unirvStageNames = ['Apresentação do Texto', 'Aspectos Gramaticais', 'Aspectos Estruturais', 'Penalidade'];
       const unirvMaxScores = [1, 3, 4, 0];
@@ -214,9 +226,8 @@ export default async function(req) {
       };
 
       const unirvAvisos: string[] = [];
-      if (eliminado) unirvAvisos.push(`REDAÇÃO ANULADA (nota zero). Motivo: ${motivoElim}. Linhas contadas: ${linhasContadas}.`);
-      if (notaPENAL < 0 && !eliminado) unirvAvisos.push('PENALIDADE -1,0 aplicada por citação proibida (autores/filósofos/filmes/séries/mídias).');
-      if (!eliminado && linhasContadas > 0 && linhasContadas < 20) unirvAvisos.push(`ATENÇÃO: ${linhasContadas} linha(s) — abaixo do mínimo de 20 exigido.`);
+      if (unirvEliminado) unirvAvisos.push(`REDAÇÃO ANULADA (nota zero). Motivo: ${unirvMotivoElim}.`);
+      if (notaPENAL < 0 && !unirvEliminado) unirvAvisos.push('PENALIDADE -1,0 aplicada por citação proibida (autores/filósofos/filmes/séries/mídias).');
 
       const unirvSynthesisPrompt = `Você é o ORQUESTRADOR da devolutiva final da redação do Vestibular UniRV. Três corretores avaliaram em paralelo:
 - C1 — Aspectos Gramaticais (único que reproduz a transcrição com erros em negrito)
@@ -246,7 +257,7 @@ NOTAS EXTRAÍDAS:
 - Penalidade = ${notaPENAL.toFixed(1)}
 - NOTA BRUTA = ${notaBruta.toFixed(1)}/8,0
 - NOTA FINAL = ${notaFinal.toFixed(2)}/12,0 (bruta × 1,5)
-${eliminado ? '⚠️ REDAÇÃO ANULADA — nota final = 0.' : ''}
+${unirvEliminado ? '⚠️ REDAÇÃO ANULADA — nota final = 0.' : ''}
 Preencha "score" e "max_score" de cada stage com os valores acima. Não recalcule.
 
 Monte a devolutiva final no formato JSON. Seja MINUCIOSO: enumere TODOS os erros e acertos por critério.
@@ -291,7 +302,7 @@ Retorne apenas o JSON.`;
       const unirvOutputTokens = Math.ceil(JSON.stringify(unirvResult).length / 4);
       await persistResult(unirvResult);
       await base44.asServiceRole.entities.AgentUsage.create({ agent_id: agent?.id || '', agent_name: agent?.name || 'Padrão UniRV', model, banca, essay_id: essayId, student_id: userId, school_ids: essay.school_ids || [], input_tokens: unirvInputTokens, output_tokens: unirvOutputTokens, total_tokens: unirvInputTokens + unirvOutputTokens });
-      return Response.json({ result: unirvResult, usage: { input_tokens: unirvInputTokens, output_tokens: unirvOutputTokens, total_tokens: unirvInputTokens + unirvOutputTokens }, ...(debug ? { _debug: { specialists: { c1: unirvC1Text, c2: unirvC2Text, c3: unirvC3Text }, extractedNotes: { notaGRAM, totalErros, notaAPRES, notaESTRU, notaPENAL, notaBruta, notaFinal, eliminado, motivoElim, linhasContadas }, synthesis: unirvSynth } } : {}) });
+      return Response.json({ result: unirvResult, usage: { input_tokens: unirvInputTokens, output_tokens: unirvOutputTokens, total_tokens: unirvInputTokens + unirvOutputTokens }, ...(debug ? { _debug: { specialists: { c1: unirvC1Text, c2: unirvC2Text, c3: unirvC3Text }, extractedNotes: { notaGRAM, totalErros, notaAPRES, notaESTRU, notaPENAL, notaBruta, notaFinal, eliminado, motivoElim, linhasContadas, unirvPalavras, unirvLinhasDet, unirvEliminado, unirvMotivoElim }, synthesis: unirvSynth } } : {}) });
     }
 
     // ─── Arquitetura UFU (Universidade Federal de Uberlândia) ───
