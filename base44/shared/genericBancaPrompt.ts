@@ -27,31 +27,34 @@ export const GENERIC_BANCAS = [
       { name: 'Leitura crítica', max_score: 10, description: 'Síntese e uso dos textos de apoio' },
     ],
   },
-  {
-    id: 'UNIFESP',
-    name: 'UNIFESP',
-    full_name: 'Universidade Federal de São Paulo',
-    max_grade: 100,
-    official_criteria: `A redação da UNIFESP avalia:
-- Compreensão e desenvolvimento do tema.
-- Argumentação lógica e consistente.
-- Estrutura dissertativo-argumentativa.
-- Domínio da norma-padrão.
-- Coesão e coerência textuais.`,
-    school_criteria: `Critérios complementares da escola de redações (peso menor):
-- Uso de repertório sociocultural relevante.
-- Clareza e objetividade.
-- Variedade de conectivos e recursos argumentativos.
-- Maturidade crítica na abordagem do tema.`,
-    stages: [
-      { name: 'Tema e proposta', max_score: 25, description: 'Compreensão e desenvolvimento do tema' },
-      { name: 'Argumentação', max_score: 25, description: 'Lógica e consistência argumentativa' },
-      { name: 'Estrutura', max_score: 20, description: 'Organização dissertativo-argumentativa' },
-      { name: 'Norma-padrão', max_score: 20, description: 'Gramática, ortografia e pontuação' },
-      { name: 'Coesão e coerência', max_score: 10, description: 'Fluidez e unidade textual' },
-    ],
-  },
 ];
+
+// PUC usa arquitetura especialista própria (não passa por buildGenericCorrectionPrompt).
+// Este objeto serve apenas como metadados para o painel de auditoria.
+export const PUC_BANCA_META = {
+  id: 'PUC',
+  name: 'PUC',
+  full_name: 'Pontifícia Universidade Católica de Goiás',
+  max_grade: 10,
+  official_criteria: `Critérios oficiais PUC-GO (5 × 2,0 pts = 10,0 pts):
+1. Tema: desenvolvimento do tema com uso crítico da coletânea.
+2. Gênero Textual: adequação ao gênero escolhido e condição enunciativa.
+3. Aspectos Linguísticos: norma-padrão, morfossintaxe, semântica e ortografia.
+4. Coerência: organização lógica e ausência de contradições.
+5. Coesão: recursos coesivos referenciais, sequenciais e recorrenciais.`,
+  schoolCriteria: `Critérios complementares da escola (peso menor):
+- Condição enunciativa completa (8 perguntas).
+- Diálogo crítico com a coletânea.
+- Movimentos argumentativos variados.
+- Estrutura específica por gênero.
+- Riqueza estilística e vocabular.`,
+  stages: [
+    { name: 'Gênero e Condição Enunciativa', max_score: 2.5, description: 'Adequação ao gênero, máscara enunciativa e regras duras' },
+    { name: 'Tema e Projeto de Texto', max_score: 2.5, description: 'Desenvolvimento do tema e uso da coletânea' },
+    { name: 'Argumentação e Coletânea', max_score: 2.5, description: 'Diálogo crítico com a coletânea e movimentos argumentativos' },
+    { name: 'Coesão, Estilo e Norma Culta', max_score: 2.5, description: 'Norma-padrão, coesão e estilo' },
+  ],
+};
 
 export function findGenericBanca(id) {
   return GENERIC_BANCAS.find((item) => item.id === id) || null;

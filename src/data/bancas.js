@@ -90,31 +90,35 @@ export const BANCAS = [
     ]
   },
   {
-    id: "UNIFESP",
-    name: "UNIFESP",
-    full_name: "Universidade Federal de São Paulo",
-    description: "Redação dissertativo-argumentativa com foco em argumentação consistente.",
-    max_grade: 100,
-    color: "#0891b2",
-    logo_url: "https://media.base44.com/images/public/6a6602cb58785bab45511cab/3ecd73927_images.jpeg",
-    theme: "Dissertativo-argumentativa",
-    official_criteria: `A redação da UNIFESP avalia:
-- Compreensão e desenvolvimento do tema.
-- Argumentação lógica e consistente.
-- Estrutura dissertativo-argumentativa.
-- Domínio da norma-padrão.
-- Coesão e coerência textuais.`,
+    id: "PUC",
+    name: "PUC",
+    full_name: "Pontifícia Universidade Católica de Goiás",
+    description: "Redação com gênero à escolha (Artigo de Opinião, Carta Argumentativa ou Crônica), 15–30 linhas, coletânea de apoio.",
+    max_grade: 10,
+    color: "#1e40af",
+    logo_url: "https://media.base44.com/images/public/6a6602cb58785bab45511cab/09138f594_image.png",
+    theme: "Artigo de Opinião, Carta Argumentativa ou Crônica",
+    official_criteria: `A redação da PUC-GO (Prova 2) vale de 0,0 a 10,0 pontos e é avaliada por 5 critérios oficiais, cada um de 0,0 a 2,0 pontos:
+1. Tema: desenvolvimento do tema proposto com uso crítico da coletânea.
+2. Gênero Textual: adequação ao gênero escolhido (Artigo de Opinião, Carta Argumentativa ou Crônica) e condição enunciativa.
+3. Aspectos Linguísticos: domínio da norma-padrão, morfossintaxe, semântica e convenções ortográficas.
+4. Coerência: organização lógica das ideias, articulação, ausência de contradições.
+5. Coesão: uso adequado de recursos linguísticos de coesão referencial, sequencial e recorrencial.
+Gêneros aceitos: Artigo de Opinião, Carta Argumentativa/Carta de Leitor, Crônica.
+Extensão: 15 a 30 linhas (teto de 4,0/10,0 se < 15 linhas).
+Nota zero: fuga total ao tema, cópia extensa/mecânica da coletânea sem projeto autoral, texto ilegível.
+Título obrigatório em Artigo e Crônica; assinatura proibida em Carta.`,
     school_criteria: `Critérios complementares da escola de redações (peso menor):
-- Uso de repertório sociocultural relevante.
-- Clareza e objetividade.
-- Variedade de conectivos e recursos argumentativos.
-- Maturidade crítica na abordagem do tema.`,
+- Mapeamento completo da condição enunciativa (as 8 perguntas: quem, para quem, onde, quando, por que, para que, o que, como escreve).
+- Diálogo crítico com a coletânea — mobilização autoral das vozes, não reprodução mecânica.
+- Movimentos argumentativos variados: causa/efeito, contra-argumentação, exemplificação, ironia.
+- Estrutura específica de cada gênero: Artigo (intro + tese + argumentos + conclusão); Carta (cabeçalho, vocativo, corpo, despedida sem assinatura); Crônica (episódio banal → reflexão social/filosófica).
+- Riqueza estilística e vocabular compatível com o gênero escolhido.`,
     stages: [
-      { name: "Tema e proposta", max_score: 25, description: "Compreensão e desenvolvimento do tema" },
-      { name: "Argumentação", max_score: 25, description: "Lógica e consistência argumentativa" },
-      { name: "Estrutura", max_score: 20, description: "Organização dissertativo-argumentativa" },
-      { name: "Norma-padrão", max_score: 20, description: "Gramática, ortografia e pontuação" },
-      { name: "Coesão e coerência", max_score: 10, description: "Fluidez e unidade textual" }
+      { name: "Gênero e Condição Enunciativa", max_score: 2.5, description: "Adequação ao gênero escolhido, máscara enunciativa, estrutura e regras duras (título, assinatura, extensão)" },
+      { name: "Tema e Projeto de Texto", max_score: 2.5, description: "Desenvolvimento do tema, uso da coletânea, progressão lógica e projeto de texto" },
+      { name: "Argumentação e Coletânea", max_score: 2.5, description: "Diálogo crítico com a coletânea, movimentos argumentativos, repertório sociocultural" },
+      { name: "Coesão, Estilo e Norma Culta", max_score: 2.5, description: "Norma-padrão, coesão referencial/sequencial, estilo e riqueza vocabular" }
     ]
   },
   {
