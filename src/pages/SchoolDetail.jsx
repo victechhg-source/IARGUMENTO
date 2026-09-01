@@ -4,7 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import { ArrowLeft, Save, RefreshCw, Copy, Check, Users, GraduationCap, School as SchoolIcon, KeyRound, ShieldAlert } from 'lucide-react';
+import { ArrowLeft, Save, RefreshCw, Copy, Check, Users, GraduationCap, School as SchoolIcon, KeyRound, ShieldAlert, Building2 } from 'lucide-react';
 
 const CODE_FIELDS = [
   { label: 'Aluno', field: 'student_code', prefix: 'ALU' },
@@ -195,6 +195,16 @@ export default function SchoolDetail() {
             ))}
           </div>
           <p className="text-xs text-muted-foreground">Código institucional (ESC): <code className="font-bold">{school.institutional_code}</code></p>
+        </Card>
+
+        <Card className="p-5">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div>
+              <h2 className="font-semibold">Ver como diretor</h2>
+              <p className="text-sm text-muted-foreground">Abre o painel do diretor desta escola para verificação rápida.</p>
+            </div>
+            <Link to={`/diretor?school=${id}`}><Button variant="outline"><Building2 className="w-4 h-4" /> Abrir painel do diretor</Button></Link>
+          </div>
         </Card>
       </main>
     </div>

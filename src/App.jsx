@@ -17,6 +17,7 @@ import TeacherDashboard from '@/pages/TeacherDashboard';
 import StudentClasses from '@/pages/StudentClasses';
 import StudentPerformance from '@/pages/StudentPerformance';
 import AdminDashboard from '@/pages/AdminDashboard';
+import AdminEssayDetail from '@/pages/AdminEssayDetail';
 import DirectorDashboard from '@/pages/DirectorDashboard';
 import DirectorClass from '@/pages/DirectorClass';
 import DirectorStudentPerformance from '@/pages/DirectorStudentPerformance';
@@ -116,6 +117,7 @@ const AuthenticatedApp = () => {
             <Route element={<RoleRoute adminOnly />}>
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/escolas/:id" element={<SchoolDetail />} />
+              <Route path="/admin/redacao/:id" element={<AdminEssayDetail />} />
             </Route>
             </Route>
           </Route>

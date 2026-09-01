@@ -2,8 +2,8 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
 import { requireAccountGrant } from '../../shared/accountGrant.ts';
 
 // Retorna as métricas da escola do diretor autenticado (escopo restrito à
-// própria school_id). Usa service role porque a RLS das entidades não
-// contempla o papel de diretor.
+// própria school_id). Admin pode passar { schoolId } para ver qualquer escola.
+// Usa service role porque a RLS das entidades não contempla o papel de diretor.
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -14,21 +14,36 @@ Deno.serve(async (req) => {
     if (me.suspended === true) {
       return Response.json({ error: 'Conta suspensa.' }, { status: 403 });
     }
-    const access = await requireAccountGrant(base44, me, ['director']);
-    if (!access.ok) return Response.json({ error: access.error }, { status: access.status });
-    if (!access.school_id) return Response.json({ error: 'Nenhuma escola vinculada à sua conta.' }, { status: 400 });
+
+    const body = await req.json().catch(() => ({}));
+    const isAdmin = me?.role === 'admin';
+
+    let schoolId = '';
+    if (isAdmin) {
+      schoolId = typeof body.schoolId === 'string' ? body.schoolId.trim() : '';
+      if (!schoolId) {
+        const first = await base44.asServiceRole.entities.School.list('-created_date', 1);
+        schoolId = first[0]?.id || '';
+      }
+      if (!schoolId) return Response.json({ error: 'Nenhuma escola cadastrada.' }, { status: 400 });
+    } else {
+      const access = await requireAccountGrant(base44, me, ['director']);
+      if (!access.ok) return Response.json({ error: access.error }, { status: access.status });
+      if (!access.school_id) return Response.json({ error: 'Nenhuma escola vinculada à sua conta.' }, { status: 400 });
+      schoolId = access.school_id;
+    }
 
     const svc = base44.asServiceRole.entities;
     const [schools, classes, memberships, users] = await Promise.all([
-      svc.School.filter({ id: access.school_id }),
-      svc.Classroom.filter({ school_id: access.school_id }, '-created_date', 500),
-      svc.ClassMembership.filter({ school_id: access.school_id }, '-created_date', 2000),
-      svc.User.filter({ school_id: access.school_id }, '-created_date', 2000),
+      svc.School.filter({ id: schoolId }),
+      svc.Classroom.filter({ school_id: schoolId }, '-created_date', 500),
+      svc.ClassMembership.filter({ school_id: schoolId }, '-created_date', 2000),
+      svc.User.filter({ school_id: schoolId }, '-created_date', 2000),
     ]);
 
     const approved = memberships.filter((m) => m.status === 'approved');
     const studentIds = [...new Set(approved.map((m) => m.student_id))];
-    const essays = await svc.Essay.filter({ school_ids: access.school_id, status: 'completed' }, '-created_date', 1000);
+    const essays = await svc.Essay.filter({ school_ids: schoolId, status: 'completed' }, '-created_date', 1000);
 
     const graded = essays.filter((e) => typeof e.final_grade === 'number' && e.max_grade);
     const avgPercent = graded.length

@@ -1,18 +1,76 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Button } from '@/components/ui/button'; import { Input } from '@/components/ui/input'; import { Textarea } from '@/components/ui/textarea'; import { Card } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Upload, RefreshCw } from 'lucide-react';
-const bancas = ['ENEM', 'FUVEST', 'UNICAMP', 'UNIFESP', 'UERJ']; const models = ['automatic', 'gpt_5_mini', 'gemini_3_flash', 'gemini_3_1_pro', 'claude_sonnet_4_6'];
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Plus, Loader2, Cpu } from 'lucide-react';
+import { OCR_AGENT, BANCA_ARCHITECTURES } from '@/data/agentArchitectures';
+import AgentDetail from '@/components/admin/AgentDetail';
 
+// Lista todos os agentes do sistema: OCR (fixo) + agentes do banco por banca.
+// Novos agentes adicionados ao banco aparecem automaticamente aqui.
 export default function AgentManager() {
-  const [agents, setAgents] = useState([]); const [selected, setSelected] = useState(null); const [resources, setResources] = useState([]); const [form, setForm] = useState({ name: '', banca: 'ENEM', model: 'automatic', system_prompt: '' }); const [resource, setResource] = useState({ title: '', type: 'corrected_example', content: '' });
-  const load = async () => { const a = await base44.entities.CorrectionAgent.list('-updated_date'); setAgents(a); if (selected) setResources(await base44.entities.AgentTrainingResource.filter({ agent_id: selected.id }, '-created_date')); };
-  useEffect(() => { load(); }, [selected?.id]);
-  const save = async (e) => { e.preventDefault(); const saved = selected ? await base44.entities.CorrectionAgent.update(selected.id, form) : await base44.entities.CorrectionAgent.create({ ...form, active: false, version: 1, status: 'draft' }); setSelected(saved); setForm(saved); await load(); };
-  const choose = (a) => { setSelected(a); setForm({ name: a.name, banca: a.banca, model: a.model, system_prompt: a.system_prompt || '' }); };
-  const train = async () => { await base44.entities.CorrectionAgent.update(selected.id, { version: (selected.version || 1) + 1, status: 'ready', trained_at: new Date().toISOString() }); await base44.entities.CorrectionAgent.updateMany({ banca: selected.banca, active: true }, { $set: { active: false } }); await base44.entities.CorrectionAgent.update(selected.id, { active: true }); await load(); };
-  const addResource = async () => { await base44.entities.AgentTrainingResource.create({ ...resource, agent_id: selected.id, banca: selected.banca }); setResource({ title: '', type: 'corrected_example', content: '' }); await load(); };
-  const upload = async (e) => { const file = e.target.files?.[0]; if (!file) return; const { file_url } = await base44.integrations.Core.UploadFile({ file }); await base44.entities.AgentTrainingResource.create({ agent_id: selected.id, banca: selected.banca, type: 'file', title: file.name, file_url }); await load(); };
-  return <div className="grid lg:grid-cols-[240px_1fr] gap-4"><Card className="p-3 h-fit"><Button className="w-full mb-3" variant="outline" onClick={() => { setSelected(null); setForm({ name: '', banca: 'ENEM', model: 'automatic', system_prompt: '' }); }}>Novo agente</Button>{agents.map(a => <button key={a.id} onClick={() => choose(a)} className="w-full text-left p-3 rounded-lg hover:bg-muted cursor-pointer"><span className="font-medium block">{a.name}</span><span className="text-xs text-muted-foreground">{a.banca} · v{a.version || 1}{a.active ? ' · Ativo' : ''}</span></button>)}</Card><div className="space-y-4"><Card className="p-5"><form onSubmit={save} className="space-y-4"><div className="grid sm:grid-cols-3 gap-3"><Input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Nome do agente" required /><Select value={form.banca} onValueChange={v => setForm({ ...form, banca: v })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{bancas.map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}</SelectContent></Select><Select value={form.model} onValueChange={v => setForm({ ...form, model: v })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{models.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select></div><Textarea value={form.system_prompt} onChange={e => setForm({ ...form, system_prompt: e.target.value })} placeholder="Instruções específicas, tom e regras do agente" className="min-h-36" /><div className="flex gap-2"><Button type="submit">Salvar agente</Button>{selected && <Button type="button" variant="outline" onClick={train}><RefreshCw className="w-4 h-4 mr-2" />Treinar e ativar</Button>}</div></form></Card>{selected && <Card className="p-5 space-y-4"><div><h3 className="font-semibold">Base de treinamento</h3><p className="text-sm text-muted-foreground">Adicione arquivos, exemplos corrigidos e bases específicas da banca.</p></div><label className="inline-flex min-h-11 items-center gap-2 border rounded-md px-4 cursor-pointer hover:bg-muted"><Upload className="w-4 h-4" />Adicionar arquivo<input type="file" className="sr-only" onChange={upload} /></label><div className="grid sm:grid-cols-2 gap-3"><Input value={resource.title} onChange={e => setResource({ ...resource, title: e.target.value })} placeholder="Título do conteúdo" /><Select value={resource.type} onValueChange={v => setResource({ ...resource, type: v })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="corrected_example">Exemplo corrigido</SelectItem><SelectItem value="banca_base">Base da banca</SelectItem></SelectContent></Select></div><Textarea value={resource.content} onChange={e => setResource({ ...resource, content: e.target.value })} placeholder="Cole a redação corrigida, critérios ou dados de referência" className="min-h-32" /><Button onClick={addResource} disabled={!resource.title || !resource.content}>Adicionar à base</Button><div className="space-y-2">{resources.map(r => <div key={r.id} className="border rounded-lg p-3"><p className="font-medium">{r.title}</p><p className="text-xs text-muted-foreground">{r.type === 'file' ? 'Arquivo' : r.type === 'banca_base' ? 'Base da banca' : 'Exemplo corrigido'}</p></div>)}</div></Card>}</div></div>;
+  const [agents, setAgents] = useState(null);
+  const [selectedKey, setSelectedKey] = useState(OCR_AGENT.id);
+
+  const load = async () => {
+    const list = await base44.entities.CorrectionAgent.list('-updated_date');
+    setAgents(list);
+  };
+
+  useEffect(() => { load(); }, []);
+
+  if (!agents) {
+    return <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin" /></div>;
+  }
+
+  // Garante que toda banca com arquitetura conhecida apareça, mesmo sem agente no banco.
+  const bancasPresentes = new Set(agents.map((a) => a.banca));
+  const knownBancas = Object.keys(BANCA_ARCHITECTURES);
+  const placeholderBancas = knownBancas.filter((b) => !bancasPresentes.has(b));
+
+  const selectedAgent = selectedKey === OCR_AGENT.id
+    ? OCR_AGENT
+    : agents.find((a) => a.id === selectedKey) || null;
+
+  const choose = (key) => setSelectedKey(key);
+
+  return (
+    <div className="grid lg:grid-cols-[260px_1fr] gap-4">
+      <Card className="p-3 h-fit">
+        <Button className="w-full mb-3" variant="outline" onClick={() => setSelectedKey('new')}>
+          <Plus className="w-4 h-4" /> Novo agente
+        </Button>
+        <button onClick={() => choose(OCR_AGENT.id)} className={`w-full text-left p-3 rounded-lg cursor-pointer hover:bg-muted ${selectedKey === OCR_AGENT.id ? 'bg-muted' : ''}`}>
+          <span className="font-medium block">{OCR_AGENT.name}</span>
+          <span className="text-xs text-muted-foreground">Sistema · fixo</span>
+        </button>
+        <div className="my-2 border-t border-border" />
+        {agents.map((a) => (
+          <button key={a.id} onClick={() => choose(a.id)} className={`w-full text-left p-3 rounded-lg cursor-pointer hover:bg-muted ${selectedKey === a.id ? 'bg-muted' : ''}`}>
+            <span className="font-medium block">{a.name}</span>
+            <span className="text-xs text-muted-foreground">{a.banca} · v{a.version || 1}{a.active ? ' · Ativo' : a.status === 'ready' ? ' · Pronto' : ''}</span>
+          </button>
+        ))}
+        {placeholderBancas.map((b) => (
+          <button key={b} onClick={() => choose(`new-${b}`)} className={`w-full text-left p-3 rounded-lg cursor-pointer hover:bg-muted ${selectedKey === `new-${b}` ? 'bg-muted' : ''}`}>
+            <span className="font-medium block">Padrão {b}</span>
+            <span className="text-xs text-muted-foreground">{b} · sem agente cadastrado</span>
+          </button>
+        ))}
+      </Card>
+
+      <div className="space-y-4">
+        {selectedKey === 'new' ? (
+          <AgentDetail agent={null} onChanged={load} />
+        ) : selectedKey?.startsWith('new-') ? (
+          <AgentDetail agent={{ banca: selectedKey.slice(4) }} onChanged={load} />
+        ) : (
+          <AgentDetail agent={selectedAgent} onChanged={load} />
+        )}
+        <p className="text-xs text-muted-foreground flex items-center gap-1">
+          <Cpu className="w-3 h-3" /> Bancas sem agente cadastrado usam o corretor padrão da banca. Crie um agente para customizar prompt, modelo e base de RAG.
+        </p>
+      </div>
+    </div>
+  );
 }

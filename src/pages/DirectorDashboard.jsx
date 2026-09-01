@@ -22,7 +22,9 @@ export default function DirectorDashboard() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await base44.functions.invoke('getSchoolOverview', {});
+        const params = new URLSearchParams(window.location.search);
+        const schoolId = params.get('school') || '';
+        const res = await base44.functions.invoke('getSchoolOverview', schoolId ? { schoolId } : {});
         const payload = res?.data ?? res;
         if (payload?.school) {
           payload.school = { ...payload.school, ...directorVisibleSchool(payload.school) };

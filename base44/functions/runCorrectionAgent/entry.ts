@@ -84,7 +84,8 @@ export default async function(req) {
     if (!essayId) return Response.json({ error: 'essayId é obrigatório.' }, { status: 400 });
 
     const essay = unwrapEntity(await base44.asServiceRole.entities.Essay.get(essayId));
-    if (!essay || !ownsEssay(essay, userId)) return Response.json({ error: 'Redação não encontrada.' }, { status: 404 });
+    // Admin pode re-executar a correção em qualquer redação (verificação do pipeline).
+    if (!essay || (user.role !== 'admin' && !ownsEssay(essay, userId))) return Response.json({ error: 'Redação não encontrada.' }, { status: 404 });
 
     if (essay.status === 'completed' && Array.isArray(essay.corrections) && essay.corrections.length) {
       return Response.json({ result: resultFromEssay(essay) });

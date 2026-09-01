@@ -39,7 +39,11 @@ export default function AppShell() {
               <Link to="/diretor" className="kinetic-link"><Building2 className="w-4 h-4" />Escola</Link>
             )}
             {role === 'admin' && (
-              <Link to="/admin" className="kinetic-link"><Shield className="w-4 h-4" />Administração</Link>
+              <>
+                <Link to="/admin" className="kinetic-link"><Shield className="w-4 h-4" />Administração</Link>
+                <Link to="/professor" className="kinetic-link"><Users className="w-4 h-4" />Professor</Link>
+                <Link to="/diretor" className="kinetic-link"><Building2 className="w-4 h-4" />Diretor</Link>
+              </>
             )}
             <Link to="/conta" className="kinetic-link"><User className="w-4 h-4" />Conta</Link>
             <AuthNav />

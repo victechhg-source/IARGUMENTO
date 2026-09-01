@@ -189,8 +189,9 @@ export default function TeacherDashboard() {
       </div>
     );
   }
-  if (user?.account_type !== 'teacher') return <div className="min-h-screen flex items-center justify-center"><Card className="p-6 text-center"><p className="mb-4">Este painel é exclusivo para professores.</p><Link to="/professor"><Button>Voltar</Button></Link></Card></div>;
-  if (!user?.school_id) return <div className="min-h-screen flex items-center justify-center"><Card className="p-6 text-center"><p className="mb-2 font-semibold">Vínculo institucional necessário</p><p className="text-sm text-muted-foreground mb-4">Cadastre-se com o código fornecido pela escola para criar turmas.</p><Link to="/professor"><Button>Voltar</Button></Link></Card></div>;
+  const isAdmin = user?.role === 'admin';
+  if (user?.account_type !== 'teacher' && !isAdmin) return <div className="min-h-screen flex items-center justify-center"><Card className="p-6 text-center"><p className="mb-4">Este painel é exclusivo para professores.</p><Link to="/professor"><Button>Voltar</Button></Link></Card></div>;
+  if (!user?.school_id && !isAdmin) return <div className="min-h-screen flex items-center justify-center"><Card className="p-6 text-center"><p className="mb-2 font-semibold">Vínculo institucional necessário</p><p className="text-sm text-muted-foreground mb-4">Cadastre-se com o código fornecido pela escola para criar turmas.</p><Link to="/professor"><Button>Voltar</Button></Link></Card></div>;
 
   return (
     <div className="min-h-screen bg-background text-foreground">

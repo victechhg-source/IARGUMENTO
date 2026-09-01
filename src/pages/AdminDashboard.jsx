@@ -13,6 +13,7 @@ import UsersTab from '@/components/admin/UsersTab';
 import ClassesTab from '@/components/admin/ClassesTab';
 import InviteUser from '@/components/admin/InviteUser';
 import AuditLogTab from '@/components/admin/AuditLogTab';
+import AdminEssaysTab from '@/components/admin/AdminEssaysTab';
 
 const SAMPLE_NOTE = 'Amostra das 100 redações/usos mais recentes.';
 
@@ -57,6 +58,8 @@ export default function AdminDashboard() {
           base44.entities.ClassMembership.list('-created_date', 200),
         ]);
         payload = { classes, memberships };
+      } else if (t === 'essays') {
+        payload = { essays: await base44.entities.Essay.list('-created_date', 500) };
       } else if (t === 'audit') {
         payload = { auditLogs: await base44.entities.AdminAuditLog.list('-created_date', 200) };
       }
@@ -115,6 +118,7 @@ export default function AdminDashboard() {
           <TabsTrigger value="schools" className="admin-tab">Escolas</TabsTrigger>
           <TabsTrigger value="users" className="admin-tab">Contas</TabsTrigger>
           <TabsTrigger value="classes" className="admin-tab">Turmas</TabsTrigger>
+          <TabsTrigger value="essays" className="admin-tab">Redações</TabsTrigger>
           <TabsTrigger value="audit" className="admin-tab">Auditoria</TabsTrigger>
           <TabsTrigger value="agents" className="admin-tab">Agentes</TabsTrigger>
         </TabsList>
@@ -160,8 +164,15 @@ export default function AdminDashboard() {
           )}
         </TabsContent>
 
+        <TabsContent value="essays">
+          {loadingTab || !td.essays ? (
+            <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin" /></div>
+          ) : (
+            <AdminEssaysTab essays={td.essays} />
+          )}
+        </TabsContent>
+
         <TabsContent value="agents" className="space-y-4">
-          <div className="rounded-lg border border-amber-300/60 bg-amber-50 px-4 py-3 text-sm text-amber-800">Configuração dos corretores é de outra equipe. Não altere prompts, modelos nem materiais de treino nesta aba.</div>
           <AgentManager />
         </TabsContent>
       </Tabs>
