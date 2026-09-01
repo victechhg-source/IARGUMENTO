@@ -133,6 +133,185 @@ export default async function(req) {
       return Response.json({ result, usage: { input_tokens: inputTokens, output_tokens: outputTokens, total_tokens: inputTokens + outputTokens } });
     }
 
+    // ─── Arquitetura UFU (Universidade Federal de Uberlândia) ───
+    // Três especialistas rodam em paralelo:
+    //   C1 — Gramática/Norma Culta (0–2,0 base / 0–8,0 final) — único que reproduz a transcrição
+    //   C2 — Coerência (0–6,0/24,0) + Coesão (0–4,0/16,0)
+    //   C3 — Estrutura (0–8,0/32,0): gênero, título, paráfrase, repertório, máscara, extensão
+    // Grade total: 20,0 base × 4 = 80,0 pontos finais.
+    // Desconto por extensão aplicado sobre o total (tabela 13–24 linhas).
+    // Nota zero: fuga ao tema, ≤12 linhas, fuga total ao gênero (zera só Estrutura).
+    if (banca === 'UFU') {
+      const ufuTranscription = essay.transcription || '';
+      const ufuSpecialistPrompts = [UFU_PROMPT_C1, UFU_PROMPT_C2, UFU_PROMPT_C3];
+      const ufuContextBlock = context ? `### Base de referência (Critérios de Correção UFU e Guia de Redação UFU 2026)\n${context}\n\n` : '';
+
+      const runUfuSpecialist = async (sysPrompt: string) => {
+        const fullPrompt = `${sysPrompt}\n\n${ufuContextBlock}REDAÇÃO DO ALUNO:\n"""\n${ufuTranscription}\n"""`;
+        const output = await base44.asServiceRole.integrations.Core.InvokeLLM({
+          prompt: fullPrompt,
+          model,
+          ...(fileUrls.length ? { file_urls: fileUrls } : {})
+        });
+        return String(output || '');
+      };
+
+      const [ufuC1Text, ufuC2Text, ufuC3Text] = await Promise.all(ufuSpecialistPrompts.map(runUfuSpecialist));
+      console.log('[runCorrectionAgent][UFU] C1 (Gramática):', ufuC1Text.slice(0, 300));
+      console.log('[runCorrectionAgent][UFU] C2 (Coerência+Coesão):', ufuC2Text.slice(0, 300));
+      console.log('[runCorrectionAgent][UFU] C3 (Estrutura):', ufuC3Text.slice(0, 300));
+
+      const ufuExtractDecimal = (text: string, key: string, max: number): number => {
+        const m = text.match(new RegExp(`${key}\\s*=\\s*([\\d]+(?:[.,]\\d+)?)`, 'i'));
+        if (!m) return 0;
+        const v = parseFloat(m[1].replace(',', '.'));
+        return Math.max(0, Math.min(max, isNaN(v) ? 0 : Math.round(v * 10) / 10));
+      };
+      const ufuExtractInt = (text: string, key: string): number | null => {
+        const m = text.match(new RegExp(`${key}\\s*=\\s*(\\d+)`, 'i'));
+        return m ? parseInt(m[1], 10) : null;
+      };
+      const ufuExtractFlag = (text: string, key: string): boolean => {
+        const m = text.match(new RegExp(`${key}\\s*=\\s*(SIM|NAO|NÃO)`, 'i'));
+        return m ? /^SIM$/i.test(m[1]) : false;
+      };
+
+      // Extrair notas dos 3 especialistas
+      const notaGRAM20 = ufuExtractDecimal(ufuC1Text, 'NOTA_GRAMATICA_BASE20', 2);
+      const notaCOER20 = ufuExtractDecimal(ufuC2Text, 'NOTA_COERENCIA_BASE20', 6);
+      const notaCOES20 = ufuExtractDecimal(ufuC2Text, 'NOTA_COESAO_BASE20', 4);
+      const notaESTR20 = ufuExtractDecimal(ufuC3Text, 'NOTA_ESTRUTURA_BASE20', 8);
+      const ufuLinhas = ufuExtractInt(ufuC3Text, 'LINHAS_ESCRITAS');
+      const ufuFugaGenero = ufuExtractFlag(ufuC3Text, 'FUGA_GENERO');
+      const ufuFugaTema = ufuExtractFlag(ufuC3Text, 'FUGA_TEMA');
+      const ufuTangenciamento = ufuExtractFlag(ufuC3Text, 'TANGENCIAMENTO');
+      const ufuGeneroDetectado = (ufuC3Text.match(/GENERO_DETECTADO\s*=\s*(.+)/i)?.[1] ?? '').trim();
+
+      // Tabela de desconto por extensão (sobre o total base20)
+      const UFU_TABELA_EXT: Record<number, number> = { 13: 5.0, 14: 4.5, 15: 4.0, 16: 3.5, 17: 3.0, 18: 2.5, 19: 2.5, 20: 2.0, 21: 1.5, 22: 1.0, 23: 0.5, 24: 0.5 };
+      const descontoExt = ufuLinhas !== null && ufuLinhas < 25 && ufuLinhas > 12 ? (UFU_TABELA_EXT[ufuLinhas] || 0) : 0;
+      const linhasInsuficientes = ufuLinhas !== null && ufuLinhas <= 12;
+
+      let ufuTotalBase20Bruto = Math.round((notaESTR20 + notaCOER20 + notaCOES20 + notaGRAM20) * 10) / 10;
+      let ufuTotalBase20 = ufuTotalBase20Bruto - descontoExt;
+      let ufuZeramentoReason = '';
+      if (ufuFugaTema) { ufuTotalBase20 = 0; ufuZeramentoReason = 'FUGA_TEMA'; }
+      else if (linhasInsuficientes) { ufuTotalBase20 = 0; ufuZeramentoReason = 'LINHAS_INSUFICIENTES'; }
+      ufuTotalBase20 = Math.min(20, Math.max(0, Math.round(ufuTotalBase20 * 10) / 10));
+      const ufuTotalBase80 = Math.min(80, Math.max(0, Math.round(ufuTotalBase20 * 4 * 10) / 10));
+
+      console.log('[runCorrectionAgent][UFU] Notas base20:', { notaGRAM20, notaCOER20, notaCOES20, notaESTR20, ufuTotalBase20Bruto, descontoExt, ufuTotalBase20, ufuTotalBase80, ufuLinhas, ufuFugaTema, ufuFugaGenero, ufuTangenciamento, ufuZeramentoReason });
+
+      // Stages: notas em base80 (nota final do vestibular)
+      const ufuStageNames = ['Estrutura', 'Coerência', 'Coesão', 'Gramática'];
+      const ufuMaxBase80 = [32, 24, 16, 8];
+      const ufuNotesBase80 = [
+        Math.min(32, Math.max(0, Math.round(notaESTR20 * 4 * 10) / 10)),
+        Math.min(24, Math.max(0, Math.round(notaCOER20 * 4 * 10) / 10)),
+        Math.min(16, Math.max(0, Math.round(notaCOES20 * 4 * 10) / 10)),
+        Math.min(8,  Math.max(0, Math.round(notaGRAM20 * 4 * 10) / 10)),
+      ];
+
+      const ufuSynthesisSchema = {
+        type: 'object',
+        properties: {
+          annotated_text: { type: 'string' },
+          memorable_strengths: { type: 'array', items: { type: 'string' } },
+          stages: { type: 'array', items: { type: 'object', properties: {
+            stage: { type: 'string' }, score: { type: 'number' }, max_score: { type: 'number' }, summary: { type: 'string' },
+            findings: { type: 'array', items: { type: 'object', properties: {
+              id: { type: 'string' }, type: { type: 'string' }, excerpt: { type: 'string' },
+              explanation: { type: 'string' }, suggestion: { type: 'string' }, video_suggestion: { type: 'string' }
+            } } }
+          }, required: ['stage', 'summary', 'findings'] } },
+          writing_suggestions: { type: 'array', items: { type: 'string' } },
+          study_suggestions: { type: 'array', items: { type: 'string' } }
+        },
+        required: ['annotated_text', 'memorable_strengths', 'stages', 'writing_suggestions', 'study_suggestions']
+      };
+
+      const ufuAvisos: string[] = [];
+      if (ufuZeramentoReason === 'FUGA_TEMA') ufuAvisos.push('NOTA ZERO: fuga total ao tema.');
+      if (ufuZeramentoReason === 'LINHAS_INSUFICIENTES') ufuAvisos.push(`NOTA ZERO: texto com ${ufuLinhas} linhas (≤12).`);
+      if (ufuFugaGenero) ufuAvisos.push('FUGA AO GÊNERO: critério Estrutura zerado.');
+      if (ufuTangenciamento) ufuAvisos.push('TANGENCIAMENTO ao tema: desconto de 4,0 base (-16,0 final) em Estrutura já aplicado.');
+      if (descontoExt > 0 && !linhasInsuficientes) ufuAvisos.push(`DESCONTO POR EXTENSÃO: ${ufuLinhas} linhas → -${descontoExt.toFixed(1)} base (-${(descontoExt * 4).toFixed(1)} final). Total bruto seria ${ufuTotalBase20Bruto.toFixed(1)}/20.`);
+
+      const ufuSynthesisPrompt = `Você é o ORQUESTRADOR da devolutiva final da redação do Vestibular UFU. Três corretores avaliaram em paralelo:
+- C1 — Gramática/Norma Culta (único que reproduz a transcrição com erros em negrito)
+- C2 — Coerência + Coesão
+- C3 — Estrutura (gênero, título, paráfrase, repertório, máscara, extensão)
+
+Gênero detectado: ${ufuGeneroDetectado || 'não identificado'}
+${ufuAvisos.length ? 'AVISOS: ' + ufuAvisos.join(' | ') : ''}
+
+RELATÓRIOS DOS CORRETORES:
+--- C1 (Gramática) ---
+${ufuC1Text}
+--- C2 (Coerência + Coesão) ---
+${ufuC2Text}
+--- C3 (Estrutura) ---
+${ufuC3Text}
+---
+
+REDAÇÃO DO ALUNO:
+"""
+${ufuTranscription}
+"""
+
+NOTAS (nota final = base × 4):
+- Estrutura = ${notaESTR20.toFixed(1)}/8,0 base → ${ufuNotesBase80[0].toFixed(1)}/32,0 final
+- Coerência = ${notaCOER20.toFixed(1)}/6,0 base → ${ufuNotesBase80[1].toFixed(1)}/24,0 final
+- Coesão = ${notaCOES20.toFixed(1)}/4,0 base → ${ufuNotesBase80[2].toFixed(1)}/16,0 final
+- Gramática = ${notaGRAM20.toFixed(1)}/2,0 base → ${ufuNotesBase80[3].toFixed(1)}/8,0 final
+- NOTA TOTAL = ${ufuTotalBase20.toFixed(1)}/20,0 base → ${ufuTotalBase80.toFixed(1)}/80,0 final
+Preencha "score" e "max_score" com os valores da nota FINAL (base80) de cada stage. Não recalcule.
+
+Monte a devolutiva final no formato JSON. A correção deve ser MINUCIOSA: enumere TODOS os erros e acertos por critério.
+
+1. "annotated_text": string VAZIA (""). A marcação será gerada automaticamente. Garanta que CADA finding.excerpt seja cópia EXATA (verbatim) de um trecho real da redação.
+2. "stages": 4 entradas nesta ordem: "Estrutura", "Coerência", "Coesão", "Gramática". Para cada, preencha "score" (nota final base80 acima), "max_score" (32, 24, 16, 8), "summary" e "findings" minuciosos.
+   - Estrutura: baseie-se no C3.
+   - Coerência: baseie-se na parte Coerência do C2.
+   - Coesão: baseie-se na parte Coesão do C2.
+   - Gramática: baseie-se no C1.
+3. "memorable_strengths": até 3 acertos memoráveis.
+4. "writing_suggestions": 3 a 5 sugestões práticas.
+5. "study_suggestions": 3 a 5 sugestões de estudo.${ufuAvisos.length ? ' Inclua em study_suggestions um aviso sobre: ' + ufuAvisos.join('; ') + '.' : ''}
+Retorne apenas o JSON.`;
+
+      const ufuSynth = await base44.asServiceRole.integrations.Core.InvokeLLM({
+        prompt: ufuSynthesisPrompt,
+        response_json_schema: ufuSynthesisSchema,
+        model,
+        ...(fileUrls.length ? { file_urls: fileUrls } : {})
+      });
+
+      const ufuFinalStages = ufuStageNames.map((name, i) => {
+        const ss = Array.isArray(ufuSynth?.stages) ? ufuSynth.stages[i] : null;
+        const synthScore = typeof ss?.score === 'number' ? ss.score : null;
+        const score = synthScore !== null ? Math.max(0, Math.min(ufuMaxBase80[i], synthScore)) : ufuNotesBase80[i];
+        const findings = (ss?.findings || []).map((f, fi) => ({ ...f, id: f?.id || `c${i + 1}-${fi + 1}` }));
+        return { stage: ss?.stage || name, score, max_score: ufuMaxBase80[i], summary: ss?.summary || '', findings };
+      });
+
+      const ufuResult = {
+        annotated_text: buildAnnotatedText(ufuTranscription, ufuFinalStages) || ufuSynth?.annotated_text || '',
+        memorable_strengths: ufuSynth?.memorable_strengths || [],
+        stages: ufuFinalStages,
+        writing_suggestions: ufuSynth?.writing_suggestions || [],
+        study_suggestions: ufuSynth?.study_suggestions || [],
+        final_grade: ufuTotalBase80,
+        max_grade: 80
+      };
+
+      const ufuInputTokens = Math.ceil((ufuC1Text.length + ufuC2Text.length + ufuC3Text.length + ufuSynthesisPrompt.length + basePrompt.length) / 4);
+      const ufuOutputTokens = Math.ceil(JSON.stringify(ufuResult).length / 4);
+      await persistResult(ufuResult);
+      await base44.asServiceRole.entities.AgentUsage.create({ agent_id: agent?.id || '', agent_name: agent?.name || 'Padrão UFU', model, banca, essay_id: essayId, student_id: userId, school_ids: essay.school_ids || [], input_tokens: ufuInputTokens, output_tokens: ufuOutputTokens, total_tokens: ufuInputTokens + ufuOutputTokens });
+      return Response.json({ result: ufuResult, usage: { input_tokens: ufuInputTokens, output_tokens: ufuOutputTokens, total_tokens: ufuInputTokens + ufuOutputTokens }, ...(debug ? { _debug: { specialists: { c1: ufuC1Text, c2: ufuC2Text, c3: ufuC3Text }, extractedNotes: { notaGRAM20, notaCOER20, notaCOES20, notaESTR20, ufuTotalBase20, ufuTotalBase80, ufuLinhas, ufuFugaTema, ufuFugaGenero, ufuTangenciamento, descontoExt, ufuZeramentoReason }, synthesis: ufuSynth } } : {}) });
+    }
+
     // ─── Arquitetura PUC-GO ───
     // Três especialistas rodam em paralelo:
     //   C1 — Gênero/Condição Enunciativa (0–2.5) + Tema/Projeto de Texto (0–2.5)

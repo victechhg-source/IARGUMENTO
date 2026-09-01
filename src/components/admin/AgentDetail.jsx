@@ -149,7 +149,7 @@ export default function AgentDetail({ agent, onChanged }) {
               <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Nome do agente" required disabled={!editable} />
               <Select value={form.banca} onValueChange={(v) => setForm({ ...form, banca: v })} disabled={!!agent?.id}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{['ENEM','FUVEST','UNICAMP','PUC','UFG'].map((b) => <SelectItem key={b} value={b}>{b}</SelectItem>)}</SelectContent>
+                <SelectContent>{['ENEM','FUVEST','UNICAMP','PUC','UFU','UFG'].map((b) => <SelectItem key={b} value={b}>{b}</SelectItem>)}</SelectContent>
               </Select>
             </form>
           </Card>
