@@ -342,16 +342,22 @@ Retorne apenas o JSON.`;
       const notaCOER20 = ufuExtractDecimal(ufuC2Text, 'NOTA_COERENCIA_BASE20', 6);
       const notaCOES20 = ufuExtractDecimal(ufuC2Text, 'NOTA_COESAO_BASE20', 4);
       const notaESTR20 = ufuExtractDecimal(ufuC3Text, 'NOTA_ESTRUTURA_BASE20', 8);
-      const ufuLinhas = ufuExtractInt(ufuC3Text, 'LINHAS_ESCRITAS');
+      // Contagem DETERMINÍSTICA de palavras → estimativa de linhas.
+      // A transcrição colapsa as quebras de linha originais (sempre fewer linhas),
+      // então contamos palavras e dividimos pela média de 13 palavras/linha (pauta UFU).
+      const ufuPalavras = (ufuTranscription.match(/[\p{L}\p{N}]+/gu) || []).length;
+      const ufuLinhasDet = ufuPalavras > 0 ? Math.round(ufuPalavras / 13) : 0;
+      const ufuLinhasC3 = ufuExtractInt(ufuC3Text, 'LINHAS_ESTIMADAS');
+      const ufuLinhas = ufuLinhasDet || ufuLinhasC3 || 0;
       const ufuFugaGenero = ufuExtractFlag(ufuC3Text, 'FUGA_GENERO');
       const ufuFugaTema = ufuExtractFlag(ufuC3Text, 'FUGA_TEMA');
       const ufuTangenciamento = ufuExtractFlag(ufuC3Text, 'TANGENCIAMENTO');
       const ufuGeneroDetectado = (ufuC3Text.match(/GENERO_DETECTADO\s*=\s*(.+)/i)?.[1] ?? '').trim();
 
-      // Tabela de desconto por extensão (sobre o total base20)
+      // Tabela de desconto por extensão (sobre o total base20, aplicada sobre LINHAS_ESTIMADAS)
       const UFU_TABELA_EXT: Record<number, number> = { 13: 5.0, 14: 4.5, 15: 4.0, 16: 3.5, 17: 3.0, 18: 2.5, 19: 2.5, 20: 2.0, 21: 1.5, 22: 1.0, 23: 0.5, 24: 0.5 };
-      const descontoExt = ufuLinhas !== null && ufuLinhas < 25 && ufuLinhas > 12 ? (UFU_TABELA_EXT[ufuLinhas] || 0) : 0;
-      const linhasInsuficientes = ufuLinhas !== null && ufuLinhas <= 12;
+      const descontoExt = ufuLinhas > 12 && ufuLinhas < 25 ? (UFU_TABELA_EXT[ufuLinhas] || 0) : 0;
+      const linhasInsuficientes = ufuLinhas > 0 && ufuLinhas <= 12;
 
       let ufuTotalBase20Bruto = Math.round((notaESTR20 + notaCOER20 + notaCOES20 + notaGRAM20) * 10) / 10;
       let ufuTotalBase20 = ufuTotalBase20Bruto - descontoExt;
@@ -361,7 +367,7 @@ Retorne apenas o JSON.`;
       ufuTotalBase20 = Math.min(20, Math.max(0, Math.round(ufuTotalBase20 * 10) / 10));
       const ufuTotalBase80 = Math.min(80, Math.max(0, Math.round(ufuTotalBase20 * 4 * 10) / 10));
 
-      console.log('[runCorrectionAgent][UFU] Notas base20:', { notaGRAM20, notaCOER20, notaCOES20, notaESTR20, ufuTotalBase20Bruto, descontoExt, ufuTotalBase20, ufuTotalBase80, ufuLinhas, ufuFugaTema, ufuFugaGenero, ufuTangenciamento, ufuZeramentoReason });
+      console.log('[runCorrectionAgent][UFU] Notas base20:', { notaGRAM20, notaCOER20, notaCOES20, notaESTR20, ufuTotalBase20Bruto, descontoExt, ufuTotalBase20, ufuTotalBase80, ufuPalavras, ufuLinhas, ufuFugaTema, ufuFugaGenero, ufuTangenciamento, ufuZeramentoReason });
 
       // Stages: notas em base80 (nota final do vestibular)
       const ufuStageNames = ['Estrutura', 'Coerência', 'Coesão', 'Gramática'];
@@ -393,10 +399,10 @@ Retorne apenas o JSON.`;
 
       const ufuAvisos: string[] = [];
       if (ufuZeramentoReason === 'FUGA_TEMA') ufuAvisos.push('NOTA ZERO: fuga total ao tema.');
-      if (ufuZeramentoReason === 'LINHAS_INSUFICIENTES') ufuAvisos.push(`NOTA ZERO: texto com ${ufuLinhas} linhas (≤12).`);
+      if (ufuZeramentoReason === 'LINHAS_INSUFICIENTES') ufuAvisos.push(`NOTA ZERO: texto com ${ufuLinhas} linhas estimadas (${ufuPalavras} palavras, ≤12 linhas).`);
       if (ufuFugaGenero) ufuAvisos.push('FUGA AO GÊNERO: critério Estrutura zerado.');
       if (ufuTangenciamento) ufuAvisos.push('TANGENCIAMENTO ao tema: desconto de 4,0 base (-16,0 final) em Estrutura já aplicado.');
-      if (descontoExt > 0 && !linhasInsuficientes) ufuAvisos.push(`DESCONTO POR EXTENSÃO: ${ufuLinhas} linhas → -${descontoExt.toFixed(1)} base (-${(descontoExt * 4).toFixed(1)} final). Total bruto seria ${ufuTotalBase20Bruto.toFixed(1)}/20.`);
+      if (descontoExt > 0 && !linhasInsuficientes) ufuAvisos.push(`DESCONTO POR EXTENSÃO: ${ufuLinhas} linhas estimadas (${ufuPalavras} palavras) → -${descontoExt.toFixed(1)} base (-${(descontoExt * 4).toFixed(1)} final). Total bruto seria ${ufuTotalBase20Bruto.toFixed(1)}/20.`);
 
       const ufuSynthesisPrompt = `Você é o ORQUESTRADOR da devolutiva final da redação do Vestibular UFU. Três corretores avaliaram em paralelo:
 - C1 — Gramática/Norma Culta (único que reproduz a transcrição com erros em negrito)
@@ -470,7 +476,7 @@ Retorne apenas o JSON.`;
       const ufuOutputTokens = Math.ceil(JSON.stringify(ufuResult).length / 4);
       await persistResult(ufuResult);
       await base44.asServiceRole.entities.AgentUsage.create({ agent_id: agent?.id || '', agent_name: agent?.name || 'Padrão UFU', model, banca, essay_id: essayId, student_id: userId, school_ids: essay.school_ids || [], input_tokens: ufuInputTokens, output_tokens: ufuOutputTokens, total_tokens: ufuInputTokens + ufuOutputTokens });
-      return Response.json({ result: ufuResult, usage: { input_tokens: ufuInputTokens, output_tokens: ufuOutputTokens, total_tokens: ufuInputTokens + ufuOutputTokens }, ...(debug ? { _debug: { specialists: { c1: ufuC1Text, c2: ufuC2Text, c3: ufuC3Text }, extractedNotes: { notaGRAM20, notaCOER20, notaCOES20, notaESTR20, ufuTotalBase20, ufuTotalBase80, ufuLinhas, ufuFugaTema, ufuFugaGenero, ufuTangenciamento, descontoExt, ufuZeramentoReason }, synthesis: ufuSynth } } : {}) });
+      return Response.json({ result: ufuResult, usage: { input_tokens: ufuInputTokens, output_tokens: ufuOutputTokens, total_tokens: ufuInputTokens + ufuOutputTokens }, ...(debug ? { _debug: { specialists: { c1: ufuC1Text, c2: ufuC2Text, c3: ufuC3Text }, extractedNotes: { notaGRAM20, notaCOER20, notaCOES20, notaESTR20, ufuTotalBase20, ufuTotalBase80, ufuPalavras, ufuLinhas, ufuFugaTema, ufuFugaGenero, ufuTangenciamento, descontoExt, ufuZeramentoReason }, synthesis: ufuSynth } } : {}) });
     }
 
     // ─── Arquitetura PUC-GO ───

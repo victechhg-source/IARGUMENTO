@@ -354,29 +354,39 @@ Conforme a tabela do Passo 0: cabeçalho (local e data), saudação inicial/voca
 assinatura (José ou Josefa, sem ponto final, recuo à esquerda), quando exigidos pelo gênero identificado.
 Cada elemento ausente ou incorretamente formatado: 1 marcação (-0,5/-2,0).
 
-## PASSO 7 — AVALIAÇÃO DO NÚMERO DE LINHAS (mínimo exigido: 25 linhas)
+## PASSO 7 — AVALIAÇÃO DA EXTENSÃO (mínimo exigido: 25 linhas)
 
-Conte as linhas efetivamente escritas e registre em \`LINHAS_ESCRITAS\`. NÃO aplique o desconto de
-extensão você mesmo — essa tabela é aplicada sobre a nota TOTAL do texto na consolidação final, não
-apenas sobre Estrutura. Apenas reporte a contagem.
+⚠️ NÃO conte as linhas da transcrição — a transcrição colapsa as quebras de linha originais da
+redação manuscrita e sempre terá menos linhas que o texto original. Em vez disso, conte o NÚMERO
+TOTAL DE PALAVRAS do texto (incluindo título e assinatura, se houver) e ESTIME o número de linhas
+usando a média de **13 palavras por linha** (padrão de pauta universitária da UFU):
 
-Tabela de referência (informativa):
-| Linhas escritas | Desconto na grade (base 20) |
-|---|---|
-| 25 a 34 | 0,0 |
-| 23 a 24 | 0,5 |
-| 22 | 1,0 |
-| 21 | 1,5 |
-| 20 | 2,0 |
-| 18 a 19 | 2,5 |
-| 17 | 3,0 |
-| 16 | 3,5 |
-| 15 | 4,0 |
-| 14 | 4,5 |
-| 13 | 5,0 |
-| 12 ou menos | NOTA ZERO no texto inteiro |
+- \`PALAVRAS_ESCRITAS\` = contagem de todas as palavras da redação.
+- \`LINHAS_ESTIMADAS\` = arredondar(PALAVRAS_ESCRITAS ÷ 13).
+- Exemplo: 280 palavras ÷ 13 ≈ 22 linhas estimadas.
 
-Se o texto tiver mais de 34 linhas, avalie apenas o conteúdo até a linha 34 e desconsidere o excedente.
+NÃO aplique o desconto de extensão você mesmo — essa tabela é aplicada sobre a nota TOTAL do texto
+na consolidação final, não apenas sobre Estrutura. Apenas reporte a contagem de palavras e a
+estimativa de linhas.
+
+Tabela de referência (informativa, aplicada sobre LINHAS_ESTIMADAS):
+| Linhas estimadas | Palavras aprox. | Desconto na grade (base 20) |
+|---|---|---|
+| 25 ou mais | 325+ | 0,0 |
+| 23 a 24 | 299–324 | 0,5 |
+| 22 | 286–298 | 1,0 |
+| 21 | 273–285 | 1,5 |
+| 20 | 260–272 | 2,0 |
+| 18 a 19 | 234–259 | 2,5 |
+| 17 | 221–233 | 3,0 |
+| 16 | 208–220 | 3,5 |
+| 15 | 195–207 | 4,0 |
+| 14 | 182–194 | 4,5 |
+| 13 | 169–181 | 5,0 |
+| 12 ou menos | 168 ou menos | NOTA ZERO no texto inteiro |
+
+Se o texto tiver mais de 34 linhas estimadas (aprox. 442+ palavras), avalie apenas o conteúdo até
+a linha 34 e desconsidere o excedente.
 
 ## O QUE NÃO PENALIZAR
 
@@ -412,7 +422,8 @@ que a justifica. No Passo 0.1, apresente o mapeamento das 8 perguntas de forma r
 - FUGA_GENERO: SIM/NAO
 - FUGA_TEMA: SIM/NAO
 - TANGENCIAMENTO: SIM/NAO
-- Linhas escritas: N
+- Palavras escritas: N
+- Linhas estimadas: N (PALAVRAS ÷ 13)
 - Lista de marcações aplicadas (uma por item, com breve justificativa)
 - Total de marcações: N
 - Cálculo: 8,0 − (N × 0,5) [− 4,0 se tangenciamento] = NOTA_ESTRUTURA_BASE20 (mostrar a conta)
@@ -427,7 +438,8 @@ GENERO_DETECTADO=<gênero>
 FUGA_GENERO=<SIM ou NAO>
 FUGA_TEMA=<SIM ou NAO>
 TANGENCIAMENTO=<SIM ou NAO>
-LINHAS_ESCRITAS=<N>
+PALAVRAS_ESCRITAS=<N>
+LINHAS_ESTIMADAS=<N>
 MARCACOES_ESTRUTURA=<N>
 NOTA_ESTRUTURA_BASE20=<nota de 0.0 a 8.0, com uma casa decimal>
 NOTA_ESTRUTURA_BASE80=<nota de 0.0 a 32.0, com uma casa decimal>`;
