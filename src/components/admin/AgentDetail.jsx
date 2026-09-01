@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { RefreshCw, Save, Cpu, Layers, FileText, Lock } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { MODELS, OCR_AGENT, OCR_RECOGNIZER_PROMPTS, architectureFor } from '@/data/agentArchitectures';
+import SpecialistPrompts from '@/components/admin/SpecialistPrompts';
 import AgentUsagePanel from '@/components/admin/AgentUsagePanel';
 import AgentResources from '@/components/admin/AgentResources';
 
@@ -114,10 +115,14 @@ export default function AgentDetail({ agent, onChanged }) {
           <>
             {arch.fixed && (
               <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-3">
-                Os prompts especialistas desta banca são fixos no corretor. O campo abaixo é uma camada de instruções adicionais anexada ao prompt base — já aplicada ao vivo para UNICAMP/UNIFESP; para ENEM/FUVEST/UFG não altera os especialistas (decisão: sem mexer no corretor).
+                Os prompts especialistas desta banca são fixos no corretor (em produção) — exibidos abaixo somente para auditoria. O campo editável mais abaixo é uma camada de instruções adicionais anexada ao prompt base; para ENEM/FUVEST/UFG ela não altera os especialistas, para UNICAMP/UNIFESP é aplicada ao vivo.
               </p>
             )}
-            <Textarea value={form.system_prompt} onChange={(e) => setForm({ ...form, system_prompt: e.target.value })} placeholder="Instruções adicionais, tom e regras do agente (anexadas ao prompt base)" className="min-h-40" disabled={!editable} />
+            {agent?.banca && <SpecialistPrompts banca={agent.banca} />}
+            <div className="space-y-1.5">
+              <p className="text-xs font-semibold text-muted-foreground">Instruções adicionais (editável)</p>
+              <Textarea value={form.system_prompt} onChange={(e) => setForm({ ...form, system_prompt: e.target.value })} placeholder="Instruções adicionais, tom e regras do agente (anexadas ao prompt base)" className="min-h-40" disabled={!editable} />
+            </div>
           </>
         )}
       </Card>
