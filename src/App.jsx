@@ -34,6 +34,7 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import AppShell from '@/components/AppShell';
 import Account from '@/pages/Account';
 import EscolherBanca from '@/pages/EscolherBanca';
+import GuiaBancas from '@/pages/GuiaBancas';
 import { homePathFor } from '@/lib/roles';
 
 // Aliases legados: redireciona preservando a query string (ex.: ?banca=&essay=).
@@ -89,6 +90,7 @@ const AuthenticatedApp = () => {
           <Route element={<RequireProfile />}>
             <Route element={<AppShell />}>
             <Route path="/conta" element={<Account />} />
+            <Route path="/exam-guides" element={<GuiaBancas />} />
             {/* Aluno */}
             <Route element={<RoleRoute allow={['student']} />}>
               <Route path="/nova-redacao" element={<EscolherBanca />} />
