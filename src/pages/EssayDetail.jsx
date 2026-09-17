@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { BANCAS } from '@/data/bancas';
 import CorrectionResults from '@/components/essay/CorrectionResults';
-import CorrectionChat from '@/components/essay/CorrectionChat';
+import QaHistory from '@/components/essay/QaHistory';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ArrowLeft, PenLine, Download } from 'lucide-react';
@@ -13,7 +13,6 @@ export default function EssayDetail() {
   const { id } = useParams();
   const [essay, setEssay] = useState(null);
   const [mine, setMine] = useState(false);
-  const [pendingQuestion, setPendingQuestion] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -125,10 +124,10 @@ export default function EssayDetail() {
             <p className="text-sm whitespace-pre-wrap">{essay.teacher_note}</p>
           </Card>
         ) : null}
-        <CorrectionResults correction={correction} banca={banca} transcription={essay.transcription} onAskQuestion={setPendingQuestion} />
+        <CorrectionResults correction={correction} banca={banca} transcription={essay.transcription} />
       </div>
-      {mine && essay.status === 'completed' && (
-        <CorrectionChat essayId={essay.id} initialQa={essay.qa_history || []} pendingQuestion={pendingQuestion} onPendingConsumed={() => setPendingQuestion(null)} />
+      {mine && essay.status === 'completed' && (essay.qa_history || []).length > 0 && (
+        <QaHistory qa={essay.qa_history || []} />
       )}
     </div>
   );
