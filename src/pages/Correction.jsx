@@ -7,6 +7,7 @@ import UploadArea from '@/components/essay/UploadArea';
 import TranscriptionReview from '@/components/essay/TranscriptionReview';
 import CorrectionProgress from '@/components/essay/CorrectionProgress';
 import CorrectionResults from '@/components/essay/CorrectionResults';
+import CorrectionChat from '@/components/essay/CorrectionChat';
 import { Button } from '@/components/ui/button';
 import { Check, Plus, Info } from 'lucide-react';
 import CorrectorAvatar from '@/components/essay/CorrectorAvatar';
@@ -338,6 +339,10 @@ export default function Correction() {
             <UploadArea onUpload={handleUpload} />
           </div>
         </div>
+      )}
+
+      {phase === 'results' && essayId && (
+        <CorrectionChat essayId={essayId} initialQa={[]} />
       )}
     </div>
   );
