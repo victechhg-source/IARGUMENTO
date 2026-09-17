@@ -5,7 +5,7 @@ import { MessageCircle, X, Send, Loader2 } from 'lucide-react';
 // Tira-dúvidas pós-correção: botão flutuante + painel de chat. O aluno faz
 // até 2 perguntas; o corretor responde lembrando de toda a avaliação.
 // O histórico já salvo na redação é exibido ao abrir (continuidade entre sessões).
-const MAX_QUESTIONS = 2;
+const MAX_QUESTIONS = 3;
 
 export default function CorrectionChat({ essayId, initialQa }) {
   const [open, setOpen] = useState(false);
@@ -65,7 +65,7 @@ export default function CorrectionChat({ essayId, initialQa }) {
           <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto p-4">
             {qa.length === 0 && !loading && (
               <p className="mt-8 px-4 text-center text-sm text-muted-foreground">
-                Tire até 2 dúvidas sobre a correção da sua redação. O corretor responde lembrando de toda a avaliação.
+                Tire até 3 dúvidas sobre a correção da sua redação. O corretor responde de forma direta e didática, lembrando de toda a avaliação.
               </p>
             )}
             {qa.map((m, i) => (
@@ -96,7 +96,7 @@ export default function CorrectionChat({ essayId, initialQa }) {
                 disabled={loading || remaining <= 0}
                 placeholder={remaining <= 0 ? 'Limite de dúvidas atingido' : 'Escreva sua dúvida…'}
                 className="flex-1 rounded-full border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
-                maxLength={500}
+                maxLength={300}
               />
               <button
                 type="button"

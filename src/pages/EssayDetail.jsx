@@ -19,7 +19,7 @@ export default function EssayDetail() {
     Promise.all([base44.entities.Essay.get(id).catch(() => null), base44.auth.me().catch(() => null)])
       .then(([loaded, me]) => {
         setEssay(loaded);
-        if (loaded && me) setMine(loaded.created_by_id === me.id);
+        if (loaded && me) setMine(loaded.created_by_id === me.id || loaded.student_id === me.id);
       })
       .finally(() => setLoading(false));
   }, [id]);

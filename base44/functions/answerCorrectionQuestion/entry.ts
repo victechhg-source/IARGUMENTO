@@ -4,7 +4,7 @@ import { authUserId, isSuspended, ownsEssay, unwrapEntity } from '../../shared/e
 // Limite de dúvidas por redação (economia de tokens). Aplicado server-side:
 // como o update de Essay é admin-only e só a service role escreve qa_history,
 // o cliente não consegue contornar o limite.
-const MAX_QUESTIONS = 2;
+const MAX_QUESTIONS = 3;
 
 // Serializa a correção salva na redação num bloco de contexto para o LLM,
 // de forma banca-agnóstica (funciona para ENEM, FUVEST, UFU, UniRV, etc.).
@@ -55,8 +55,8 @@ export default async function(req: Request): Promise<Response> {
     const question = typeof body.question === 'string' ? body.question.trim() : '';
     if (!essayId) return Response.json({ error: 'essayId é obrigatório.' }, { status: 400 });
     if (!question) return Response.json({ error: 'Escreva uma pergunta.' }, { status: 400 });
-    if (question.length > 500)
-      return Response.json({ error: 'Pergunta muito longa (máx 500 caracteres).' }, { status: 400 });
+    if (question.length > 300)
+      return Response.json({ error: 'Pergunta muito longa (máx 300 caracteres).' }, { status: 400 });
 
     const essay = unwrapEntity(await base44.asServiceRole.entities.Essay.get(essayId));
     // Admin pode tirar dúvidas de qualquer redação (auditoria/teste); alunos só das suas.
@@ -70,7 +70,7 @@ export default async function(req: Request): Promise<Response> {
 
     const qaHistory: any[] = Array.isArray(essay.qa_history) ? essay.qa_history : [];
     if (qaHistory.length >= MAX_QUESTIONS)
-      return Response.json({ error: 'Limite de dúvidas atingido (2 por redação).', remaining: 0 }, { status: 429 });
+      return Response.json({ error: `Limite de dúvidas atingido (${MAX_QUESTIONS} por redação).`, remaining: 0 }, { status: 429 });
 
     const correctionContext = serializeCorrection(essay);
     const previousQa = serializeQa(qaHistory);
@@ -81,7 +81,8 @@ REGRAS:
 - Responda APENAS perguntas relacionadas a ESTA redação, à sua correção, aos critérios da banca ${essay.banca} ou à escrita em geral.
 - Se a pergunta NÃO tiver relação com a redação/correção, recuse educadamente e peça ao aluno que reformule a dúvida dentro do tema da redação.
 - Você se lembra de TODOS os parâmetros da correção (notas por critério, erros apontados, sugestões dadas). Baseie-se estritamente neles — não invente notas novas nem re-corrija o que já foi corrigido.
-- Seja didático, claro e conciso (no máximo ~250 palavras).
+- Seja didático, direto e conciso (no máximo ~150 palavras). Vá direto ao ponto, sem introduções longas ou rodeios.
+- A DIDÁTICA é o fator mais importante: explique o PORQUÊ de cada ponto, não apenas liste o quê. Use exemplos curtos e concretos da própria redação do aluno.
 - Mantenha o tom de um professor que quer ajudar o aluno a evoluir.
 
 CONTEXTO DA CORREÇÃO:
