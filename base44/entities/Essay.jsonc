@@ -259,6 +259,33 @@
         }
       }
     },
+    "qa_history": {
+      "type": "array",
+      "description": "Tira-d\u00favidas p\u00f3s-corre\u00e7\u00e3o (m\u00e1x 2 por reda\u00e7\u00e3o, controlado por answerCorrectionQuestion).",
+      "items": {
+        "type": "object",
+        "properties": {
+          "question": {
+            "type": "string"
+          },
+          "answer": {
+            "type": "string"
+          },
+          "created_date": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "rls": {
+        "read": true,
+        "write": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
+    },
     "student_id": {
       "type": "string",
       "description": "Aluno dono gravado pelo servidor. Espelha created_by_id quando o create via service role n\u00e3o carimba o aluno."

@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { BANCAS } from '@/data/bancas';
 import CorrectionResults from '@/components/essay/CorrectionResults';
+import CorrectionChat from '@/components/essay/CorrectionChat';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ArrowLeft, PenLine, Download } from 'lucide-react';
@@ -125,6 +126,9 @@ export default function EssayDetail() {
         ) : null}
         <CorrectionResults correction={correction} banca={banca} transcription={essay.transcription} />
       </div>
+      {mine && essay.status === 'completed' && (
+        <CorrectionChat essayId={essay.id} initialQa={essay.qa_history || []} />
+      )}
     </div>
   );
 }
