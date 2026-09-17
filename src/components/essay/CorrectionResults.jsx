@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Check, AlertTriangle, XCircle, Youtube, Lightbulb, BookOpen, GraduationCap, Star, ArrowUp, Sparkles } from 'lucide-react';
+import { Check, AlertTriangle, XCircle, Youtube, Lightbulb, BookOpen, GraduationCap, Star, ArrowUp, Sparkles, MessageCircle } from 'lucide-react';
 import buildAnnotatedText from './buildAnnotatedText';
 
 const FINDING_TYPE_LABEL = { correct: 'Acerto', warning: 'Atenção', error: 'Erro' };
@@ -82,7 +82,16 @@ function parseAnnotatedText(text) {
   return parts;
 }
 
-export default function CorrectionResults({ correction, banca, transcription }) {
+function buildFindingQuestion(stage, f) {
+  const label = FINDING_TYPE_LABEL[f.type] || 'Observação';
+  const excerpt = f.excerpt ? `"${f.excerpt}"` : 'trecho';
+  const expl = f.explanation ? f.explanation : '';
+  const sug = f.suggestion ? ` Sugestão dada: ${f.suggestion}.` : '';
+  const q = `Sobre o apontamento (${label}) em "${stage.stage}" — trecho ${excerpt}: ${expl}${sug} Pode explicar melhor e dar um exemplo prático de como melhorar?`;
+  return q.slice(0, 300);
+}
+
+export default function CorrectionResults({ correction, banca, transcription, onAskQuestion }) {
   // IDs determinísticos e únicos por competência — garante grifo e card
   // "Ver no texto" sempre apontem para a mesma observação, inclusive em
   // redações antigas em que os findings vieram sem id do backend.
@@ -266,11 +275,18 @@ export default function CorrectionResults({ correction, banca, transcription }) 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
                         <p className="text-sm font-medium mb-1 italic text-foreground/90">"{f.excerpt}"</p>
-                        {f.id && (
-                          <button type="button" onClick={() => focusEl(`hl-${f.id}`)} className="inline-flex items-center gap-1 text-xs text-primary hover:underline flex-shrink-0">
-                            <ArrowUp className="w-3.5 h-3.5" /> Ver no texto
-                          </button>
-                        )}
+                        <div className="flex flex-shrink-0 items-center gap-2">
+                          {f.id && (
+                            <button type="button" onClick={() => focusEl(`hl-${f.id}`)} className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+                              <ArrowUp className="w-3.5 h-3.5" /> Ver no texto
+                            </button>
+                          )}
+                          {onAskQuestion && (
+                            <button type="button" onClick={() => onAskQuestion(buildFindingQuestion(stage, f))} className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+                              <MessageCircle className="w-3.5 h-3.5" /> Tirar dúvida
+                            </button>
+                          )}
+                        </div>
                       </div>
                       <p className="text-sm text-foreground/70 mb-1">{f.explanation}</p>
                       {f.suggestion && (

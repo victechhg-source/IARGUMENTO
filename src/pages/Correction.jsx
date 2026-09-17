@@ -40,6 +40,7 @@ export default function Correction() {
   const [essayId, setEssayId] = useState(null);
   const [hasApprovedClass, setHasApprovedClass] = useState(true);
   const [confirming, setConfirming] = useState(false);
+  const [pendingQuestion, setPendingQuestion] = useState(null);
 
   const scrollRef = useRef(null);
   // Trava anti-duplo-disparo: impede correções concorrentes (retomada
@@ -319,7 +320,7 @@ export default function Correction() {
                     <p>Sua correção está salva no seu histórico. O professor só verá depois que sua entrada na turma for aprovada.</p>
                   </div>
                 )}
-                <CorrectionResults correction={correction} banca={banca} transcription={transcription} />
+                <CorrectionResults correction={correction} banca={banca} transcription={transcription} onAskQuestion={setPendingQuestion} />
                 <div className="mt-4">
                   <Button className="w-full" onClick={() => navigate('/nova-redacao')}>
                     <Plus className="w-4 h-4 mr-2" />
@@ -342,7 +343,7 @@ export default function Correction() {
       )}
 
       {phase === 'results' && essayId && (
-        <CorrectionChat essayId={essayId} initialQa={[]} />
+        <CorrectionChat essayId={essayId} initialQa={[]} pendingQuestion={pendingQuestion} onPendingConsumed={() => setPendingQuestion(null)} />
       )}
     </div>
   );

@@ -13,6 +13,7 @@ export default function EssayDetail() {
   const { id } = useParams();
   const [essay, setEssay] = useState(null);
   const [mine, setMine] = useState(false);
+  const [pendingQuestion, setPendingQuestion] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -124,10 +125,10 @@ export default function EssayDetail() {
             <p className="text-sm whitespace-pre-wrap">{essay.teacher_note}</p>
           </Card>
         ) : null}
-        <CorrectionResults correction={correction} banca={banca} transcription={essay.transcription} />
+        <CorrectionResults correction={correction} banca={banca} transcription={essay.transcription} onAskQuestion={setPendingQuestion} />
       </div>
       {mine && essay.status === 'completed' && (
-        <CorrectionChat essayId={essay.id} initialQa={essay.qa_history || []} />
+        <CorrectionChat essayId={essay.id} initialQa={essay.qa_history || []} pendingQuestion={pendingQuestion} onPendingConsumed={() => setPendingQuestion(null)} />
       )}
     </div>
   );

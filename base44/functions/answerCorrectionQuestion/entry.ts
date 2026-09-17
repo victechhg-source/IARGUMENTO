@@ -4,7 +4,7 @@ import { authUserId, isSuspended, ownsEssay, unwrapEntity } from '../../shared/e
 // Limite de dúvidas por redação (economia de tokens). Aplicado server-side:
 // como o update de Essay é admin-only e só a service role escreve qa_history,
 // o cliente não consegue contornar o limite.
-const MAX_QUESTIONS = 3;
+const MAX_QUESTIONS = 4;
 
 // Serializa a correção salva na redação num bloco de contexto para o LLM,
 // de forma banca-agnóstica (funciona para ENEM, FUVEST, UFU, UniRV, etc.).
