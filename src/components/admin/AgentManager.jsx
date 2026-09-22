@@ -3,18 +3,26 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Plus, Loader2, Cpu } from 'lucide-react';
-import { OCR_AGENT, BANCA_ARCHITECTURES } from '@/data/agentArchitectures';
+import { OCR_AGENT, BANCA_ARCHITECTURES, PLANNER_AGENT } from '@/data/agentArchitectures';
 import AgentDetail from '@/components/admin/AgentDetail';
+import PlannerAgentDetail from '@/components/admin/PlannerAgentDetail';
 
-// Lista todos os agentes do sistema: OCR (fixo) + agentes do banco por banca.
-// Novos agentes adicionados ao banco aparecem automaticamente aqui.
+// Lista todos os agentes do sistema: OCR (fixo) + planejador de estudos +
+// agentes do banco por banca. Novos agentes adicionados ao banco aparecem
+// automaticamente aqui.
 export default function AgentManager() {
   const [agents, setAgents] = useState(null);
+  const [planners, setPlanners] = useState(null);
   const [selectedKey, setSelectedKey] = useState(OCR_AGENT.id);
 
   const load = async () => {
     const list = await base44.entities.CorrectionAgent.list('-updated_date');
     setAgents(list);
+    try {
+      setPlanners(await base44.entities.PlannerAgent.list('-updated_date'));
+    } catch {
+      setPlanners([]);
+    }
   };
 
   useEffect(() => { load(); }, []);
@@ -45,6 +53,23 @@ export default function AgentManager() {
           <span className="text-xs text-muted-foreground">Sistema · fixo</span>
         </button>
         <div className="my-2 border-t border-border" />
+        {planners && (
+          <>
+            <p className="px-3 pb-1 pt-1 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Planejamento</p>
+            {(planners || []).map((p) => (
+              <button key={p.id} onClick={() => choose(p.id)} className={`w-full text-left p-3 rounded-lg cursor-pointer hover:bg-muted ${selectedKey === p.id ? 'bg-muted' : ''}`}>
+                <span className="font-medium block">{p.name}</span>
+                <span className="text-xs text-muted-foreground">Planejador · v{p.version || 1}{p.active ? ' · Ativo' : p.status === 'ready' ? ' · Pronto' : ' · Rascunho'}</span>
+              </button>
+            ))}
+            <button onClick={() => choose('new-planner')} className={`w-full text-left p-3 rounded-lg cursor-pointer hover:bg-muted ${selectedKey === 'new-planner' ? 'bg-muted' : ''}`}>
+              <span className="font-medium block">Novo planejador</span>
+              <span className="text-xs text-muted-foreground">criar agente de estudos</span>
+            </button>
+            <div className="my-2 border-t border-border" />
+            <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Correção por banca</p>
+          </>
+        )}
         {agents.map((a) => (
           <button key={a.id} onClick={() => choose(a.id)} className={`w-full text-left p-3 rounded-lg cursor-pointer hover:bg-muted ${selectedKey === a.id ? 'bg-muted' : ''}`}>
             <span className="font-medium block">{a.name}</span>
@@ -62,8 +87,12 @@ export default function AgentManager() {
       <div className="space-y-4">
         {selectedKey === 'new' ? (
           <AgentDetail agent={null} onChanged={load} />
+        ) : selectedKey === 'new-planner' ? (
+          <PlannerAgentDetail agent={null} onChanged={load} />
         ) : selectedKey?.startsWith('new-') ? (
           <AgentDetail agent={{ banca: selectedKey.slice(4) }} onChanged={load} />
+        ) : planners?.some((p) => p.id === selectedKey) ? (
+          <PlannerAgentDetail agent={planners.find((p) => p.id === selectedKey)} onChanged={load} />
         ) : (
           <AgentDetail agent={selectedAgent} onChanged={load} />
         )}

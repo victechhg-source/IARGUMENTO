@@ -47,6 +47,26 @@ export const OCR_AGENT = {
   ],
 };
 
+// Agente de planejamento de estudos (não é atrelado a uma banca — é o
+// "Planejador de Estudos", que monta a rotina semanal do aluno a partir das
+// correções das redações). Vive na entidade PlannerAgent (admin-managed).
+export const PLANNER_AGENT = {
+  id: '__planner__',
+  name: 'Planejador de Estudos',
+  banca: 'PLANNER',
+  fixed: false,
+  editable: true,
+  model: 'automatic',
+  maxGrade: null,
+  architecture:
+    'Agente de organização de estudos. Recebe preferências (coletadas por botões na interface) + matérias derivadas das correções das redações do aluno (prioridade alta p/ erro recorrente, baixa p/ acerto) e devolve um cronograma semanal estruturado em JSON, aplicando prática espaçada, intercalação, recuperação ativa e ordenação por energia.',
+  specialists: [
+    { name: 'Entrevistador (UI)', role: 'Coleta preferências por botões de opções fixas na interface.' },
+    { name: 'Especialista em cognição', role: 'Aplica prática espaçada, intercalação e recuperação ativa.' },
+    { name: 'Planejador', role: 'Monta o cronograma semanal em JSON (dias × sessões).' },
+  ],
+};
+
 export const BANCA_ARCHITECTURES = {
   ENEM: {
     fixed: true,

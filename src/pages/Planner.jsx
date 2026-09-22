@@ -1,0 +1,139 @@
+import React, { useEffect, useMemo, useState } from 'react';
+import { base44 } from '@/api/base44Client';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Loader2, Sparkles, ChevronRight, RefreshCw, CalendarRange, ListChecks } from 'lucide-react';
+import { deriveStudySubjects } from '@/lib/studySubjects';
+import SubjectCards from '@/components/planner/SubjectCards';
+import PlannerPreferences from '@/components/planner/PlannerPreferences';
+import WeeklyPlanGrid from '@/components/planner/WeeklyPlanGrid';
+import PlanSummary from '@/components/planner/PlanSummary';
+
+const STEPS = ['Perfil', 'Preferências', 'Plano'];
+
+export default function Planner() {
+  const [essays, setEssays] = useState(null);
+  const [step, setStep] = useState(0);
+  const [selected, setSelected] = useState(new Set());
+  const [prefs, setPrefs] = useState({ hoursPerDay: 2, daysPerWeek: 5, sessionsPerDay: 3, minutesPerSession: 35, peakTime: 'Manhã', days: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex'] });
+  const [plan, setPlan] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    base44.entities.Essay.filter({ status: 'completed' }, '-created_date', 100)
+      .then(setEssays)
+      .catch(() => setEssays([]));
+  }, []);
+
+  const subjects = useMemo(() => deriveStudySubjects(essays || []), [essays]);
+
+  // Pré-seleciona matérias de prioridade alta e média.
+  useEffect(() => {
+    if (subjects.length && selected.size === 0) {
+      const pre = new Set(subjects.filter((s) => s.priority !== 'baixa').map((s) => s.name));
+      setSelected(pre);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [subjects]);
+
+  const toggle = (name) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      next.has(name) ? next.delete(name) : next.add(name);
+      return next;
+    });
+  };
+
+  const generate = async () => {
+    setError('');
+    setLoading(true);
+    setPlan(null);
+    try {
+      const res = await base44.functions.invoke('generateStudyPlan', {
+        preferences: prefs,
+        selectedSubjectNames: [...selected],
+      });
+      const data = res?.data || res;
+      if (data?.error) throw new Error(data.error);
+      setPlan(data.plan);
+      setStep(2);
+    } catch (e) {
+      setError(e?.message || 'Erro ao gerar o plano.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (essays === null) {
+    return (
+      <div className="flex items-center justify-center py-24">
+        <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="mx-auto max-w-5xl px-4 py-6 space-y-5">
+      <div>
+        <p className="text-[11px] font-semibold uppercase tracking-widest text-primary">IArgumento</p>
+        <h1 className="font-display text-xl font-extrabold tracking-tight flex items-center gap-2"><Sparkles className="w-5 h-5 text-primary" /> Planner de estudos</h1>
+        <p className="text-sm text-muted-foreground mt-1">Monte sua rotina semanal com base nas suas redações. O agente prioriza o que você mais erra.</p>
+      </div>
+
+      {step < 2 && (
+        <div className="flex items-center gap-2 text-xs font-semibold">
+          {STEPS.slice(0, 2).map((s, i) => (
+            <span key={s} className={`rounded-full px-3 py-1 ${step === i ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>{i + 1}. {s}</span>
+          ))}
+        </div>
+      )}
+
+      {step === 0 && (
+        <div className="space-y-4">
+          <Card className="p-5">
+            <h2 className="font-semibold text-sm flex items-center gap-2 mb-3"><CalendarRange className="w-4 h-4 text-primary" /> Suas matérias (das redações corrigidas)</h2>
+            <p className="text-xs text-muted-foreground mb-4">Selecione o que quer incluir. Prioridade alta = mais erros; baixa = revisão leve.</p>
+            <SubjectCards subjects={subjects} selected={selected} onToggle={toggle} />
+          </Card>
+          <div className="flex justify-end">
+            <Button disabled={!selected.size} onClick={() => setStep(1)}>Continuar <ChevronRight className="w-4 h-4" /></Button>
+          </div>
+        </div>
+      )}
+
+      {step === 1 && (
+        <div className="space-y-4">
+          <Card className="p-5 space-y-1">
+            <h2 className="font-semibold text-sm flex items-center gap-2"><ListChecks className="w-4 h-4 text-primary" /> Preferências de estudo</h2>
+            <p className="text-xs text-muted-foreground">Toque nas opções para montar sua rotina.</p>
+          </Card>
+          <PlannerPreferences prefs={prefs} setPrefs={setPrefs} />
+          {error && <p className="text-sm text-destructive">{error}</p>}
+          <div className="flex justify-between">
+            <Button variant="outline" onClick={() => setStep(0)}>Voltar</Button>
+            <Button onClick={generate} disabled={loading || !selected.size}>
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+              {loading ? 'Montando seu plano…' : 'Gerar plano'}
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {step === 2 && plan && (
+        <div className="space-y-5">
+          <PlanSummary plan={plan} />
+          <div>
+            <h2 className="font-semibold text-sm mb-3 flex items-center gap-2"><CalendarRange className="w-4 h-4 text-primary" /> Cronograma da semana</h2>
+            <WeeklyPlanGrid days={plan.days} />
+          </div>
+          {error && <p className="text-sm text-destructive">{error}</p>}
+          <div className="flex justify-between">
+            <Button variant="outline" onClick={() => setStep(1)}><RefreshCw className="w-4 h-4" /> Ajustar preferências</Button>
+            <Button onClick={generate} disabled={loading}>{loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />} {loading ? 'Remontando…' : 'Gerar novamente'}</Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
