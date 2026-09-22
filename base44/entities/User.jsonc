@@ -1,5 +1,3 @@
-// Papel e escola: FLS write admin-only + entidade AccountGrant.
-// completeSignup/adminUpdateAccount gravam via service role, não via updateMe.
 {
   "name": "User",
   "type": "object",
@@ -55,6 +53,31 @@
     "display_name": {
       "type": "string",
       "description": "Nome completo do usu\u00e1rio (full_name \u00e9 read-only no sistema)"
+    },
+    "planner_plan": {
+      "type": "object",
+      "description": "Plano de estudos ativo do aluno (gerado pelo Planejador). Persiste at\u00e9 ele criar outro.",
+      "properties": {
+        "plan": {
+          "type": "object"
+        },
+        "peakTime": {
+          "type": "string"
+        },
+        "subjects": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "rls": {
+        "read": true
+      }
     },
     "registered_id": {
       "type": "string",

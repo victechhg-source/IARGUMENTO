@@ -59,10 +59,10 @@ export default function PlannerPreferences({ prefs, setPrefs }) {
         <Field icon={Clock} label="Horas por dia">
           <ChipGroup options={HOURS} value={prefs.hoursPerDay} onSelect={set('hoursPerDay')} suffix="h" />
         </Field>
-        <Field icon={Layers} label="Sessões por dia (1 sessão = 1 matéria)">
+        <Field icon={Layers} label="Blocos por dia (1 bloco = 1 matéria)">
           <ChipGroup options={SESSIONS} value={prefs.sessionsPerDay} onSelect={set('sessionsPerDay')} />
         </Field>
-        <Field icon={Timer} label="Minutos por sessão">
+        <Field icon={Timer} label="Minutos por bloco">
           <ChipGroup options={MINUTES} value={prefs.minutesPerSession} onSelect={set('minutesPerSession')} suffix="min" />
         </Field>
         <Field icon={CalendarDays} label="Dias por semana">
@@ -102,7 +102,7 @@ export default function PlannerPreferences({ prefs, setPrefs }) {
         <Card className="p-4 flex items-start gap-2 border-amber-300 bg-amber-50">
           <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" />
           <p className="text-sm text-amber-800">
-            {needMin} min de estudo ({prefs.sessionsPerDay} sessões × {prefs.minutesPerSession} min) excedem as {studyMin} min ({prefs.hoursPerDay}h) por dia. O agente vai ajustar automaticamente e explicar a mudança.
+            {needMin} min de estudo ({prefs.sessionsPerDay} blocos × {prefs.minutesPerSession} min) excedem as {studyMin} min ({prefs.hoursPerDay}h) por dia. O agente vai ajustar automaticamente e explicar a mudança.
           </p>
         </Card>
       )}

@@ -17,6 +17,7 @@ export default function Planner() {
   const [box, setBox] = useState([]);
   const [prefs, setPrefs] = useState({ hoursPerDay: 2, daysPerWeek: 5, sessionsPerDay: 3, minutesPerSession: 35, peakTime: 'Manhã', days: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex'] });
   const [plan, setPlan] = useState(null);
+  const [planMeta, setPlanMeta] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -24,9 +25,24 @@ export default function Planner() {
     base44.entities.Essay.filter({ status: 'completed' }, '-created_date', 100)
       .then(setEssays)
       .catch(() => setEssays([]));
+    base44.auth.me()
+      .then((me) => {
+        const saved = me?.planner_plan;
+        if (saved?.plan) {
+          setPlan(saved.plan);
+          setPlanMeta({ peakTime: saved.peakTime, subjects: saved.subjects, createdAt: saved.createdAt });
+          setStep(2);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   const subjects = useMemo(() => deriveStudySubjects(essays || []), [essays]);
+  const subjectBanca = useMemo(() => {
+    const m = {};
+    (planMeta?.subjects || []).forEach((s) => { m[s.name] = (s.bancas && s.bancas[0]) || ''; });
+    return m;
+  }, [planMeta]);
 
   // Pré-popula a caixa com as matérias sugeridas pelo planejador (foco,
   // reforço e revisão) — o aluno não começa do zero e não esquece revisões.
@@ -38,6 +54,7 @@ export default function Planner() {
   }, [subjects]);
 
   const generate = async () => {
+    if (plan && !window.confirm('Você já tem um plano ativo. Criar um novo vai sobrescrevê-lo. Continuar?')) return;
     setError('');
     setLoading(true);
     setPlan(null);
@@ -48,7 +65,10 @@ export default function Planner() {
       });
       const data = res?.data || res;
       if (data?.error) throw new Error(data.error);
+      const meta = { peakTime: prefs.peakTime, subjects: data.subjects, createdAt: new Date().toISOString() };
+      await base44.auth.updateMe({ planner_plan: { plan: data.plan, ...meta } });
       setPlan(data.plan);
+      setPlanMeta(meta);
       setStep(2);
     } catch (e) {
       setError(e?.message || 'Erro ao gerar o plano.');
@@ -114,10 +134,13 @@ export default function Planner() {
 
       {step === 2 && plan && (
         <div className="space-y-5">
+          {planMeta?.createdAt && (
+            <p className="text-xs text-muted-foreground">Plano ativo · gerado em {new Date(planMeta.createdAt).toLocaleDateString('pt-BR')}.</p>
+          )}
           <PlanSummary plan={plan} />
           <div>
             <h2 className="font-semibold text-sm mb-3 flex items-center gap-2"><CalendarRange className="w-4 h-4 text-primary" /> Cronograma da semana</h2>
-            <WeeklyPlanGrid days={plan.days} />
+            <WeeklyPlanGrid days={plan.days} peakTime={planMeta?.peakTime} subjectBanca={subjectBanca} />
           </div>
           {error && <p className="text-sm text-destructive">{error}</p>}
           <div className="flex justify-between">
