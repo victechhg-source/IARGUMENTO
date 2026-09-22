@@ -137,6 +137,7 @@ Responda em português, de forma direta e didática.`;
       remaining: Math.max(0, MAX_QUESTIONS - updatedQa.length),
     });
   } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error('[answerCorrectionQuestion]', error);
+    return Response.json({ error: 'Erro interno.' }, { status: 500 });
   }
 }
