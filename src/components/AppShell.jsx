@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, Outlet } from 'react-router-dom';
+import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
 import { homePathFor } from '@/lib/roles';
 import AuthNav from '@/components/account/AuthNav';
@@ -11,10 +11,14 @@ import PendingJoinBadge from '@/components/teacher/PendingJoinBadge';
 // Logo → home do papel; links por papel; AuthNav à direita.
 export default function AppShell() {
   const { user } = useAuth();
+  const location = useLocation();
   const role = user?.role === 'admin' ? 'admin' : (user?.account_type || 'student');
+  // Na tela inicial o hub já é a navegação — o cabeçalho fica oculto lá.
+  const isHome = location.pathname === '/inicio';
 
   return (
     <div className="min-h-screen bg-background text-foreground">
+      {!isHome && (
       <header className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3">
           <Link to={homePathFor(user)} className="flex items-center gap-2 shrink-0" aria-label="IArgumento — início">
@@ -43,6 +47,7 @@ export default function AppShell() {
           </nav>
         </div>
       </header>
+      )}
       <Outlet />
     </div>
   );
