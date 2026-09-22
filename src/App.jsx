@@ -36,6 +36,7 @@ import Account from '@/pages/Account';
 import EscolherBanca from '@/pages/EscolherBanca';
 import GuiaBancas from '@/pages/GuiaBancas';
 import Planner from '@/pages/Planner';
+import StudentHome from '@/pages/StudentHome';
 import { homePathFor } from '@/lib/roles';
 
 // Aliases legados: redireciona preservando a query string (ex.: ?banca=&essay=).
@@ -94,6 +95,7 @@ const AuthenticatedApp = () => {
             <Route path="/exam-guides" element={<GuiaBancas />} />
             {/* Aluno */}
             <Route element={<RoleRoute allow={['student']} />}>
+              <Route path="/inicio" element={<StudentHome />} />
               <Route path="/planner" element={<Planner />} />
               <Route path="/nova-redacao" element={<EscolherBanca />} />
               <Route path="/correcao" element={<Correction />} />
