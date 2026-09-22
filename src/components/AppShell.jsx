@@ -4,7 +4,7 @@ import { useAuth } from '@/lib/AuthContext';
 import { homePathFor } from '@/lib/roles';
 import AuthNav from '@/components/account/AuthNav';
 import { Image } from '@/components/ui/image';
-import { Users, Building2, Shield, History, Plus, User, BookMarked, CalendarRange } from 'lucide-react';
+import { Users, Building2, Shield, User } from 'lucide-react';
 import PendingJoinBadge from '@/components/teacher/PendingJoinBadge';
 
 // Shell autenticado: header global em TODAS as páginas protegidas.
@@ -22,14 +22,6 @@ export default function AppShell() {
             <span className="font-display font-extrabold tracking-tight text-[#E9861A] text-lg leading-none">IArgumento</span>
           </Link>
           <nav className="flex items-center gap-1 ml-auto" aria-label="Navegação principal">
-            {role === 'student' && (
-              <>
-                <Link to="/nova-redacao" className="kinetic-link"><Plus className="w-4 h-4" />Nova redação</Link>
-                <Link to="/historico" className="kinetic-link"><History className="w-4 h-4" />Progresso</Link>
-                <Link to="/planner" className="kinetic-link"><CalendarRange className="w-4 h-4" />Planner</Link>
-                <Link to="/exam-guides" className="kinetic-link"><BookMarked className="w-4 h-4" />Bancas</Link>
-              </>
-            )}
             {role === 'teacher' && (
               <>
                 <Link to="/professor" className="kinetic-link"><Users className="w-4 h-4" />Turmas</Link>

@@ -1,78 +1,81 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { Card } from '@/components/ui/card';
-import { Plus, CalendarRange, BookMarked, History, ArrowRight, Sparkles } from 'lucide-react';
-import { BANCAS } from '@/data/bancas';
+import { Plus, CalendarRange, BookMarked, History, ArrowUpRight } from 'lucide-react';
 
+// Tela inicial do aluno: bento arrojado com 4 blocos gigantes em degradê laranja.
 const TOOLS = [
-  { to: '/nova-redacao', icon: Plus, title: 'Nova redação', desc: 'Envie uma redação e receba a correção completa da banca escolhida.', accent: 'bg-primary text-primary-foreground' },
-  { to: '/planner', icon: CalendarRange, title: 'Planner de estudos', desc: 'Monte sua rotina semanal com base nos seus erros.', accent: 'bg-chart-2 text-white' },
-  { to: '/exam-guides', icon: BookMarked, title: 'Bancas', desc: 'Consulte critérios e a arquitetura de correção de cada banca.', accent: 'bg-chart-3 text-white' },
-  { to: '/historico', icon: History, title: 'Histórico', desc: 'Revise suas redações, notas e evolução por banca.', accent: 'bg-chart-5 text-white' },
+  {
+    to: '/nova-redacao',
+    icon: Plus,
+    title: 'Nova redação',
+    subtitle: 'Envie e receba a correção da banca',
+    gradient: 'linear-gradient(135deg, #F59E0B 0%, #E9861A 55%, #B45309 100%)',
+  },
+  {
+    to: '/planner',
+    icon: CalendarRange,
+    title: 'Planner',
+    subtitle: 'Monte sua rotina de estudos',
+    gradient: 'linear-gradient(135deg, #FB923C 0%, #EA580C 100%)',
+  },
+  {
+    to: '/exam-guides',
+    icon: BookMarked,
+    title: 'Bancas',
+    subtitle: 'Critérios e arquitetura de correção',
+    gradient: 'linear-gradient(135deg, #E9861A 0%, #9A3412 100%)',
+  },
+  {
+    to: '/historico',
+    icon: History,
+    title: 'Histórico',
+    subtitle: 'Suas redações, notas e evolução',
+    gradient: 'linear-gradient(135deg, #F59E0B 0%, #C2410C 100%)',
+  },
 ];
 
-// Tela inicial do aluno: convidativa, com grandes botões para as ferramentas.
 export default function StudentHome() {
-  const [me, setMe] = useState(null);
-  const [hasPlan, setHasPlan] = useState(false);
+  const [firstName, setFirstName] = useState('');
 
   useEffect(() => {
     base44.auth.me()
-      .then((u) => { setMe(u); if (u?.planner_plan?.plan) setHasPlan(true); })
+      .then((u) => setFirstName((u?.display_name || u?.full_name || '').split(' ')[0]))
       .catch(() => {});
   }, []);
 
-  const firstName = (me?.display_name || me?.full_name || '').split(' ')[0];
-
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 space-y-8">
-      <section>
-        <p className="text-[11px] font-semibold uppercase tracking-widest text-primary">IArgumento</p>
-        <h1 className="font-display text-2xl sm:text-3xl font-extrabold tracking-tight">{firstName ? `Olá, ${firstName}` : 'Bem-vindo'}</h1>
-        <p className="text-sm text-muted-foreground mt-1 max-w-xl">Pronto para evoluir sua redação? Escolha por onde começar.</p>
-      </section>
+    <div className="flex min-h-[calc(100vh-65px)] flex-col gap-3 px-4 pt-5 pb-4 sm:px-6">
+      <div className="flex items-end justify-between">
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-primary">IArgumento</p>
+          <h1 className="font-display text-xl font-extrabold tracking-tight">
+            {firstName ? `Olá, ${firstName}` : 'Bem-vindo'}
+          </h1>
+        </div>
+        <p className="hidden sm:block text-xs text-muted-foreground">Escolha por onde começar</p>
+      </div>
 
-      {hasPlan && (
-        <Link to="/planner" className="block">
-          <Card className="p-5 flex items-center gap-3 border-primary/30 bg-accent/40 hover:shadow-md transition-shadow">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-primary-foreground"><Sparkles className="w-5 h-5" /></div>
-            <div className="flex-1">
-              <p className="font-semibold text-sm">Você tem um plano de estudos ativo</p>
-              <p className="text-xs text-muted-foreground">Continue de onde parou no planner.</p>
+      <div className="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-2 sm:grid-rows-2">
+        {TOOLS.map((t) => (
+          <Link
+            key={t.to}
+            to={t.to}
+            className="group relative flex min-h-[190px] flex-col justify-between overflow-hidden rounded-3xl p-7 text-white shadow-md transition-transform duration-300 hover:-translate-y-1 hover:shadow-xl sm:min-h-0"
+            style={{ background: t.gradient }}
+          >
+            <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-2xl transition-transform duration-500 group-hover:scale-125" />
+            <div className="relative flex items-start justify-between">
+              <t.icon className="h-10 w-10" strokeWidth={1.5} />
+              <ArrowUpRight className="h-6 w-6 opacity-0 transition-all duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:opacity-90" strokeWidth={1.75} />
             </div>
-            <ArrowRight className="w-5 h-5 text-primary" />
-          </Card>
-        </Link>
-      )}
-
-      <section>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {TOOLS.map((t) => (
-            <Link key={t.to} to={t.to}>
-              <Card className="group p-6 min-h-44 flex flex-col justify-between hover:-translate-y-1 hover:shadow-lg transition-all">
-                <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${t.accent}`}><t.icon className="w-6 h-6" /></div>
-                <div className="mt-4">
-                  <h2 className="font-display text-lg font-extrabold tracking-tight flex items-center gap-2">
-                    {t.title}
-                    <ArrowRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
-                  </h2>
-                  <p className="mt-1 text-sm text-muted-foreground leading-snug max-w-xs">{t.desc}</p>
-                </div>
-              </Card>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      <section>
-        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">Bancas disponíveis</p>
-        <div className="flex flex-wrap gap-2">
-          {BANCAS.slice(0, 6).map((b) => (
-            <Link key={b.id} to="/exam-guides" className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold hover:border-foreground/30 transition-colors">{b.name}</Link>
-          ))}
-        </div>
-      </section>
+            <div className="relative">
+              <h2 className="font-display text-2xl font-extrabold tracking-tight sm:text-3xl">{t.title}</h2>
+              <p className="mt-1 text-sm text-white/80">{t.subtitle}</p>
+            </div>
+          </Link>
+        ))}
+      </div>
     </div>
   );
 }
