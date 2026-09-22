@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Loader2, Sparkles, ChevronRight, RefreshCw, CalendarRange, ListChecks } from 'lucide-react';
 import { deriveStudySubjects } from '@/lib/studySubjects';
-import SubjectCards from '@/components/planner/SubjectCards';
+import SubjectBoard from '@/components/planner/SubjectBoard';
 import PlannerPreferences from '@/components/planner/PlannerPreferences';
 import WeeklyPlanGrid from '@/components/planner/WeeklyPlanGrid';
 import PlanSummary from '@/components/planner/PlanSummary';
@@ -14,7 +14,7 @@ const STEPS = ['Perfil', 'Preferências', 'Plano'];
 export default function Planner() {
   const [essays, setEssays] = useState(null);
   const [step, setStep] = useState(0);
-  const [selected, setSelected] = useState(new Set());
+  const [box, setBox] = useState([]);
   const [prefs, setPrefs] = useState({ hoursPerDay: 2, daysPerWeek: 5, sessionsPerDay: 3, minutesPerSession: 35, peakTime: 'Manhã', days: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex'] });
   const [plan, setPlan] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -28,22 +28,14 @@ export default function Planner() {
 
   const subjects = useMemo(() => deriveStudySubjects(essays || []), [essays]);
 
-  // Pré-seleciona matérias de prioridade alta e média.
+  // Pré-popula a caixa com as matérias sugeridas pelo planejador (foco,
+  // reforço e revisão) — o aluno não começa do zero e não esquece revisões.
   useEffect(() => {
-    if (subjects.length && selected.size === 0) {
-      const pre = new Set(subjects.filter((s) => s.priority !== 'baixa').map((s) => s.name));
-      setSelected(pre);
+    if (subjects.length && box.length === 0) {
+      setBox(subjects.filter((s) => s.suggested).map((s) => s.name));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [subjects]);
-
-  const toggle = (name) => {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      next.has(name) ? next.delete(name) : next.add(name);
-      return next;
-    });
-  };
 
   const generate = async () => {
     setError('');
@@ -52,7 +44,7 @@ export default function Planner() {
     try {
       const res = await base44.functions.invoke('generateStudyPlan', {
         preferences: prefs,
-        selectedSubjectNames: [...selected],
+        selectedSubjectNames: box,
       });
       const data = res?.data || res;
       if (data?.error) throw new Error(data.error);
@@ -92,12 +84,12 @@ export default function Planner() {
       {step === 0 && (
         <div className="space-y-4">
           <Card className="p-5">
-            <h2 className="font-semibold text-sm flex items-center gap-2 mb-3"><CalendarRange className="w-4 h-4 text-primary" /> Suas matérias (das redações corrigidas)</h2>
-            <p className="text-xs text-muted-foreground mb-4">Selecione o que quer incluir. Prioridade alta = mais erros; baixa = revisão leve.</p>
-            <SubjectCards subjects={subjects} selected={selected} onToggle={toggle} />
+            <h2 className="font-semibold text-sm flex items-center gap-2 mb-1"><CalendarRange className="w-4 h-4 text-primary" /> Monte sua caixa de matérias</h2>
+            <p className="text-xs text-muted-foreground mb-4">Arraste as matérias para "Minhas matérias". As marcadas como <span className="font-semibold text-primary">sugeridas</span> já começam na caixa — incluindo revisões, pra você não focar só no que erra mais.</p>
+            <SubjectBoard subjects={subjects} value={box} onChange={setBox} />
           </Card>
           <div className="flex justify-end">
-            <Button disabled={!selected.size} onClick={() => setStep(1)}>Continuar <ChevronRight className="w-4 h-4" /></Button>
+            <Button disabled={!box.length} onClick={() => setStep(1)}>Continuar <ChevronRight className="w-4 h-4" /></Button>
           </div>
         </div>
       )}
@@ -112,7 +104,7 @@ export default function Planner() {
           {error && <p className="text-sm text-destructive">{error}</p>}
           <div className="flex justify-between">
             <Button variant="outline" onClick={() => setStep(0)}>Voltar</Button>
-            <Button onClick={generate} disabled={loading || !selected.size}>
+            <Button onClick={generate} disabled={loading || !box.length}>
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
               {loading ? 'Montando seu plano…' : 'Gerar plano'}
             </Button>

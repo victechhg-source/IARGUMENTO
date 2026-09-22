@@ -41,6 +41,11 @@ export function deriveStudySubjects(essays) {
     if (s.errors >= 2 && ratio >= 0.5) priority = 'alta';
     else if (s.errors >= 1 && ratio >= 0.25) priority = 'media';
     else priority = 'baixa';
+    // Sugestão do planejador: alta=foco, média=reforço. Revisões (baixa) são
+    // marcadas depois (top 2 mais praticadas) para o aluno não esquecê-las.
+    let suggestionTag = null;
+    if (priority === 'alta') suggestionTag = 'Foco';
+    else if (priority === 'media') suggestionTag = 'Reforço';
     return {
       name: s.name,
       essays: s.essays.size,
@@ -49,12 +54,25 @@ export function deriveStudySubjects(essays) {
       corrects: s.corrects,
       warnings: s.warnings,
       priority,
+      suggested: !!suggestionTag,
+      suggestionTag,
       suggestions: s.suggestions.slice(0, 4),
     };
   });
 
   const order = { alta: 0, media: 1, baixa: 2 };
   subjects.sort((a, b) => order[a.priority] - order[b.priority] || b.errors - a.errors);
+
+  // Sugere até 2 matérias de revisão (prioridade baixa) — as mais praticadas —
+  // para garantir que revisões entrem no plano, não só os focos de erro.
+  const baixa = subjects
+    .filter((s) => s.priority === 'baixa')
+    .sort((a, b) => b.essays - a.essays || b.warnings - a.warnings);
+  baixa.slice(0, 2).forEach((s) => {
+    s.suggested = true;
+    s.suggestionTag = 'Revisão';
+  });
+
   return subjects;
 }
 
@@ -62,4 +80,12 @@ export const PRIORITY_META = {
   alta: { label: 'Prioridade alta', tone: 'text-primary', chip: 'bg-primary text-primary-foreground', desc: 'Mais erros — foco principal' },
   media: { label: 'Prioridade média', tone: 'text-chart-2', chip: 'bg-chart-2 text-white', desc: 'Erros pontuais — reforço' },
   baixa: { label: 'Revisão', tone: 'text-muted-foreground', chip: 'bg-muted text-foreground', desc: 'Mais acertos — revisão leve' },
+};
+
+// Suggestion = o que o planejador recomenda incluir. Foco/Reforço vêm dos
+// erros; Revisão é um empurrão para não esquecer matérias já dominadas.
+export const SUGGESTION_META = {
+  Foco: { label: 'Sugerido · foco', chip: 'bg-primary text-primary-foreground' },
+  Reforço: { label: 'Sugerido · reforço', chip: 'bg-accent text-accent-foreground' },
+  Revisão: { label: 'Sugerido · revisão', chip: 'bg-muted text-foreground border border-border' },
 };
