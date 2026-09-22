@@ -12,11 +12,8 @@ export function roleLabel(accountType) {
 // Home de cada papel após login/cadastro.
 export function homePathFor(user) {
   if (!user) return '/login';
-  // Admin sem papel de teste assumido vai para a administração.
-  if (user.role === 'admin' && !user.school_id) return '/admin';
-  if (user.account_type === 'director') return '/diretor';
-  if (user.account_type === 'teacher') return '/professor';
-  if (user.role === 'admin') return '/admin';
+  // A home é o hub central — todas as contas partem dela e alcançam seus
+  // painéis específicos pela aba superior.
   return '/inicio';
 }
 

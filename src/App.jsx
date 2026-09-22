@@ -93,16 +93,14 @@ const AuthenticatedApp = () => {
             <Route element={<AppShell />}>
             <Route path="/conta" element={<Account />} />
             <Route path="/exam-guides" element={<GuiaBancas />} />
-            {/* Aluno */}
-            <Route element={<RoleRoute allow={['student']} />}>
-              <Route path="/inicio" element={<StudentHome />} />
-              <Route path="/planner" element={<Planner />} />
-              <Route path="/nova-redacao" element={<EscolherBanca />} />
-              <Route path="/correcao" element={<Correction />} />
-              <Route path="/historico" element={<Historico />} />
-              <Route path="/historico/:id" element={<EssayDetail />} />
-              <Route path="/minhas-turmas" element={<StudentClasses />} />
-            </Route>
+            {/* Ferramentas centrais — abertas a todas as contas (admin acessa tudo) */}
+            <Route path="/inicio" element={<StudentHome />} />
+            <Route path="/planner" element={<Planner />} />
+            <Route path="/nova-redacao" element={<EscolherBanca />} />
+            <Route path="/correcao" element={<Correction />} />
+            <Route path="/historico" element={<Historico />} />
+            <Route path="/historico/:id" element={<EssayDetail />} />
+            <Route path="/minhas-turmas" element={<StudentClasses />} />
 
             {/* Professor */}
             <Route element={<RoleRoute allow={['teacher']} />}>
