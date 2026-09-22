@@ -4,8 +4,9 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import { Loader2, Save, Check, AlertCircle } from 'lucide-react';
+import { Loader2, Save, Check, AlertCircle, Shield, Users, Building2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import PendingJoinBadge from '@/components/teacher/PendingJoinBadge';
 
 const ROLE_LABEL = { student: 'Aluno', teacher: 'Professor', director: 'Diretor', admin: 'Administrador' };
 
@@ -87,6 +88,20 @@ export default function Account() {
 
   const roleLabel = ROLE_LABEL[me.account_type] || ROLE_LABEL[me.role] || '—';
 
+  const isAdmin = me.role === 'admin';
+  const acct = me.account_type || 'student';
+  const panels = isAdmin
+    ? [
+        { to: '/admin', label: 'Administração', icon: Shield },
+        { to: '/professor', label: 'Painel do professor', icon: Users },
+        { to: '/diretor', label: 'Painel do diretor', icon: Building2 },
+      ]
+    : acct === 'teacher'
+    ? [{ to: '/professor', label: 'Minhas turmas', icon: Users, badge: true }]
+    : acct === 'director'
+    ? [{ to: '/diretor', label: 'Minha escola', icon: Building2 }]
+    : [];
+
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
       <h1 className="font-semibold">Minha conta</h1>
@@ -124,6 +139,24 @@ export default function Account() {
         </div>
         <p className="text-xs text-muted-foreground">A escola e o perfil são definidos pelo código institucional e não podem ser alterados aqui.</p>
       </Card>
+
+      {panels.length > 0 && (
+        <Card className="p-5 space-y-3">
+          <h2 className="font-semibold text-sm">{isAdmin ? 'Painéis' : 'Painel'}</h2>
+          <div className="flex flex-wrap gap-2">
+            {panels.map((p) => (
+              <div key={p.to} className="flex items-center gap-2">
+                <Link to={p.to} className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm font-semibold transition-colors hover:border-primary hover:bg-accent hover:text-accent-foreground">
+                  <p.icon className="w-4 h-4" />
+                  {p.label}
+                </Link>
+                {p.badge && <PendingJoinBadge />}
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground">Acesso aos painéis do seu perfil.</p>
+        </Card>
+      )}
 
       {(me.account_type || 'student') === 'student' && (
         <Card className="p-5 space-y-3">

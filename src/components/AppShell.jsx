@@ -4,17 +4,15 @@ import { useAuth } from '@/lib/AuthContext';
 import { homePathFor } from '@/lib/roles';
 import AuthNav from '@/components/account/AuthNav';
 import { Image } from '@/components/ui/image';
-import { Users, Building2, Shield, User, Home, PenLine, CalendarRange, History, BookMarked } from 'lucide-react';
-import PendingJoinBadge from '@/components/teacher/PendingJoinBadge';
+import { Home, PenLine, CalendarRange, History, BookMarked, User } from 'lucide-react';
 
 // Shell autenticado: header global em TODAS as páginas protegidas.
 // Logo → home do papel; links por papel; AuthNav à direita.
 export default function AppShell() {
   const { user } = useAuth();
   const location = useLocation();
-  const role = user?.role === 'admin' ? 'admin' : (user?.account_type || 'student');
   // Na tela inicial só aparece Conta no canto superior (o hub é a navegação);
-  // nas demais telas, todos os links de seção.
+  // nas demais telas, os links das seções. Painéis por papel ficam na aba Conta.
   const isHome = location.pathname === '/inicio';
 
   return (
@@ -33,22 +31,6 @@ export default function AppShell() {
                 <Link to="/planner" className="kinetic-link"><CalendarRange className="w-4 h-4" />Planner</Link>
                 <Link to="/historico" className="kinetic-link"><History className="w-4 h-4" />Histórico</Link>
                 <Link to="/exam-guides" className="kinetic-link"><BookMarked className="w-4 h-4" />Bancas</Link>
-                {role === 'teacher' && (
-                  <>
-                    <Link to="/professor" className="kinetic-link"><Users className="w-4 h-4" />Turmas</Link>
-                    <PendingJoinBadge />
-                  </>
-                )}
-                {role === 'director' && (
-                  <Link to="/diretor" className="kinetic-link"><Building2 className="w-4 h-4" />Escola</Link>
-                )}
-                {role === 'admin' && (
-                  <>
-                    <Link to="/admin" className="kinetic-link"><Shield className="w-4 h-4" />Administração</Link>
-                    <Link to="/professor" className="kinetic-link"><Users className="w-4 h-4" />Professor</Link>
-                    <Link to="/diretor" className="kinetic-link"><Building2 className="w-4 h-4" />Diretor</Link>
-                  </>
-                )}
               </>
             )}
             <Link to="/conta" className="kinetic-link"><User className="w-4 h-4" />Conta</Link>
